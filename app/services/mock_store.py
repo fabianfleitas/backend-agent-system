@@ -1,12 +1,25 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+import uuid as _uuid
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple
 
 
 def utc_now() -> datetime:
     return datetime.now(tz=timezone.utc)
+
+
+@dataclass
+class User:
+    external_auth_id: str
+    auth_provider: str
+    tipo_usuario: str
+    nombre: Optional[str]
+    apellido: Optional[str]
+    correo: Optional[str]
+    activo: bool
+    fecha_creacion: datetime
 
 
 @dataclass
@@ -33,6 +46,7 @@ class Message:
     tokens_output: Optional[int]
     tiempo_respuesta_ms: Optional[float]
     fecha_envio: datetime
+    audit_id: Optional[str] = None
 
 
 @dataclass
@@ -66,17 +80,28 @@ class DocumentVersion:
     documento_id: int
     numero_version: int
     ruta_archivo: str
-    estado_indexacion: str
+    status: str  # DocumentStatus value
     es_version_activa: bool
     total_chunks: int
+    embedding_model: Optional[str]
     fecha_carga: datetime
-    fecha_indexacion: Optional[datetime]
+    indexed_at: Optional[datetime]
     cargado_por_external_auth_id: str
 
 
 @dataclass
-class AuditLog:
+class Feedback:
     id: int
+    message_id: int
+    rating: int
+    comment: Optional[str]
+    audit_id: str
+    created_at: datetime
+
+
+@dataclass
+class AuditLog:
+    id: str  # UUID as string
     mensaje_id: int
     score_fidelidad: Optional[float]
     score_relevancia: Optional[float]
@@ -92,14 +117,47 @@ class MockStore:
         self._audio_id = 0
         self._document_id = 0
         self._document_version_id = 0
-        self._audit_id = 0
+        self._audit_id_counter = 0
+        self._feedback_id = 0
 
+        self.users: Dict[str, User] = {}  # keyed by external_auth_id
         self.conversations: Dict[int, Conversation] = {}
         self.messages: Dict[int, Message] = {}
         self.audios: Dict[int, AudioInteraction] = {}
         self.documents: Dict[int, Document] = {}
         self.document_versions: Dict[int, DocumentVersion] = {}
-        self.audit_logs: Dict[int, AuditLog] = {}
+        self.audit_logs: Dict[str, AuditLog] = {}  # keyed by UUID string
+        self.feedbacks: Dict[int, Feedback] = {}
+
+    # ── User ──────────────────────────────────────────────
+
+    def get_or_create_user(
+        self,
+        external_auth_id: str,
+        auth_provider: str,
+        tipo_usuario: str,
+        correo: Optional[str] = None,
+    ) -> User:
+        existing = self.users.get(external_auth_id)
+        if existing:
+            return existing
+        user = User(
+            external_auth_id=external_auth_id,
+            auth_provider=auth_provider,
+            tipo_usuario=tipo_usuario,
+            nombre=None,
+            apellido=None,
+            correo=correo,
+            activo=True,
+            fecha_creacion=utc_now(),
+        )
+        self.users[external_auth_id] = user
+        return user
+
+    def list_users(self) -> List[User]:
+        return list(self.users.values())
+
+    # ── Conversation ──────────────────────────────────────
 
     def create_conversation(self, external_auth_id: str, titulo: str) -> Conversation:
         self._conversation_id += 1
@@ -138,6 +196,11 @@ class MockStore:
         conv.ultima_interaccion = utc_now()
         return conv
 
+    def get_message_count(self, conversation_id: int) -> int:
+        return sum(1 for m in self.messages.values() if m.conversacion_id == conversation_id)
+
+    # ── Message ───────────────────────────────────────────
+
     def add_message(
         self,
         conversation_id: int,
@@ -149,6 +212,7 @@ class MockStore:
         tokens_input: Optional[int] = None,
         tokens_output: Optional[int] = None,
         tiempo_respuesta_ms: Optional[float] = None,
+        audit_id: Optional[str] = None,
     ) -> Message:
         self._message_id += 1
         now = utc_now()
@@ -164,11 +228,19 @@ class MockStore:
             tokens_output=tokens_output,
             tiempo_respuesta_ms=tiempo_respuesta_ms,
             fecha_envio=now,
+            audit_id=audit_id,
         )
         self.messages[msg.id] = msg
         conv = self.conversations[conversation_id]
         conv.ultima_interaccion = now
         return msg
+
+    def get_conversation_messages(self, conversation_id: int) -> List[Message]:
+        items = [m for m in self.messages.values() if m.conversacion_id == conversation_id]
+        items.sort(key=lambda m: m.fecha_envio)
+        return items
+
+    # ── Audio ─────────────────────────────────────────────
 
     def add_audio_interaction(
         self,
@@ -194,6 +266,8 @@ class MockStore:
         )
         self.audios[audio.id] = audio
         return audio
+
+    # ── Document ──────────────────────────────────────────
 
     def create_document(
         self,
@@ -243,11 +317,12 @@ class MockStore:
             documento_id=documento_id,
             numero_version=numero_version,
             ruta_archivo=ruta_archivo,
-            estado_indexacion="PENDIENTE",
+            status="PENDING",
             es_version_activa=True,
             total_chunks=0,
+            embedding_model=None,
             fecha_carga=utc_now(),
-            fecha_indexacion=None,
+            indexed_at=None,
             cargado_por_external_auth_id=cargado_por_external_auth_id,
         )
 
@@ -272,21 +347,18 @@ class MockStore:
         for version in self.document_versions.values():
             if documento_id is not None and version.documento_id != documento_id:
                 continue
-            version.estado_indexacion = "INDEXADO"
+            version.status = "READY"
             version.total_chunks = 0
-            version.fecha_indexacion = utc_now()
+            version.indexed_at = utc_now()
             updated += 1
         return updated
 
-    def list_audit_logs(self) -> List[AuditLog]:
-        items = list(self.audit_logs.values())
-        items.sort(key=lambda a: a.fecha_evaluacion, reverse=True)
-        return items
+    # ── Audit ─────────────────────────────────────────────
 
     def add_audit_log(self, mensaje_id: int, observaciones: Optional[str] = None) -> AuditLog:
-        self._audit_id += 1
+        log_id = str(_uuid.uuid4())
         log = AuditLog(
-            id=self._audit_id,
+            id=log_id,
             mensaje_id=mensaje_id,
             score_fidelidad=None,
             score_relevancia=None,
@@ -296,6 +368,74 @@ class MockStore:
         )
         self.audit_logs[log.id] = log
         return log
+
+    def list_audit_logs(self) -> List[AuditLog]:
+        items = list(self.audit_logs.values())
+        items.sort(key=lambda a: a.fecha_evaluacion, reverse=True)
+        return items
+
+    # ── Feedback ──────────────────────────────────────────
+
+    def add_feedback(
+        self,
+        message_id: int,
+        rating: int,
+        comment: Optional[str],
+        audit_id: str,
+    ) -> Feedback:
+        self._feedback_id += 1
+        fb = Feedback(
+            id=self._feedback_id,
+            message_id=message_id,
+            rating=rating,
+            comment=comment,
+            audit_id=audit_id,
+            created_at=utc_now(),
+        )
+        self.feedbacks[fb.id] = fb
+        return fb
+
+    def list_feedbacks(self) -> List[Feedback]:
+        items = list(self.feedbacks.values())
+        items.sort(key=lambda f: f.created_at, reverse=True)
+        return items
+
+    # ── Metrics ───────────────────────────────────────────
+
+    def get_metrics(self) -> dict:
+        all_messages = list(self.messages.values())
+        all_conversations = list(self.conversations.values())
+        all_documents = list(self.documents.values())
+        all_feedbacks = list(self.feedbacks.values())
+        all_audit_logs = list(self.audit_logs.values())
+
+        total_queries = len(all_messages)
+        total_conversations = len(all_conversations)
+        total_documents = len(all_documents)
+        total_feedbacks = len(all_feedbacks)
+
+        response_times = [
+            m.tiempo_respuesta_ms
+            for m in all_messages
+            if m.tiempo_respuesta_ms is not None and m.rol_mensaje == "ASSISTANT"
+        ]
+        avg_response_time = (sum(response_times) / len(response_times)) if response_times else 0.0
+
+        fidelities = [a.score_fidelidad for a in all_audit_logs if a.score_fidelidad is not None]
+        avg_fidelity = (sum(fidelities) / len(fidelities)) if fidelities else 0.0
+
+        relevances = [a.score_relevancia for a in all_audit_logs if a.score_relevancia is not None]
+        avg_relevance = (sum(relevances) / len(relevances)) if relevances else 0.0
+
+        return {
+            "total_queries": total_queries,
+            "total_conversations": total_conversations,
+            "total_documents": total_documents,
+            "total_feedbacks": total_feedbacks,
+            "avg_response_time": round(avg_response_time, 2),
+            "avg_fidelity": round(avg_fidelity, 4),
+            "avg_relevance": round(avg_relevance, 4),
+        }
 
 
 store = MockStore()

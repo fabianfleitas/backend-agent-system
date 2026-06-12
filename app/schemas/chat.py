@@ -1,0 +1,27 @@
+from __future__ import annotations
+
+from typing import List, Optional
+from uuid import UUID
+
+from pydantic import BaseModel, Field
+
+from app.schemas.common import AudioInteractionOut, SourceOut
+
+
+class ChatQueryIn(BaseModel):
+    conversation_id: int
+    message: str = Field(min_length=1)
+
+
+class ChatQueryOut(BaseModel):
+    response: str
+    sources: List[SourceOut] = []
+    audit_id: UUID
+
+
+class ChatVoiceOut(BaseModel):
+    response: str
+    sources: List[SourceOut] = []
+    transcription: str
+    audio_interaction: AudioInteractionOut
+    audit_id: UUID

@@ -1,1 +1,1 @@
-__all__ = ["router"]
+from __future__ import annotations

@@ -4,23 +4,46 @@ import os
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 
 from app.core.config import settings
 from app.core.security import AuthContext, get_auth_context, require_admin
 from app.schemas.admin import (
-    AdminAuditOut,
-    AdminListDocumentsOut,
     AdminReindexIn,
     AdminReindexOut,
     AdminUploadDocumentOut,
 )
-from app.schemas.common import AuditLogOut, DocumentOut, DocumentVersionOut
+from app.schemas.common import (
+    AuditLogOut,
+    DocumentOut,
+    DocumentStatus,
+    DocumentVersionOut,
+    PaginatedResponse,
+    PaginationMeta,
+    UserOut,
+    UserRole,
+)
+from app.schemas.system import MetricsOut
 from app.services.mock_store import store
 from app.utils.files import ensure_dir, safe_join, write_bytes
 
 
 router = APIRouter()
+
+
+def _user_out(u) -> UserOut:
+    return UserOut(
+        external_auth_id=u.external_auth_id,
+        email=u.correo,
+        role=_map_tipo_usuario(u.tipo_usuario),
+        created_at=u.fecha_creacion,
+        updated_at=u.fecha_creacion,
+    )
+
+
+def _map_tipo_usuario(tipo: str) -> UserRole:
+    mapping = {"ADMIN": UserRole.ADMIN, "SECRETARIA": UserRole.STAFF, "ESTUDIANTE": UserRole.STUDENT}
+    return mapping.get(tipo, UserRole.STUDENT)
 
 
 def _doc_out(d, v) -> DocumentOut:
@@ -38,23 +61,25 @@ def _doc_out(d, v) -> DocumentOut:
 
 
 def _version_out(v) -> DocumentVersionOut:
+    status_val = DocumentStatus(v.status) if v.status else DocumentStatus.PENDING
     return DocumentVersionOut(
         id=v.id,
         documento_id=v.documento_id,
         numero_version=v.numero_version,
         ruta_archivo=v.ruta_archivo,
-        estado_indexacion=v.estado_indexacion,
+        status=status_val,
         es_version_activa=v.es_version_activa,
         total_chunks=v.total_chunks,
+        embedding_model=v.embedding_model,
         fecha_carga=v.fecha_carga,
-        fecha_indexacion=v.fecha_indexacion,
+        indexed_at=v.indexed_at,
         cargado_por_external_auth_id=v.cargado_por_external_auth_id,
     )
 
 
 def _audit_out(a) -> AuditLogOut:
     return AuditLogOut(
-        id=a.id,
+        id=uuid.UUID(a.id),
         mensaje_id=a.mensaje_id,
         score_fidelidad=a.score_fidelidad,
         score_relevancia=a.score_relevancia,
@@ -98,11 +123,20 @@ async def upload_document(
     )
 
 
-@router.get("/documents", response_model=AdminListDocumentsOut)
-def list_documents(auth: AuthContext = Depends(get_auth_context)) -> AdminListDocumentsOut:
+@router.get("/documents", response_model=PaginatedResponse[DocumentOut])
+def list_documents(
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    auth: AuthContext = Depends(get_auth_context),
+) -> PaginatedResponse[DocumentOut]:
     require_admin(auth)
     items = store.list_documents()
-    return AdminListDocumentsOut(documents=[_doc_out(d, v) for d, v in items])
+    total = len(items)
+    page = items[offset : offset + limit]
+    return PaginatedResponse[DocumentOut](
+        items=[_doc_out(d, v) for d, v in page],
+        pagination=PaginationMeta(total=total, limit=limit, offset=offset),
+    )
 
 
 @router.post("/reindex", response_model=AdminReindexOut)
@@ -112,8 +146,40 @@ def reindex(payload: AdminReindexIn, auth: AuthContext = Depends(get_auth_contex
     return AdminReindexOut(updated_versions=updated)
 
 
-@router.get("/audit", response_model=AdminAuditOut)
-def get_audit(auth: AuthContext = Depends(get_auth_context)) -> AdminAuditOut:
+@router.get("/audit", response_model=PaginatedResponse[AuditLogOut])
+def get_audit(
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    auth: AuthContext = Depends(get_auth_context),
+) -> PaginatedResponse[AuditLogOut]:
     require_admin(auth)
     logs = store.list_audit_logs()
-    return AdminAuditOut(logs=[_audit_out(a) for a in logs])
+    total = len(logs)
+    page = logs[offset : offset + limit]
+    return PaginatedResponse[AuditLogOut](
+        items=[_audit_out(a) for a in page],
+        pagination=PaginationMeta(total=total, limit=limit, offset=offset),
+    )
+
+
+@router.get("/users", response_model=PaginatedResponse[UserOut])
+def list_users(
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    auth: AuthContext = Depends(get_auth_context),
+) -> PaginatedResponse[UserOut]:
+    require_admin(auth)
+    users = store.list_users()
+    total = len(users)
+    page = users[offset : offset + limit]
+    return PaginatedResponse[UserOut](
+        items=[_user_out(u) for u in page],
+        pagination=PaginationMeta(total=total, limit=limit, offset=offset),
+    )
+
+
+@router.get("/metrics", response_model=MetricsOut)
+def get_metrics(auth: AuthContext = Depends(get_auth_context)) -> MetricsOut:
+    require_admin(auth)
+    data = store.get_metrics()
+    return MetricsOut(**data)

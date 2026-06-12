@@ -3,32 +3,24 @@ from __future__ import annotations
 import os
 import time
 import uuid
-from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 
 from app.core.config import settings
 from app.core.security import AuthContext, get_auth_context
-from app.schemas.common import AudioInteractionOut, ConversationOut, MessageOut
-from app.schemas.student import StudentHistoryOut, StudentQueryIn, StudentQueryOut, StudentVoiceQueryOut
+from app.schemas.chat import ChatQueryIn, ChatQueryOut, ChatVoiceOut
+from app.schemas.common import (
+    AudioInteractionOut,
+    ChatFeedbackIn,
+    ChatFeedbackOut,
+    MessageOut,
+    SourceOut,
+)
 from app.services.mock_store import store
 from app.utils.files import ensure_dir, safe_join, write_bytes
 
-
 router = APIRouter()
-
-
-def _conversation_out(c) -> ConversationOut:
-    return ConversationOut(
-        id=c.id,
-        usuario_external_auth_id=c.usuario_external_auth_id,
-        titulo=c.titulo,
-        oculto_usuario=c.oculto_usuario,
-        estado=c.estado,
-        fecha_inicio=c.fecha_inicio,
-        ultima_interaccion=c.ultima_interaccion,
-    )
 
 
 def _message_out(m) -> MessageOut:
@@ -44,6 +36,7 @@ def _message_out(m) -> MessageOut:
         tokens_output=m.tokens_output,
         tiempo_respuesta_ms=m.tiempo_respuesta_ms,
         fecha_envio=m.fecha_envio,
+        audit_id=uuid.UUID(m.audit_id) if m.audit_id else None,
     )
 
 
@@ -61,29 +54,23 @@ def _audio_out(a) -> AudioInteractionOut:
     )
 
 
-def _get_or_create_conversation(auth: AuthContext, conversation_id: Optional[int]) -> object:
-    if conversation_id is None:
-        titulo = f"Conversación {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}"
-        return store.create_conversation(auth.external_auth_id, titulo=titulo)
-
-    conv = store.get_conversation(conversation_id)
+@router.post("/query", response_model=ChatQueryOut)
+def chat_query(
+    payload: ChatQueryIn,
+    auth: AuthContext = Depends(get_auth_context),
+) -> ChatQueryOut:
+    conv = store.get_conversation(payload.conversation_id)
     if not conv or conv.usuario_external_auth_id != auth.external_auth_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
-    return conv
 
-
-@router.post("/query", response_model=StudentQueryOut)
-def student_query(payload: StudentQueryIn, auth: AuthContext = Depends(get_auth_context)) -> StudentQueryOut:
-    conv = _get_or_create_conversation(auth, payload.conversation_id)
-
-    user_msg = store.add_message(
+    store.add_message(
         conversation_id=conv.id,
         role="USER",
-        content=payload.question,
+        content=payload.message,
     )
 
     start = time.perf_counter()
-    answer = f"MOCK: Recibí tu consulta institucional: {payload.question}"
+    answer = f"MOCK: Recibí tu consulta institucional: {payload.message}"
     elapsed_ms = (time.perf_counter() - start) * 1000.0
 
     assistant_msg = store.add_message(
@@ -93,29 +80,42 @@ def student_query(payload: StudentQueryIn, auth: AuthContext = Depends(get_auth_
         proveedor_ia="OpenRouter",
         modelo_ia="mock",
         temperatura=0.2,
-        tokens_input=len(payload.question.split()),
+        tokens_input=len(payload.message.split()),
         tokens_output=len(answer.split()),
         tiempo_respuesta_ms=elapsed_ms,
     )
 
-    store.add_audit_log(mensaje_id=assistant_msg.id, observaciones="MOCK: sin evaluación automática")
+    audit_log = store.add_audit_log(
+        mensaje_id=assistant_msg.id,
+        observaciones="MOCK: sin evaluación automática",
+    )
+    assistant_msg.audit_id = audit_log.id
 
-    return StudentQueryOut(
-        conversation=_conversation_out(conv),
-        user_message=_message_out(user_msg),
-        assistant_message=_message_out(assistant_msg),
-        answer=answer,
-        rag_documents=[],
+    sources = [
+        SourceOut(
+            document_id=1,
+            document="Reglamento Académico.pdf",
+            page=12,
+            similarity_score=0.92,
+        ),
+    ]
+
+    return ChatQueryOut(
+        response=answer,
+        sources=sources,
+        audit_id=uuid.UUID(audit_log.id),
     )
 
 
-@router.post("/voice-query", response_model=StudentVoiceQueryOut)
-async def student_voice_query(
+@router.post("/voice", response_model=ChatVoiceOut)
+async def chat_voice(
     audio: UploadFile = File(...),
-    conversation_id: Optional[int] = Query(default=None),
+    conversation_id: int = Query(...),
     auth: AuthContext = Depends(get_auth_context),
-) -> StudentVoiceQueryOut:
-    conv = _get_or_create_conversation(auth, conversation_id)
+) -> ChatVoiceOut:
+    conv = store.get_conversation(conversation_id)
+    if not conv or conv.usuario_external_auth_id != auth.external_auth_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
 
     audio_bytes = await audio.read()
     ensure_dir(settings.storage_audio_dir)
@@ -126,7 +126,7 @@ async def student_voice_query(
 
     transcription = "MOCK: transcripción simulada del audio"
 
-    user_msg = store.add_message(
+    store.add_message(
         conversation_id=conv.id,
         role="USER",
         content=transcription,
@@ -154,7 +154,7 @@ async def student_voice_query(
     write_bytes(response_audio_path, b"")
 
     audio_interaction = store.add_audio_interaction(
-        mensaje_id=user_msg.id,
+        mensaje_id=assistant_msg.id,
         ruta_audio_original=audio_path,
         ruta_audio_respuesta=response_audio_path,
         transcripcion=transcription,
@@ -163,32 +163,47 @@ async def student_voice_query(
         duracion_segundos=None,
     )
 
-    store.add_audit_log(mensaje_id=assistant_msg.id, observaciones="MOCK: sin evaluación automática")
+    audit_log = store.add_audit_log(
+        mensaje_id=assistant_msg.id,
+        observaciones="MOCK: sin evaluación automática",
+    )
+    assistant_msg.audit_id = audit_log.id
 
-    return StudentVoiceQueryOut(
-        conversation=_conversation_out(conv),
-        user_message=_message_out(user_msg),
-        assistant_message=_message_out(assistant_msg),
-        audio_interaction=_audio_out(audio_interaction),
+    sources = [
+        SourceOut(
+            document_id=1,
+            document="Reglamento Académico.pdf",
+            page=12,
+            similarity_score=0.92,
+        ),
+    ]
+
+    return ChatVoiceOut(
+        response=answer,
+        sources=sources,
         transcription=transcription,
-        answer=answer,
-        rag_documents=[],
+        audio_interaction=_audio_out(audio_interaction),
+        audit_id=uuid.UUID(audit_log.id),
     )
 
 
-@router.get("/history", response_model=StudentHistoryOut)
-def student_history(
-    include_hidden: bool = Query(default=False),
+@router.post("/feedback", response_model=ChatFeedbackOut)
+def chat_feedback(
+    payload: ChatFeedbackIn,
     auth: AuthContext = Depends(get_auth_context),
-) -> StudentHistoryOut:
-    conversations = store.list_conversations(auth.external_auth_id, include_hidden=include_hidden)
-    return StudentHistoryOut(conversations=[_conversation_out(c) for c in conversations])
+) -> ChatFeedbackOut:
+    fb = store.add_feedback(
+        message_id=payload.message_id,
+        rating=payload.rating,
+        comment=payload.comment,
+        audit_id=str(payload.audit_id),
+    )
 
-
-@router.patch("/history/{conversation_id}/hide", response_model=ConversationOut)
-def hide_conversation(conversation_id: int, auth: AuthContext = Depends(get_auth_context)) -> ConversationOut:
-    try:
-        conv = store.hide_conversation(auth.external_auth_id, conversation_id)
-    except KeyError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
-    return _conversation_out(conv)
+    return ChatFeedbackOut(
+        id=fb.id,
+        message_id=fb.message_id,
+        rating=fb.rating,
+        comment=fb.comment,
+        audit_id=uuid.UUID(fb.audit_id),
+        created_at=fb.created_at,
+    )

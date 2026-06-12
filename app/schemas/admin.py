@@ -1,19 +1,15 @@
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from app.schemas.common import AuditLogOut, DocumentOut, DocumentVersionOut
+from app.schemas.common import DocumentOut, DocumentVersionOut
 
 
 class AdminUploadDocumentOut(BaseModel):
     document: DocumentOut
     version: DocumentVersionOut
-
-
-class AdminListDocumentsOut(BaseModel):
-    documents: List[DocumentOut]
 
 
 class AdminReindexIn(BaseModel):
@@ -22,7 +18,3 @@ class AdminReindexIn(BaseModel):
 
 class AdminReindexOut(BaseModel):
     updated_versions: int
-
-
-class AdminAuditOut(BaseModel):
-    logs: List[AuditLogOut]
