@@ -4,6 +4,46 @@ Backend FastAPI para un asistente academico institucional con conversacion, voz,
 
 El proyecto esta en una etapa de transicion: ya expone una API modular para chat, conversaciones y administracion, pero varias capacidades centrales todavia son mocks o persistencia parcial. No asumir que una ruta existente implica que la capacidad final ya esta implementada.
 
+## Arquitectura
+
+### Arquitectura documentada (objetivo)
+
+```text
+Usuario
+  ↓
+Frontend React
+  ↓
+FastAPI Middleware
+  ↓
+Anonimización PII
+  ↓
+RAG
+  ↓
+LLM
+  ↓
+Respuesta
+  ↓
+TTS
+```
+
+### Arquitectura actual (implementado)
+
+```text
+Usuario
+  ↓
+Frontend React
+  ↓
+FastAPI
+  ↓
+Mock response — Supabase (solo /me y /ready)
+```
+
+### Brecha
+
+La ruta completa de anonimizacion, RAG, LLM y TTS aun no esta implementada.
+FastAPI expone la API pero responde con datos mock; la unica conexion real a
+Supabase esta en los endpoints `/me` y `/ready`.
+
 ## Estado actual
 
 Implementado:
@@ -13,7 +53,7 @@ Implementado:
 - Configuracion con `pydantic-settings` desde `.env`.
 - Auth delegada por headers externos.
 - Rutas para conversaciones, chat de texto, chat de voz, feedback, documentos, auditoria, usuarios y metricas.
-- Persistencia en memoria para conversaciones, mensajes, documentos, versiones, audios, auditoria y feedback mediante `app/services/mock_store.py`.
+- Persistencia real mediante Supabase para conversaciones, mensajes, documentos, versiones, audios, auditoria y feedback.
 - Persistencia real parcial de usuarios con Supabase en `/me`.
 - Readiness parcial contra Supabase en `/ready`.
 - Guardado local de archivos subidos en `storage/`.
@@ -22,6 +62,7 @@ Implementado:
 
 No implementado realmente todavia:
 
+- Middleware de anonimizacion PII.
 - RAG real.
 - Embeddings reales.
 - Recuperacion semantica real.
@@ -91,7 +132,7 @@ Notas:
 
 - Si Supabase no esta configurado, `/ready` devuelve `not_ready`.
 - Si Supabase no esta configurado, `/me` puede responder `503` porque intenta persistir/leer el usuario real.
-- El chat, conversaciones, documentos, auditoria y feedback siguen usando `mock_store.py`.
+- El chat, conversaciones, documentos, auditoria y feedback usan Supabase mediante repositories.
 - `OPENAI_API_KEY` solo impacta el flag de readiness; no hay flujo IA real todavia.
 
 ## Ejecutar
@@ -259,7 +300,6 @@ app/
     common.py
     system.py
   services/
-    mock_store.py
     system_service.py
     users_service.py
   utils/
@@ -280,7 +320,6 @@ tables.sql
 
 Actual:
 
-- `mock_store.py` conserva datos solo durante la vida del proceso.
 - Los documentos y audios subidos se escriben en `storage/`.
 - Los metadatos de documentos/audios siguen en memoria.
 - Ocultar una conversacion no la borra fisicamente del store.

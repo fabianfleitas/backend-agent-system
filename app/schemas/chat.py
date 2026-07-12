@@ -5,7 +5,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from app.schemas.common import AudioInteractionOut, SourceOut
+from app.schemas.common import AudioInteractionOut, MessageOut, SourceOut
 
 
 class ChatQueryIn(BaseModel):
@@ -17,6 +17,9 @@ class ChatQueryOut(BaseModel):
     response: str
     sources: List[SourceOut] = []
     audit_id: UUID
+    conversation_id: int
+    user_message: MessageOut
+    assistant_message: MessageOut
 
 
 class ChatVoiceOut(BaseModel):
@@ -25,3 +28,6 @@ class ChatVoiceOut(BaseModel):
     transcription: str
     audio_interaction: AudioInteractionOut
     audit_id: UUID
+    conversation_id: int
+    user_message: MessageOut
+    assistant_message: MessageOut

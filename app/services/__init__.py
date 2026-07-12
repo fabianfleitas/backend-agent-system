@@ -1,1 +1,1 @@
-__all__ = ["mock_store"]
+__all__: list[str] = []

@@ -84,6 +84,7 @@ create table if not exists documento_versiones (
   indexed_at timestamptz,
   error_message text,
   fecha_carga timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
   cargado_por_external_auth_id text references app_users(external_auth_id) on delete set null,
 
   unique(documento_id, numero_version)

@@ -22,7 +22,7 @@ No asumir que los mocks actuales satisfacen los requisitos funcionales.
 - **Auth:** delegada por headers en `app/core/security.py`
 - **Persistencia parcial real:** `/me` usa Supabase mediante `UsersService` y `UsersRepository`
 - **Readiness parcial real:** `/ready` consulta Supabase mediante `SystemService` y `SystemRepository`
-- **Persistencia temporal:** conversaciones, mensajes, documentos, versiones, audio metadata, auditoria y feedback viven en `app/services/mock_store.py`
+- **Persistencia real:** conversaciones, mensajes, documentos, versiones, audio metadata, auditoria y feedback persisten en Supabase mediante repositories
 - **Storage local:** archivos subidos se guardan en `storage/`, `storage/audio/` y `storage/documents/`
 - **Modelo SQL objetivo:** `tables.sql`
 - **RAG / IA / STT / TTS:** no implementados realmente; las rutas de chat y voz usan respuestas mock
@@ -140,7 +140,7 @@ Notas:
 - `chat/voice` guarda el audio original localmente y crea un archivo de respuesta vacio; TTS real no existe todavia.
 - `admin/documents` persiste archivos en disco, pero los metadatos siguen en memoria.
 - `admin/reindex` solo cambia estado mock; no genera embeddings reales.
-- `admin/users` lista usuarios del `mock_store`, no Supabase, en el estado actual del codigo.
+- `admin/users` lista usuarios de Supabase mediante `UsersRepository`.
 - El contrato para frontend esta documentado en `FRONTEND_API_INTEGRATION.md`.
 
 ## Persistencia actual vs objetivo
@@ -186,7 +186,6 @@ Usar `modelo_inicial_datos.md` y `tables.sql` como guia funcional, no como refle
 - `app/repositories/system_repository.py`: checks de readiness
 - `app/services/users_service.py`: caso de uso de usuario actual
 - `app/services/system_service.py`: readiness de sistema
-- `app/services/mock_store.py`: almacenamiento temporal en memoria
 - `app/utils/files.py`: helpers seguros para escritura y rutas
 - `FRONTEND_API_INTEGRATION.md`: guia para consumo desde frontend
 - `tables.sql`: esquema objetivo Supabase/PostgreSQL/pgvector

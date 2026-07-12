@@ -237,6 +237,7 @@ Respuesta:
 ```json
 {
   "response": "MOCK: Recibi tu consulta institucional: ...",
+  "conversation_id": 1,
   "sources": [
     {
       "document_id": 1,
@@ -245,7 +246,35 @@ Respuesta:
       "similarity_score": 0.92
     }
   ],
-  "audit_id": "6b0f9f86-8f2c-4c49-9d3d-3a9f5bb0a2d1"
+  "audit_id": "6b0f9f86-8f2c-4c49-9d3d-3a9f5bb0a2d1",
+  "user_message": {
+    "id": 10,
+    "conversacion_id": 1,
+    "rol_mensaje": "USER",
+    "contenido_texto": "Cuales son los requisitos para regularizar una materia?",
+    "proveedor_ia": null,
+    "modelo_ia": null,
+    "temperatura": null,
+    "tokens_input": null,
+    "tokens_output": null,
+    "tiempo_respuesta_ms": null,
+    "fecha_envio": "2026-06-12T18:30:00.000000Z",
+    "audit_id": null
+  },
+  "assistant_message": {
+    "id": 11,
+    "conversacion_id": 1,
+    "rol_mensaje": "ASSISTANT",
+    "contenido_texto": "MOCK: Recibi tu consulta institucional: ...",
+    "proveedor_ia": "OpenRouter",
+    "modelo_ia": "mock",
+    "temperatura": 0.2,
+    "tokens_input": 8,
+    "tokens_output": 10,
+    "tiempo_respuesta_ms": 0.0,
+    "fecha_envio": "2026-06-12T18:30:01.000000Z",
+    "audit_id": "6b0f9f86-8f2c-4c49-9d3d-3a9f5bb0a2d1"
+  }
 }
 ```
 
@@ -254,7 +283,8 @@ Consideraciones para UI:
 - Mostrar `response` como respuesta inmediata del asistente.
 - Mostrar `sources` como fuentes/citas cuando existan.
 - Guardar `audit_id` si luego se enviara feedback.
-- Despues de enviar un mensaje, se puede refrescar `GET /api/conversations/{conversation_id}` para obtener el historial completo con mensajes `USER` y `ASSISTANT`.
+- Usar `conversation_id`, `user_message` y `assistant_message` para actualizar el store inmediatamente sin esperar un refresh del historial.
+- Despues de enviar un mensaje, opcionalmente se puede refrescar `GET /api/conversations/{conversation_id}` para reconciliar historial completo.
 - Si `conversation_id` no pertenece al usuario autenticado, el backend responde `404`.
 
 ## Chat por voz
@@ -275,6 +305,7 @@ Respuesta:
 ```json
 {
   "response": "MOCK: respuesta simulada basada en reglamentos institucionales...",
+  "conversation_id": 1,
   "sources": [
     {
       "document_id": 1,
@@ -287,15 +318,43 @@ Respuesta:
   "audio_interaction": {
     "id": 1,
     "mensaje_id": 2,
-    "ruta_audio_original": "storage/audio/archivo.wav",
-    "ruta_audio_respuesta": "storage/audio/respuesta.wav",
+    "ruta_audio_original": "audio/archivo.wav",
+    "ruta_audio_respuesta": "audio/respuesta.wav",
     "transcripcion": "MOCK: transcripcion simulada del audio",
     "duracion_segundos": null,
     "formato_audio": "audio/wav",
     "tamano_bytes": 12345,
     "fecha_creacion": "2026-06-12T18:30:00.000000Z"
   },
-  "audit_id": "6b0f9f86-8f2c-4c49-9d3d-3a9f5bb0a2d1"
+  "audit_id": "6b0f9f86-8f2c-4c49-9d3d-3a9f5bb0a2d1",
+  "user_message": {
+    "id": 2,
+    "conversacion_id": 1,
+    "rol_mensaje": "USER",
+    "contenido_texto": "MOCK: transcripcion simulada del audio",
+    "proveedor_ia": null,
+    "modelo_ia": null,
+    "temperatura": null,
+    "tokens_input": null,
+    "tokens_output": null,
+    "tiempo_respuesta_ms": null,
+    "fecha_envio": "2026-06-12T18:30:00.000000Z",
+    "audit_id": null
+  },
+  "assistant_message": {
+    "id": 3,
+    "conversacion_id": 1,
+    "rol_mensaje": "ASSISTANT",
+    "contenido_texto": "MOCK: respuesta simulada basada en reglamentos institucionales...",
+    "proveedor_ia": "OpenRouter",
+    "modelo_ia": "mock",
+    "temperatura": 0.2,
+    "tokens_input": 6,
+    "tokens_output": 10,
+    "tiempo_respuesta_ms": 0.0,
+    "fecha_envio": "2026-06-12T18:30:01.000000Z",
+    "audit_id": "6b0f9f86-8f2c-4c49-9d3d-3a9f5bb0a2d1"
+  }
 }
 ```
 
@@ -303,7 +362,8 @@ Consideraciones para UI:
 
 - `transcription` es el texto transcripto que puede mostrarse como mensaje del usuario.
 - `response` es el texto de respuesta del asistente.
-- `ruta_audio_respuesta` existe como metadata, pero hoy el archivo generado esta vacio porque TTS real aun no esta implementado.
+- Usar `conversation_id`, `user_message` y `assistant_message` para actualizar el store inmediatamente despues del envio.
+- `ruta_audio_respuesta` existe como metadata en Supabase Storage, pero hoy el archivo generado esta vacio porque TTS real aun no esta implementado.
 - No asumir que `ruta_audio_original` o `ruta_audio_respuesta` son URLs publicas descargables; actualmente son rutas internas de storage.
 
 ## Feedback de respuestas
@@ -341,7 +401,27 @@ Validaciones:
 
 - `rating` debe estar entre `1` y `5`.
 - `audit_id` debe ser UUID.
-- El backend actual no valida ownership del `message_id` en feedback; el frontend igualmente debe enviar feedback solo sobre respuestas visibles del usuario actual.
+- El backend valida ownership del `message_id`; si no pertenece al usuario autenticado responde `404`.
+
+## Validacion end-to-end recomendada
+
+Secuencia sugerida para validar integracion con el modulo de estudiante:
+
+1. Obtener o crear identidad delegada del alumno con `X-External-Auth-Id`.
+2. Crear conversacion con `POST /api/conversations`.
+3. Enviar texto con `POST /api/chat/query` y actualizar el store usando `conversation_id`, `user_message` y `assistant_message`.
+4. Enviar voz con `POST /api/chat/voice?conversation_id=...` usando `multipart/form-data`.
+5. Refrescar historial con `GET /api/conversations/{conversation_id}` para reconciliar mensajes persistidos.
+6. Listar conversaciones con `GET /api/conversations?include_hidden=false`.
+7. Enviar feedback sobre el `assistant_message.id` recibido.
+
+Resultados esperados:
+
+- La conversacion debe quedar persistida en Supabase.
+- Los mensajes `USER` y `ASSISTANT` deben aparecer en detalle de conversacion.
+- `audit_id` debe existir en respuestas del asistente.
+- En voz, `audio_interaction` debe registrar rutas internas en bucket `audio`.
+- Si el alumno consulta una conversacion ajena, el backend debe responder `404`.
 
 ## Usuario actual
 
@@ -720,4 +800,3 @@ type ChatVoiceResponse = ChatQueryResponse & {
   audio_interaction: AudioInteraction;
 };
 ```
-

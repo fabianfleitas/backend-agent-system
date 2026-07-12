@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+import re
 from typing import Optional
 
 from app.core.security import AuthContext
@@ -31,4 +32,9 @@ def _role_out(role: Optional[str]) -> UserRole:
 def _parse_datetime(value: str | datetime) -> datetime:
     if isinstance(value, datetime):
         return value
-    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    normalized = value.replace("Z", "+00:00")
+    match = re.search(r"\.(\d+)([+-]\d{2}:\d{2})$", normalized)
+    if match:
+        fraction, offset = match.groups()
+        normalized = normalized.replace(f".{fraction}{offset}", f".{fraction.ljust(6, '0')[:6]}{offset}")
+    return datetime.fromisoformat(normalized)
