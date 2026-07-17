@@ -1,0 +1,26 @@
+meta {
+  name: voice query
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/api/chat/voice
+  body: multipartForm
+  auth: inherit
+}
+
+params:query {
+  conversation_id: 1
+}
+
+headers {
+  X-External-Auth-Id: {{authId}}
+  X-Auth-Provider: {{authProvider}}
+  X-User-Type: {{userType}}
+  X-User-Email: {{userEmail}}
+}
+
+body:multipartForm {
+  audio: @file(./audio.wav)
+}

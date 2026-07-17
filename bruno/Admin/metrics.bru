@@ -1,0 +1,18 @@
+meta {
+  name: metrics
+  type: http
+  seq: 17
+}
+
+get {
+  url: {{baseUrl}}/api/admin/metrics
+  body: none
+  auth: inherit
+}
+
+headers {
+  X-External-Auth-Id: {{authId}}
+  X-Auth-Provider: {{authProvider}}
+  X-User-Type: {{adminType}}
+  X-User-Email: {{userEmail}}
+}

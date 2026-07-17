@@ -1,0 +1,28 @@
+meta {
+  name: feedback
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseUrl}}/api/chat/feedback
+  body: json
+  auth: inherit
+}
+
+headers {
+  X-External-Auth-Id: {{authId}}
+  X-Auth-Provider: {{authProvider}}
+  X-User-Type: {{userType}}
+  X-User-Email: {{userEmail}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "message_id": 1,
+    "rating": 5,
+    "comment": "Respuesta util y precisa",
+    "audit_id": "00000000-0000-0000-0000-000000000000"
+  }
+}

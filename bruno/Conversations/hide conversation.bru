@@ -1,0 +1,18 @@
+meta {
+  name: hide conversation
+  type: http
+  seq: 7
+}
+
+delete {
+  url: {{baseUrl}}/api/conversations/{{conversationId}}
+  body: none
+  auth: inherit
+}
+
+headers {
+  X-External-Auth-Id: {{authId}}
+  X-Auth-Provider: {{authProvider}}
+  X-User-Type: {{userType}}
+  X-User-Email: {{userEmail}}
+}

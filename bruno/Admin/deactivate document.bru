@@ -1,0 +1,18 @@
+meta {
+  name: deactivate document
+  type: http
+  seq: 20
+}
+
+delete {
+  url: {{baseUrl}}/api/admin/documents/{{documentoId}}
+  body: none
+  auth: inherit
+}
+
+headers {
+  X-External-Auth-Id: {{authId}}
+  X-Auth-Provider: {{authProvider}}
+  X-User-Type: {{adminType}}
+  X-User-Email: {{userEmail}}
+}

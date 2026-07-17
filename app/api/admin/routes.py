@@ -10,6 +10,8 @@ from app.schemas.admin import (
     AdminReindexIn,
     AdminReindexOut,
     AdminUploadDocumentOut,
+    AdminUploadVersionOut,
+    DocumentDetailOut,
 )
 from app.schemas.common import (
     AuditLogOut,
@@ -134,6 +136,71 @@ async def upload_document(
     )
 
     return AdminUploadDocumentOut(
+        document=_doc_out(doc, version),
+        version=_version_out(version),
+    )
+
+
+@router.get("/documents/{documento_id}", response_model=DocumentDetailOut)
+def get_document(
+    documento_id: int,
+    auth: AuthContext = Depends(get_auth_context),
+) -> DocumentDetailOut:
+    require_admin(auth)
+    result = DocumentsService().get_document(documento_id)
+    if not result:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
+    doc, versions = result
+    return DocumentDetailOut(
+        id=doc["id"],
+        categoria_id=doc.get("categoria_id"),
+        codigo_documento=doc.get("codigo_documento"),
+        titulo=doc["titulo"],
+        descripcion=doc.get("descripcion"),
+        activo=doc["activo"],
+        fecha_creacion=doc["fecha_creacion"],
+        versiones=[_version_out(v) for v in versions],
+    )
+
+
+@router.delete("/documents/{documento_id}", response_model=DocumentOut)
+def deactivate_document(
+    documento_id: int,
+    auth: AuthContext = Depends(get_auth_context),
+) -> DocumentOut:
+    require_admin(auth)
+    result = DocumentsService().deactivate_document(documento_id)
+    if not result:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found or already inactive")
+    doc, version = result
+    return _doc_out(doc, version)
+
+
+@router.post(
+    "/documents/{documento_id}/versions",
+    response_model=AdminUploadVersionOut,
+    status_code=status.HTTP_201_CREATED,
+)
+async def upload_new_version(
+    documento_id: int,
+    file: UploadFile = File(...),
+    auth: AuthContext = Depends(get_auth_context),
+) -> AdminUploadVersionOut:
+    require_admin(auth)
+
+    file_bytes = await file.read()
+    try:
+        doc, version = DocumentsService().upload_new_version(
+            documento_id=documento_id,
+            auth=auth,
+            file_bytes=file_bytes,
+            filename=file.filename,
+            content_type=file.content_type,
+        )
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
+
+    return AdminUploadVersionOut(
         document=_doc_out(doc, version),
         version=_version_out(version),
     )

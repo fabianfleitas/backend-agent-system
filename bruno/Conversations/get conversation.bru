@@ -1,0 +1,18 @@
+meta {
+  name: get conversation
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/api/conversations/{{conversationId}}
+  body: none
+  auth: inherit
+}
+
+headers {
+  X-External-Auth-Id: {{authId}}
+  X-Auth-Provider: {{authProvider}}
+  X-User-Type: {{userType}}
+  X-User-Email: {{userEmail}}
+}

@@ -541,6 +541,154 @@ GET /api/admin/documents?limit=20&offset=0
 
 Respuesta paginada con `DocumentOut` dentro de `items`.
 
+### Ver detalle de documento
+
+```http
+GET /api/admin/documents/{documento_id}
+```
+
+Respuesta con todas las versiones del documento:
+
+```json
+{
+  "id": 1,
+  "categoria_id": 1,
+  "codigo_documento": "REG-001",
+  "titulo": "Reglamento Academico",
+  "descripcion": "Documento institucional",
+  "activo": true,
+  "fecha_creacion": "2026-06-12T18:30:00.000000Z",
+  "versiones": [
+    {
+      "id": 2,
+      "documento_id": 1,
+      "numero_version": 2,
+      "ruta_archivo": "storage/documents/abc123.pdf",
+      "status": "PENDING",
+      "es_version_activa": true,
+      "total_chunks": 0,
+      "embedding_model": null,
+      "fecha_carga": "2026-06-13T10:30:00.000000Z",
+      "indexed_at": null,
+      "cargado_por_external_auth_id": "admin-123"
+    },
+    {
+      "id": 1,
+      "documento_id": 1,
+      "numero_version": 1,
+      "ruta_archivo": "storage/documents/def456.pdf",
+      "status": "READY",
+      "es_version_activa": false,
+      "total_chunks": 0,
+      "embedding_model": null,
+      "fecha_carga": "2026-06-12T18:30:00.000000Z",
+      "indexed_at": "2026-06-12T18:35:00.000000Z",
+      "cargado_por_external_auth_id": "admin-123"
+    }
+  ]
+}
+```
+
+El campo `versiones` lista todas las versiones del documento ordenadas por `numero_version` descendente. La version activa se identifica con `es_version_activa: true`.
+
+### Subir nueva version de documento
+
+```http
+POST /api/admin/documents/{documento_id}/versions
+Content-Type: multipart/form-data
+```
+
+Form data:
+
+```text
+file: File
+```
+
+Respuesta `201`:
+
+```json
+{
+  "document": {
+    "id": 1,
+    "categoria_id": 1,
+    "codigo_documento": "REG-001",
+    "titulo": "Reglamento Academico",
+    "descripcion": "Documento institucional",
+    "activo": true,
+    "fecha_creacion": "2026-06-12T18:30:00.000000Z",
+    "version_activa": {
+      "id": 2,
+      "documento_id": 1,
+      "numero_version": 2,
+      "ruta_archivo": "storage/documents/abc123.pdf",
+      "status": "PENDING",
+      "es_version_activa": true,
+      "total_chunks": 0,
+      "embedding_model": null,
+      "fecha_carga": "2026-06-13T10:30:00.000000Z",
+      "indexed_at": null,
+      "cargado_por_external_auth_id": "admin-123"
+    }
+  },
+  "version": {
+    "id": 2,
+    "documento_id": 1,
+    "numero_version": 2,
+    "ruta_archivo": "storage/documents/abc123.pdf",
+    "status": "PENDING",
+    "es_version_activa": true,
+    "total_chunks": 0,
+    "embedding_model": null,
+    "fecha_carga": "2026-06-13T10:30:00.000000Z",
+    "indexed_at": null,
+    "cargado_por_external_auth_id": "admin-123"
+  }
+}
+```
+
+Al subir una nueva version, el sistema automaticamente:
+- Incrementa `numero_version` tomando la maxima existente + 1
+- Desactiva todas las versiones anteriores (`es_version_activa = false`)
+- Marca la nueva version como activa (`es_version_activa = true`)
+- La nueva version queda en estado `PENDING` hasta ser indexada
+
+### Desactivar documento
+
+```http
+DELETE /api/admin/documents/{documento_id}
+```
+
+Esto no borra fisicamente el documento ni sus versiones; solo cambia `activo` a `false`.
+
+Respuesta:
+
+```json
+{
+  "id": 1,
+  "categoria_id": 1,
+  "codigo_documento": "REG-001",
+  "titulo": "Reglamento Academico",
+  "descripcion": "Documento institucional",
+  "activo": false,
+  "fecha_creacion": "2026-06-12T18:30:00.000000Z",
+  "version_activa": {
+    "id": 2,
+    "documento_id": 1,
+    "numero_version": 2,
+    "ruta_archivo": "storage/documents/abc123.pdf",
+    "status": "READY",
+    "es_version_activa": true,
+    "total_chunks": 0,
+    "embedding_model": null,
+    "fecha_carga": "2026-06-13T10:30:00.000000Z",
+    "indexed_at": "2026-06-13T10:35:00.000000Z",
+    "cargado_por_external_auth_id": "admin-123"
+  }
+}
+```
+
+Si el documento no existe o ya esta inactivo, responde `404`.
+
 ### Reindexar documentos
 
 ```http
@@ -722,6 +870,8 @@ Casos principales:
 - Tratar `DELETE /api/conversations/{id}` como ocultar conversacion, no como borrado permanente.
 - No intentar reproducir `ruta_audio_respuesta` como URL publica hasta que exista endpoint de descarga/serving de audio.
 - En admin, subir documentos con `multipart/form-data` y mostrar estado de version activa (`PENDING`, `PROCESSING`, `READY`, `FAILED`).
+- En admin, usar `GET /api/admin/documents/{id}` para ver el detalle y todas las versiones de un documento.
+- En admin, usar `DELETE /api/admin/documents/{id}` para desactivar (soft-delete) un documento.
 - Usar `/health`, no `/api/health`.
 
 ## Contratos TypeScript sugeridos
@@ -798,5 +948,46 @@ type AudioInteraction = {
 type ChatVoiceResponse = ChatQueryResponse & {
   transcription: string;
   audio_interaction: AudioInteraction;
+};
+
+type DocumentVersion = {
+  id: number;
+  documento_id: number;
+  numero_version: number;
+  ruta_archivo: string;
+  status: DocumentStatus;
+  es_version_activa: boolean;
+  total_chunks: number;
+  embedding_model: string | null;
+  fecha_carga: string;
+  indexed_at: string | null;
+  cargado_por_external_auth_id: string;
+};
+
+type DocumentOut = {
+  id: number;
+  categoria_id: number | null;
+  codigo_documento: string | null;
+  titulo: string;
+  descripcion: string | null;
+  activo: boolean;
+  fecha_creacion: string;
+  version_activa: DocumentVersion | null;
+};
+
+type DocumentDetail = {
+  id: number;
+  categoria_id: number | null;
+  codigo_documento: string | null;
+  titulo: string;
+  descripcion: string | null;
+  activo: boolean;
+  fecha_creacion: string;
+  versiones: DocumentVersion[];
+};
+
+type UploadVersionResponse = {
+  document: DocumentOut;
+  version: DocumentVersion;
 };
 ```

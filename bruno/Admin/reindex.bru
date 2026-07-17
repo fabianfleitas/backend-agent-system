@@ -1,0 +1,39 @@
+meta {
+  name: reindex
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{baseUrl}}/api/admin/reindex
+  body: json
+  auth: inherit
+}
+
+headers {
+  X-External-Auth-Id: {{authId}}
+  X-Auth-Provider: {{authProvider}}
+  X-User-Type: {{adminType}}
+  X-User-Email: {{userEmail}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "documento_id": null
+  }
+}
+
+@documentation
+## Reindexacion
+
+### Reindexar todos los documentos
+```json
+{ "documento_id": null }
+```
+
+### Reindexar un documento especifico
+```json
+{ "documento_id": 1 }
+```
+@end

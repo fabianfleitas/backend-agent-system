@@ -1,0 +1,18 @@
+meta {
+  name: create conversation
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/conversations
+  body: none
+  auth: inherit
+}
+
+headers {
+  X-External-Auth-Id: {{authId}}
+  X-Auth-Provider: {{authProvider}}
+  X-User-Type: {{userType}}
+  X-User-Email: {{userEmail}}
+}

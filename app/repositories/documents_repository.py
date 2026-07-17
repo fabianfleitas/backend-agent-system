@@ -65,6 +65,26 @@ class DocumentsRepository:
         )
         return response.data[0]
 
+    def get_document_by_id(self, documento_id: int) -> Optional[dict]:
+        response = (
+            self.client.table("documentos")
+            .select("*, documento_versiones(*)")
+            .eq("id", documento_id)
+            .limit(1)
+            .execute()
+        )
+        return response.data[0] if response.data else None
+
+    def deactivate_document(self, documento_id: int) -> Optional[dict]:
+        response = (
+            self.client.table("documentos")
+            .update({"activo": False})
+            .eq("id", documento_id)
+            .eq("activo", True)
+            .execute()
+        )
+        return response.data[0] if response.data else None
+
     def list_documents(self) -> list[dict]:
         response = (
             self.client.table("documentos")
