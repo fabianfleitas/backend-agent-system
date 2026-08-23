@@ -22,12 +22,13 @@ No asumir que los mocks actuales satisfacen los requisitos funcionales.
 - **Auth:** delegada por headers en `app/core/security.py`
 - **Persistencia parcial real:** `/me` usa Supabase mediante `UsersService` y `UsersRepository`
 - **Readiness parcial real:** `/ready` consulta Supabase mediante `SystemService` y `SystemRepository`
-- **Persistencia real:** conversaciones, mensajes, documentos, versiones, audio metadata, auditoria y feedback persisten en Supabase mediante repositories
+- **Persistencia real:** conversaciones, mensajes, documentos, versiones, audio metadata, auditoria, `message_documents` y feedback persisten en Supabase mediante repositories
 - **Storage local:** archivos subidos se guardan en `storage/`, `storage/audio/` y `storage/documents/`
 - **Modelo SQL objetivo:** `tables.sql`
-- **RAG / IA / STT / TTS:** no implementados realmente; las rutas de chat y voz usan respuestas mock
+- **RAG parcial real:** recuperacion de contexto real en `chat/query` (retrieval de chunks + trazabilidad en `message_documents`); generacion de respuesta real via OpenRouter cuando `LLM_ENABLED=true`; `chat/voice` transcribe real via STT cuando `STT_ENABLED=true` y alimenta esa transcripcion al mismo pipeline RAG+OpenRouter (tag `[voice]` en audit); sintetiza respuesta a audio real via TTS (`/audio/speech`, OpenRouter) cuando `TTS_ENABLED=true` con degradacion graceful si falla; si STT esta off, voz es mock
+- **Gestion documental real parcial:** carga de PDFs, versionado y reindexacion con extraccion/indexacion local o embeddings reales segun `EMBEDDINGS_ENABLED`
 - **Procesamiento asincrono:** no implementado; `Celery`/`Redis` aun no existen en el codigo
-- **Testing:** no existe directorio `tests/`
+- **Testing:** existe `tests/` con cobertura en desarrollo para servicios e integraciones criticas
 
 ## Arquitectura objetivo
 
@@ -122,6 +123,7 @@ GET    /api/conversations/{conversation_id}/messages
 
 POST   /api/chat/query
 POST   /api/chat/voice
+GET    /api/chat/audio/{audio_interaction_id}
 POST   /api/chat/feedback
 
 POST   /api/admin/documents
@@ -136,11 +138,13 @@ Notas:
 
 - La ruta de salud actual es `/health`, no `/api/health`.
 - Las rutas antiguas `/api/student/*` ya no son el contrato actual.
-- `chat/query` y `chat/voice` aun responden con contenido mock.
-- `chat/voice` guarda el audio original localmente y crea un archivo de respuesta vacio; TTS real no existe todavia.
-- `admin/documents` persiste archivos en disco, pero los metadatos siguen en memoria.
-- `admin/reindex` solo cambia estado mock; no genera embeddings reales.
+- `chat/query` recupera contexto real via RAG (`sources`, `message_documents`, `embedding_model` en audit) cuando `EMBEDDINGS_ENABLED=true` y hay versiones `READY`; cuando `LLM_ENABLED=true` la respuesta es generada por OpenRouter sobre el contexto (fallback controlado si el LLM falla, con sources reales y error en `observaciones`); con `LLM_ENABLED=false` la respuesta text es mock. Con `LLM_HISTORY_ENABLED=true` (default) el prompt incluye los turnos previos de la conversacion (aislados por conversacion/usuario, recortados por token budget), pero el contexto RAG sigue siendo la fuente de verdad.
+- `chat/query` recupera contexto real via RAG (`sources`, `message_documents`, `embedding_model` en audit) cuando `EMBEDDINGS_ENABLED=true` y hay versiones `READY`; cuando `LLM_ENABLED=true` la respuesta es generada por OpenRouter sobre el contexto (fallback controlado si el LLM falla, con sources reales y error en `observaciones`); con `LLM_ENABLED=false` la respuesta text es mock. Con `LLM_HISTORY_ENABLED=true` (default) el prompt incluye los turnos previos de la conversacion (aislados por conversacion/usuario, recortados por token budget), pero el contexto RAG sigue siendo la fuente de verdad.
+- `chat/voice` transcribe real el audio via STT cuando `STT_ENABLED=true` (cliente compatible OpenAI apuntando a `OPENROUTER_BASE_URL` con `OPENROUTER_API_KEY`; endpoint `POST /audio/transcriptions`; modelo default `stt_model=x-ai/grok-stt-1.0`, `stt_response_format=verbose_json` configurable). Si `STT_ENABLED=false` la transcripcion es mock. Con `STT_ENABLED=true` la transcripcion se alimenta al mismo pipeline RAG+OpenRouter de `chat/query` (respuesta real, guard de dominio o fallback; tag `[voice]` en `observaciones`); con `STT_ENABLED=false` la respuesta queda mock. Con `TTS_ENABLED=true` la respuesta se sintetiza a audio via `/audio/speech` de OpenRouter (modelo `tts_model` default `hexgrad/kokoro-82m`, voz `tts_voice` default `ef_dora`, formato `tts_response_format`) guardado en `ruta_audio_respuesta`; si TTS falla, degradacion graceful con nota `TTS_FAILED` en `observaciones`.
+- `admin/documents` persiste archivos en disco y metadatos en Supabase; si `EMBEDDINGS_ENABLED=false` extrae texto localmente y si esta activo indexa chunks y embeddings.
+- `admin/reindex` reindexa versiones activas con `IndexingService`; no es solo un cambio de estado mock.
 - `admin/users` lista usuarios de Supabase mediante `UsersRepository`.
+- `admin/metrics` expone metricas IA agregadas desde `audit_logs` y `message_documents` (outcomes LLM/GUARD/LLM_FAILED, rates, tokens por modelo, avg similarity de retrieval, split voice/text).
 - El contrato para frontend esta documentado en `FRONTEND_API_INTEGRATION.md`.
 
 ## Persistencia actual vs objetivo
@@ -149,9 +153,9 @@ Notas:
 
 - `/me` lee/crea usuario en Supabase si esta configurado.
 - `/ready` verifica parcialmente Supabase, storage y tabla de embeddings.
-- Conversaciones, mensajes, audio metadata, documentos, versiones, feedback y auditoria viven en memoria.
-- Si el proceso reinicia, se pierde el estado del `store`.
-- Los archivos subidos se guardan en `storage/`, pero sus metadatos no son persistentes reales.
+- Conversaciones, mensajes, audio metadata, documentos, versiones, feedback, auditoria y trazabilidad RAG viven en Supabase.
+- Si el proceso reinicia, se conserva el historial persistido; no depende de un `store` en memoria para el dominio principal.
+- Los archivos subidos se guardan en `storage/`; los metadatos y trazabilidad se escriben en Supabase.
 
 ### Objetivo
 
@@ -211,17 +215,15 @@ Usar `modelo_inicial_datos.md` y `tables.sql` como guia funcional, no como refle
 - `python-multipart`
 - `pydantic-settings`
 - `supabase`
+- `openai` (embeddings, STT, TTS y cliente OpenRouter)
 
 ### Objetivo futuro
 
 Agregar dependencias solo cuando se implemente realmente la capacidad asociada:
 
-- vector store / embeddings
-- OpenRouter u otros proveedores IA
-- Whisper o STT/TTS equivalente
 - Celery / Redis
-- testing automatizado
-- observabilidad y metricas
+- observabilidad y metricas ampliadas
+- otras librerias de embeddings (hoy `openai` cubre el modelo configurado)
 
 ## Prioridades de implementacion
 

@@ -2,7 +2,7 @@
 
 Este documento resume los cambios que el frontend debe contemplar para consumir correctamente las salidas actuales del backend.
 
-El backend sigue usando persistencia en memoria y varias respuestas mock, pero el contrato HTTP ya expone una estructura mas cercana a la arquitectura objetivo: conversaciones separadas, chat, voz, auditoria, documentos, usuarios y metricas.
+El backend ya mezcla persistencia real con degradaciones controladas. El contrato HTTP expone conversaciones separadas, chat, voz, auditoria, documentos, usuarios, metricas y trazabilidad RAG; lo que cambia por flag es si la respuesta sale de retrieval + OpenRouter, de STT/TTS o de un fallback mock.
 
 ## Base URL
 
@@ -236,14 +236,20 @@ Respuesta:
 
 ```json
 {
-  "response": "MOCK: Recibi tu consulta institucional: ...",
+  "response": "Según el artículo del reglamento académico, la matrícula requiere que el estudiante cumpla con la documentación vigente. Para más detalle, ver Artículo 5 del Reglamento Académico (página 2).",
   "conversation_id": 1,
   "sources": [
     {
-      "document_id": 1,
+      "document_id": 7,
       "document": "Reglamento Academico.pdf",
-      "page": 12,
-      "similarity_score": 0.92
+      "page": 3,
+      "similarity_score": 0.87
+    },
+    {
+      "document_id": 7,
+      "document": "Reglamento Academico.pdf",
+      "page": 4,
+      "similarity_score": 0.71
     }
   ],
   "audit_id": "6b0f9f86-8f2c-4c49-9d3d-3a9f5bb0a2d1",
@@ -265,27 +271,85 @@ Respuesta:
     "id": 11,
     "conversacion_id": 1,
     "rol_mensaje": "ASSISTANT",
-    "contenido_texto": "MOCK: Recibi tu consulta institucional: ...",
+    "contenido_texto": "Según el artículo del reglamento académico, la matrícula requiere que el estudiante cumpla con la documentación vigente.",
     "proveedor_ia": "OpenRouter",
-    "modelo_ia": "mock",
+    "modelo_ia": "openai/gpt-4o-mini",
     "temperatura": 0.2,
-    "tokens_input": 8,
-    "tokens_output": 10,
-    "tiempo_respuesta_ms": 0.0,
+    "tokens_input": 310,
+    "tokens_output": 120,
+    "tiempo_respuesta_ms": 2100.0,
     "fecha_envio": "2026-06-12T18:30:01.000000Z",
     "audit_id": "6b0f9f86-8f2c-4c49-9d3d-3a9f5bb0a2d1"
   }
 }
 ```
 
+Cuando hay contexto sobre el umbral de similitud (`EMBEDDINGS_ENABLED=true` y versiones `READY`
+indexadas), `sources` contiene los fragmentos recuperados del RAG: `document_id`, `document`
+(titulo del documento), `page` y `similarity_score` reales. Esos mismos fragmentos se persisten
+en la tabla `message_documents` (trazabilidad) y `audit_logs.embedding_model` registra el modelo
+de embedding usado.
+
+Comportamiento de la respuesta según configuracion:
+
+- **`LLM_ENABLED=true` y contexto recuperado**: `response` es la respuesta real generada por
+  OpenRouter (groundeada en el contexto recuperado, con citas de articulo/pagina). En `assistant_message`
+  y `audit_logs` quedan `modelo_ia`, `tokens_input` y `tokens_output` reales. `proveedor_ia=OpenRouter`.
+- **`LLM_ENABLED=true` y el LLM falla**: `response` es el fallback controlado y `sources` sigue
+  conteniendo los fragmentos reales recuperados, que se persisten en `message_documents`. El error
+  queda registrado en `audit_logs.observaciones` con prefijo `LLM_FAILED:`. `tokens_input` y
+  `tokens_output` son `null` (no hubo consumo real).
+- **`LLM_ENABLED=false`** (rollout controlado) y contexto recuperado: `response` es un mock que
+  describe los fragmentos recuperados (`MOCK: Recuperé N fragmentos relevantes...`) con `sources`
+  reales y `modelo_ia=mock-retrieval`.
+- **Sin contexto recuperado**: `response` es el guard de dominio y `sources` vacio (el LLM nunca
+  se invoca en este caso).
+
+Si no se recupera ningun fragmento sobre el umbral, la respuesta es el guard de dominio y
+`sources` vacio:
+
+```json
+{
+  "response": "No tengo información institucional suficiente para responder esa consulta. Por favor, reformule su pregunta dentro del ámbito académico institucional.",
+  "sources": []
+}
+```
+
+Si `EMBEDDINGS_ENABLED=false` o el pipeline de retrieval falla, la respuesta es un mock clasico
+(`MOCK: Recibi tu consulta institucional: ...`) con `sources` vacio. El fallback controlado por
+fallo del LLM es:
+
+```json
+{
+  "response": "No fue posible generar la respuesta en este momento. Intenta nuevamente.",
+  "sources": []
+}
+```
+
+> Nota: `sources` en este caso contiene los fragmentos reales recuperados (no estan vacios si los
+> hubo); el bloque anterior solo ilustra el mensaje de respuesta.
+
 Consideraciones para UI:
 
 - Mostrar `response` como respuesta inmediata del asistente.
-- Mostrar `sources` como fuentes/citas cuando existan.
+- Mostrar `sources` como fuentes/citas cuando existan (recuperacion RAG real).
+- Si `response` es el guard de dominio y `sources` esta vacio, mostrar que no hay informacion institucional suficiente para esa consulta.
+- Si `response` es el fallback controlado ("No fue posible generar la respuesta en este momento"), mostrar el mensaje y opcionalmente una accion de "reintentar".
 - Guardar `audit_id` si luego se enviara feedback.
 - Usar `conversation_id`, `user_message` y `assistant_message` para actualizar el store inmediatamente sin esperar un refresh del historial.
 - Despues de enviar un mensaje, opcionalmente se puede refrescar `GET /api/conversations/{conversation_id}` para reconciliar historial completo.
 - Si `conversation_id` no pertenece al usuario autenticado, el backend responde `404`.
+
+#### Memoria de conversacion
+
+Con `LLM_HISTORY_ENABLED=true` (default), el backend incluye en el prompt del LLM los turnos
+previos de la conversacion (usuario y asistente) para entender referencias de seguimiento
+(pronombres, "eso", "lo anterior"). La memoria:
+
+- Esta **aislada por conversacion y por usuario** (solo usa mensajes de la conversacion que envio el usuario).
+- Se recorta por presupuesto de tokens (`LLM_HISTORY_MAX_TOKENS`, default 1500) y por cantidad de mensajes (`LLM_HISTORY_MAX_MESSAGES`, default 10), conservando los mas recientes.
+- Los mensajes de fallo controlado ("No fue posible generar la respuesta...") no entran en el historial.
+- El contexto institucional recuperado (RAG) sigue siendo la fuente de verdad; el historial solo se usa para entender el seguimiento.
 
 ## Chat por voz
 
@@ -304,24 +368,25 @@ Respuesta:
 
 ```json
 {
-  "response": "MOCK: respuesta simulada basada en reglamentos institucionales...",
+  "response": "Según el reglamento académico, para matricularse el estudiante debe cumplir con la documentación vigente. Ver Artículo 5 del Reglamento Académico (página 2).",
   "conversation_id": 1,
   "sources": [
     {
-      "document_id": 1,
+      "document_id": 7,
       "document": "Reglamento Academico.pdf",
-      "page": 12,
-      "similarity_score": 0.92
+      "page": 3,
+      "similarity_score": 0.87
     }
   ],
-  "transcription": "MOCK: transcripcion simulada del audio",
+  "transcription": "¿Cuáles son los requisitos para matricularme?",
   "audio_interaction": {
     "id": 1,
     "mensaje_id": 2,
     "ruta_audio_original": "audio/archivo.wav",
     "ruta_audio_respuesta": "audio/respuesta.wav",
-    "transcripcion": "MOCK: transcripcion simulada del audio",
-    "duracion_segundos": null,
+    "transcripcion": "¿Cuáles son los requisitos para matricularme?",
+    "transcription_model": "openai/whisper-1",
+    "duracion_segundos": 2.5,
     "formato_audio": "audio/wav",
     "tamano_bytes": 12345,
     "fecha_creacion": "2026-06-12T18:30:00.000000Z"
@@ -331,7 +396,7 @@ Respuesta:
     "id": 2,
     "conversacion_id": 1,
     "rol_mensaje": "USER",
-    "contenido_texto": "MOCK: transcripcion simulada del audio",
+    "contenido_texto": "¿Cuáles son los requisitos para matricularme?",
     "proveedor_ia": null,
     "modelo_ia": null,
     "temperatura": null,
@@ -345,26 +410,89 @@ Respuesta:
     "id": 3,
     "conversacion_id": 1,
     "rol_mensaje": "ASSISTANT",
-    "contenido_texto": "MOCK: respuesta simulada basada en reglamentos institucionales...",
+    "contenido_texto": "Según el reglamento académico, para matricularse el estudiante debe cumplir con la documentación vigente.",
     "proveedor_ia": "OpenRouter",
-    "modelo_ia": "mock",
+    "modelo_ia": "openai/gpt-4o-mini",
     "temperatura": 0.2,
-    "tokens_input": 6,
-    "tokens_output": 10,
-    "tiempo_respuesta_ms": 0.0,
+    "tokens_input": 310,
+    "tokens_output": 120,
+    "tiempo_respuesta_ms": 2100.0,
     "fecha_envio": "2026-06-12T18:30:01.000000Z",
     "audit_id": "6b0f9f86-8f2c-4c49-9d3d-3a9f5bb0a2d1"
   }
 }
 ```
 
+Cuando `STT_ENABLED=true` (y el proveedor configurado responde), `transcription` y
+`audio_interaction.transcripcion` contienen el texto real transcrito del audio,
+`audio_interaction.transcription_model` registra el modelo STT usado y la transcripcion se
+alimenta al mismo pipeline RAG + OpenRouter del chat de texto:
+- **`LLM_ENABLED=true` y contexto recuperado**: `response` es la respuesta real generada por
+  OpenRouter y `sources` contiene los fragmentos RAG recuperados (se persisten en
+  `message_documents`).
+- **Sin contexto recuperado**: `response` es el guard de dominio y `sources` vacio.
+- **El LLM falla**: `response` es el fallback controlado y `sources` reales.
+- La auditoria registra el origen con el sufijo `[voice]` en `observaciones`.
+
+Si `STT_ENABLED=false`, la transcripcion y la respuesta son mock. Si el STT falla con
+`STT_ENABLED=true`, el endpoint responde `503` con detalle "No fue posible transcribir el audio.
+Intenta nuevamente."
+
 Consideraciones para UI:
 
 - `transcription` es el texto transcripto que puede mostrarse como mensaje del usuario.
 - `response` es el texto de respuesta del asistente.
 - Usar `conversation_id`, `user_message` y `assistant_message` para actualizar el store inmediatamente despues del envio.
-- `ruta_audio_respuesta` existe como metadata en Supabase Storage, pero hoy el archivo generado esta vacio porque TTS real aun no esta implementado.
+- `ruta_audio_respuesta` apunta al audio sintetizado (mp3) en Supabase Storage cuando `TTS_ENABLED=true` y la sintesis tuvo exito; si TTS esta deshabilitado o fallo, el archivo de respuesta queda vacio y el `response` de texto sigue siendo valido.
 - No asumir que `ruta_audio_original` o `ruta_audio_respuesta` son URLs publicas descargables; actualmente son rutas internas de storage.
+- Si el backend responde `503`, mostrar el mensaje de que no fue posible transcribir y ofrecer reintentar.
+
+#### Sintesis de voz (TTS)
+
+Con `TTS_ENABLED=true`, la respuesta del asistente se sintetiza a audio (modelo `tts_model`, por
+defecto `hexgrad/kokoro-82m` con voz `ef_dora` - español femenino, formato mp3) apuntando a
+`POST /api/v1/audio/speech` de OpenRouter y se almacena en `audio_interactions.ruta_audio_respuesta`.
+Si la sintesis falla, la respuesta degrada con graceful: se devuelve el `response` de texto, el
+audio de respuesta queda vacio, se registra `WARNING` y se anota `TTS_FAILED` en
+`audit_logs.observaciones`.
+
+## Reproducción de audio (Descarga autenticada)
+
+Para reproducir el audio de respuesta generado en `/api/chat/voice`, el frontend debe consumir el endpoint autenticado:
+
+```http
+GET /api/chat/audio/{audio_interaction_id}
+X-External-Auth-Id: usr_ext_12345
+X-User-Type: ESTUDIANTE
+```
+
+Respuesta exitosa:
+- `Status`: `200 OK`
+- `Content-Type`: `audio/mpeg` (o `audio/wav` según el formato generado)
+- `Content-Disposition`: `inline`
+- `Body`: Stream binario de los bytes del audio.
+
+Errores:
+- `401 Unauthorized`: Falta `X-External-Auth-Id`.
+- `403 Forbidden`: El audio pertenece a otra conversación/usuario (aislamiento por estudiante).
+- `404 Not Found`: No existe la interacción o no se generó archivo de audio.
+
+Ejemplo de consumo en Frontend:
+```ts
+async function getAudioBlobUrl(audioInteractionId: number): Promise<string> {
+  const response = await fetch(`/api/chat/audio/${audioInteractionId}`, {
+    headers: {
+      'X-External-Auth-Id': currentUserId,
+      'X-User-Type': 'ESTUDIANTE',
+    },
+  });
+  if (!response.ok) {
+    throw new Error('Error al descargar audio');
+  }
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
+}
+```
 
 ## Feedback de respuestas
 
@@ -795,9 +923,40 @@ Respuesta:
   "avg_response_time": 0.03,
   "avg_fidelity": 0.0,
   "avg_relevance": 0.0,
-  "system_status": "healthy"
+  "system_status": "healthy",
+  "total_llm_responses": 1,
+  "total_guard": 1,
+  "total_llm_failed": 0,
+  "guard_rate": 0.5,
+  "llm_failed_rate": 0.0,
+  "total_tokens_input": 586,
+  "total_tokens_output": 87,
+  "tokens_by_model": {
+    "openai/gpt-4o-mini": {
+      "input": 586,
+      "output": 87
+    }
+  },
+  "avg_retrieval_similarity": 0.61,
+  "total_voice_queries": 0,
+  "total_text_queries": 2,
+  "avg_response_time_voice": 0.0,
+  "avg_response_time_text": 2.1
 }
 ```
+
+Campos IA:
+
+- `total_llm_responses`, `total_guard`, `total_llm_failed`: conteo de respuestas segun el outcome
+  registrado en `audit_logs.observaciones` (`LLM`, `GUARD`, `LLM_FAILED`). Los mocks (`MOCK`/`RETRIEVAL`)
+  no se cuentan aqui.
+- `guard_rate` y `llm_failed_rate`: proporciones sobre el denominador
+  `LLM + GUARD + LLM_FAILED` (excluye mocks).
+- `total_tokens_input/output`: tokens totales consumidos por el LLM.
+- `tokens_by_model`: consumo por `modelo_ia` (`{modelo: {input, output}}`).
+- `avg_retrieval_similarity`: promedio de `similarity_score` en `message_documents`.
+- `total_voice_queries`/`total_text_queries` y `avg_response_time_voice/text`: split por canal
+  segun el sufijo `[voice]`/`[text]` en `observaciones`.
 
 Nota: en el store actual `system_status` puede venir por default del schema aunque no lo devuelva explicitamente el servicio.
 
@@ -833,7 +992,10 @@ Respuesta:
 }
 ```
 
-Importante: `database`, `openai` y `vector_store` todavia son flags mock. No usarlos como prueba real de disponibilidad de esos servicios.
+Importante:
+
+- `database` y `vector_store` reflejan checks reales contra Supabase y la tabla/servicio correspondiente.
+- `openai` sigue siendo un indicador de presencia de key, no una prueba de conectividad real.
 
 ## Errores esperados
 
@@ -868,7 +1030,7 @@ Casos principales:
 - Guardar `audit_id` para feedback y trazabilidad.
 - Implementar feedback con `POST /api/chat/feedback`.
 - Tratar `DELETE /api/conversations/{id}` como ocultar conversacion, no como borrado permanente.
-- No intentar reproducir `ruta_audio_respuesta` como URL publica hasta que exista endpoint de descarga/serving de audio.
+- Reproducir audio de respuesta consumiendo `GET /api/chat/audio/{audio_interaction_id}` con headers de autenticación (`X-External-Auth-Id`) y generando un Object URL (`URL.createObjectURL(blob)`).
 - En admin, subir documentos con `multipart/form-data` y mostrar estado de version activa (`PENDING`, `PROCESSING`, `READY`, `FAILED`).
 - En admin, usar `GET /api/admin/documents/{id}` para ver el detalle y todas las versiones de un documento.
 - En admin, usar `DELETE /api/admin/documents/{id}` para desactivar (soft-delete) un documento.

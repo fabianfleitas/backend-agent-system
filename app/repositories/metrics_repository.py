@@ -29,3 +29,7 @@ class MetricsRepository:
         response = self.client.table("audit_logs").select("*").execute()
         return list(response.data or [])
 
+    def list_message_documents(self) -> list[dict]:
+        response = self.client.table("message_documents").select("similarity_score").execute()
+        return list(response.data or [])
+

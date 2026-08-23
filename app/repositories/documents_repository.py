@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 from app.core.config import settings
 from app.core.supabase import get_supabase_client
@@ -75,6 +74,43 @@ class DocumentsRepository:
         )
         return response.data[0] if response.data else None
 
+    def get_version_by_id(self, version_id: int) -> Optional[dict]:
+        response = (
+            self.client.table("documento_versiones")
+            .select("*")
+            .eq("id", version_id)
+            .limit(1)
+            .execute()
+        )
+        return response.data[0] if response.data else None
+
+    def update_version(self, version_id: int, **fields: Any) -> Optional[dict]:
+        response = (
+            self.client.table("documento_versiones")
+            .update(fields)
+            .eq("id", version_id)
+            .execute()
+        )
+        return response.data[0] if response.data else None
+
+    def list_versions_for_reindex(self, documento_id: Optional[int]) -> List[dict]:
+        if documento_id is not None:
+            response = (
+                self.client.table("documento_versiones")
+                .select("*")
+                .eq("documento_id", documento_id)
+                .eq("es_version_activa", True)
+                .execute()
+            )
+        else:
+            response = (
+                self.client.table("documento_versiones")
+                .select("*")
+                .in_("status", ["PENDING", "FAILED"])
+                .execute()
+            )
+        return list(response.data or [])
+
     def deactivate_document(self, documento_id: int) -> Optional[dict]:
         response = (
             self.client.table("documentos")
@@ -93,19 +129,6 @@ class DocumentsRepository:
             .execute()
         )
         return list(response.data or [])
-
-    def reindex_versions(self, documento_id: Optional[int]) -> int:
-        query = self.client.table("documento_versiones").update(
-            {
-                "status": "READY",
-                "total_chunks": 0,
-                "indexed_at": datetime.now(timezone.utc).isoformat(),
-            }
-        )
-        if documento_id is not None:
-            query = query.eq("documento_id", documento_id)
-        response = query.execute()
-        return len(response.data or [])
 
     def _next_version_number(self, documento_id: int) -> int:
         response = (

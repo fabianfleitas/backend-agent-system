@@ -22,6 +22,7 @@ class AuditRepository:
         tiempo_respuesta_ms: Optional[float],
         pregunta_original: Optional[str] = None,
         observaciones: Optional[str] = None,
+        embedding_model: Optional[str] = None,
     ) -> dict:
         response = (
             self.client.table("audit_logs")
@@ -38,6 +39,7 @@ class AuditRepository:
                     "tokens_output": tokens_output,
                     "tiempo_respuesta_ms": _milliseconds_as_int(tiempo_respuesta_ms),
                     "observaciones": observaciones,
+                    "embedding_model": embedding_model,
                 }
             )
             .execute()
@@ -52,6 +54,15 @@ class AuditRepository:
             .execute()
         )
         return list(response.data or [])
+
+    def update_observaciones(self, audit_id: str, observaciones: str) -> Optional[dict]:
+        response = (
+            self.client.table("audit_logs")
+            .update({"observaciones": observaciones})
+            .eq("id", audit_id)
+            .execute()
+        )
+        return response.data[0] if response.data else None
 
 
 def _milliseconds_as_int(value: Optional[float]) -> Optional[int]:

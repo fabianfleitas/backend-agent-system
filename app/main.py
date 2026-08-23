@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 
 from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import router as api_router
 from app.core.config import settings
@@ -19,6 +20,26 @@ def create_app() -> FastAPI:
     configure_logging()
 
     app = FastAPI(title=settings.app_name)
+
+    def _split(value: str) -> list[str]:
+        return [v.strip() for v in value.split(",") if v.strip()]
+
+    allow_origins = ["*"] if settings.cors_allow_origins == "*" else _split(settings.cors_allow_origins)
+    allow_methods = ["*"] if settings.cors_allow_methods == "*" else _split(settings.cors_allow_methods)
+    allow_headers = ["*"] if settings.cors_allow_headers == "*" else _split(settings.cors_allow_headers)
+    if allow_origins == ["*"]:
+        allow_credentials = False
+    else:
+        allow_credentials = settings.cors_allow_credentials
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=allow_origins,
+        allow_methods=allow_methods,
+        allow_headers=allow_headers,
+        allow_credentials=allow_credentials,
+    )
+
     app.include_router(api_router, prefix=settings.api_prefix)
 
     @app.get("/health")

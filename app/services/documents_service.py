@@ -1,13 +1,19 @@
 from __future__ import annotations
 
+import logging
 import os
 import uuid
 from typing import Optional
 
+from app.core.config import settings
 from app.core.security import AuthContext
+from app.integrations.pdf_extractor import extract_text_from_pdf
 from app.repositories.documents_repository import DocumentsRepository
 from app.repositories.storage_repository import StorageRepository
 from app.repositories.users_repository import UsersRepository
+from app.services.indexing_service import IndexingService
+
+logger = logging.getLogger(__name__)
 
 
 class DocumentsService:
@@ -54,6 +60,7 @@ class DocumentsService:
             mime_type=content_type,
             file_size_bytes=len(file_bytes),
         )
+        self._index_or_extract(document["id"], version["id"], file_bytes, filename)
         return document, version
 
     def list_documents(self) -> list[tuple[dict, Optional[dict]]]:
@@ -102,10 +109,110 @@ class DocumentsService:
             mime_type=content_type,
             file_size_bytes=len(file_bytes),
         )
+        self._index_or_extract(documento_id, version["id"], file_bytes, filename)
         return document, version
 
+    @staticmethod
+    def _index_or_extract(
+        documento_id: int,
+        version_id: int,
+        file_bytes: bytes,
+        filename: Optional[str],
+    ) -> None:
+        if not settings.embeddings_enabled:
+            DocumentsService._extract_and_log(
+                documento_id=documento_id,
+                version_id=version_id,
+                filename=filename,
+                file_bytes=file_bytes,
+            )
+            return
+        try:
+            result = IndexingService().index_version(version_id, file_bytes=file_bytes)
+        except Exception as exc:
+            logger.warning(
+                "Indexing failed unexpectedly documento_id=%s version_id=%s filename=%s error=%s",
+                documento_id,
+                version_id,
+                filename,
+                exc,
+            )
+            return
+        if not result.ok:
+            logger.warning(
+                "Indexing error documento_id=%s version_id=%s filename=%s error=%s",
+                documento_id,
+                version_id,
+                filename,
+                result.error,
+            )
+        else:
+            logger.info(
+                "Indexing done documento_id=%s version_id=%s filename=%s status=%s total_chunks=%s total_tokens=%s model=%s elapsed_ms=%.1f",
+                documento_id,
+                version_id,
+                filename,
+                result.status,
+                result.total_chunks,
+                result.total_tokens,
+                result.embedding_model,
+                result.elapsed_ms,
+            )
+
+    @staticmethod
+    def _extract_and_log(
+        documento_id: int,
+        version_id: int,
+        file_bytes: bytes,
+        filename: Optional[str],
+    ) -> None:
+        try:
+            result = extract_text_from_pdf(file_bytes)
+        except Exception as exc:
+            logger.warning(
+                "PDF extraction failed unexpectedly documento_id=%s version_id=%s filename=%s error=%s",
+                documento_id,
+                version_id,
+                filename,
+                exc,
+            )
+            return
+        if not result.ok:
+            logger.warning(
+                "PDF extraction error documento_id=%s version_id=%s filename=%s error=%s",
+                documento_id,
+                version_id,
+                filename,
+                result.error,
+            )
+        elif result.total_chars == 0:
+            logger.warning(
+                "PDF has no extractable text (scanned/empty) documento_id=%s version_id=%s filename=%s page_count=%s",
+                documento_id,
+                version_id,
+                filename,
+                result.page_count,
+            )
+        else:
+            preview = " ".join(page.text for page in result.pages[:1]).strip()
+            logger.info(
+                "PDF extracted documento_id=%s version_id=%s filename=%s page_count=%s total_chars=%s preview=%r",
+                documento_id,
+                version_id,
+                filename,
+                result.page_count,
+                result.total_chars,
+                preview[:200],
+            )
+
     def reindex(self, documento_id: Optional[int]) -> int:
-        return self.documents_repository.reindex_versions(documento_id)
+        versions = self.documents_repository.list_versions_for_reindex(documento_id)
+        updated = 0
+        for version in versions:
+            result = IndexingService().index_version(version["id"])
+            if result.ok:
+                updated += 1
+        return updated
 
 
 def _active_version(versions: list[dict]) -> Optional[dict]:

@@ -25,6 +25,12 @@ class StorageRepository:
             upsert=upsert,
         )
 
+    def download_document(self, path: str) -> bytes:
+        return (
+            self.client.storage.from_(settings.supabase_storage_bucket_documents)
+            .download(path)
+        )
+
     def upload_audio(
         self,
         path: str,
@@ -38,6 +44,12 @@ class StorageRepository:
             content=content,
             content_type=content_type,
             upsert=upsert,
+        )
+
+    def download_audio(self, path: str) -> bytes:
+        return (
+            self.client.storage.from_(settings.supabase_storage_bucket_audio)
+            .download(path)
         )
 
     def upload_file(

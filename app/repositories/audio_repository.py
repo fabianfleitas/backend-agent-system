@@ -20,6 +20,7 @@ class AudioRepository:
         formato_audio: Optional[str],
         tamano_bytes: Optional[int],
         duracion_segundos: Optional[float] = None,
+        transcription_model: Optional[str] = None,
     ) -> dict:
         response = (
             self.client.table("audio_interactions")
@@ -31,6 +32,7 @@ class AudioRepository:
                     "ruta_audio_original": ruta_audio_original,
                     "ruta_audio_respuesta": ruta_audio_respuesta,
                     "transcripcion": transcripcion,
+                    "transcription_model": transcription_model,
                     "duracion_segundos": duracion_segundos,
                     "formato_audio": formato_audio,
                     "tamano_bytes": tamano_bytes,
@@ -39,4 +41,16 @@ class AudioRepository:
             .execute()
         )
         return response.data[0]
+
+    def get_audio_interaction(self, audio_interaction_id: int) -> Optional[dict]:
+        response = (
+            self.client.table("audio_interactions")
+            .select("*")
+            .eq("id", audio_interaction_id)
+            .limit(1)
+            .execute()
+        )
+        if response.data:
+            return response.data[0]
+        return None
 

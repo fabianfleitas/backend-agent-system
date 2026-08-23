@@ -72,6 +72,7 @@ class AudioInteractionOut(BaseModel):
     ruta_audio_original: str
     ruta_audio_respuesta: Optional[str] = None
     transcripcion: Optional[str] = None
+    transcription_model: Optional[str] = None
     duracion_segundos: Optional[float] = None
     formato_audio: Optional[str] = None
     tamano_bytes: Optional[int] = None
