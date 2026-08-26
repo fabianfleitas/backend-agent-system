@@ -19,12 +19,15 @@ No asumir que los mocks actuales satisfacen los requisitos funcionales.
 - **Framework:** FastAPI (Python 3.10+)
 - **Entrypoint:** `app/main.py:create_app()`
 - **Configuracion:** `pydantic-settings`, lee `.env` desde la raiz del proyecto
-- **Auth:** delegada por headers en `app/core/security.py`
-- **Persistencia parcial real:** `/me` usa Supabase mediante `UsersService` y `UsersRepository`
+- **Auth:** implementado con JWT de Supabase Auth (`PLAN_MULTI_INSTITUCION_DECISIONES.md`); `get_auth_context()` valida JWT de Supabase (`external_auth_id` = `auth.users.id`), luego `is_active` en `app_users`, luego `institucion_miembros` (`tipo_miembro`, `institucion_id`) y `platform_admins` (`is_platform_admin`); `app_users.role` deprecado; headers delegados (`X-*`) obsoletos; cliente debe enviar `Authorization: Bearer <jwt>`.
+- **Persistencia parcial real:** `/me` usa Supabase mediante `UsersService` y `UsersRepository`; tras transición, `get_auth_context()` valida JWT de Supabase (`external_auth_id` = `auth.users.id`) y resuelve membresía institucional.
+- **Protección de cruzado:** acceso a recurso de otra institución devuelve 404; `app_users.role` no determina acceso institucional.
 - **Readiness parcial real:** `/ready` consulta Supabase mediante `SystemService` y `SystemRepository`
 - **Persistencia real:** conversaciones, mensajes, documentos, versiones, audio metadata, auditoria, `message_documents` y feedback persisten en Supabase mediante repositories
-- **Storage local:** archivos subidos se guardan en `storage/`, `storage/audio/` y `storage/documents/`
-- **Modelo SQL objetivo:** `tables.sql`
+- **Storage real (Supabase Storage):** archivos subidos guardados en `SUPABASE_STORAGE_BUCKET_DOCUMENTS` y `SUPABASE_STORAGE_BUCKET_AUDIO` con prefijo institucional (`{institucion_id}/documents/`, `{institucion_id}/audio/`), no solo `storage/` local. Metadatos y trazabilidad en Supabase.
+- **Gestión documental:** carga de PDFs, versionado y reindexacion con extraccion/indexacion local o embeddings reales segun `EMBEDDINGS_ENABLED`; categorías aisladas por institución (`categorias.institucion_id`); validación de categoría al crear documento.
+- **FASE A-H implementadas:** B (Auth Supabase + RBAC), A (aislamiento multi-institución), D (RAG aislado por institución), E (conversaciones/voz), C (documental con categorías) completadas; F (audit/PII) parcial; G (billing esquemas SQL) parcial; H (dashboard) pendiente.
+- **Modelo SQL objetivo:** `migrations/001_multi_institution.sql`; esquema completo en `all_tables.json` (no `tables.sql` que no existe).
 - **RAG parcial real:** recuperacion de contexto real en `chat/query` (retrieval de chunks + trazabilidad en `message_documents`); generacion de respuesta real via OpenRouter cuando `LLM_ENABLED=true`; `chat/voice` transcribe real via STT cuando `STT_ENABLED=true` y alimenta esa transcripcion al mismo pipeline RAG+OpenRouter (tag `[voice]` en audit); sintetiza respuesta a audio real via TTS (`/audio/speech`, OpenRouter) cuando `TTS_ENABLED=true` con degradacion graceful si falla; si STT esta off, voz es mock
 - **Gestion documental real parcial:** carga de PDFs, versionado y reindexacion con extraccion/indexacion local o embeddings reales segun `EMBEDDINGS_ENABLED`
 - **Procesamiento asincrono:** no implementado; `Celery`/`Redis` aun no existen en el codigo
@@ -64,25 +67,17 @@ Run:
 uvicorn app.main:app --reload
 ```
 
-## Auth delegada
+## Auth (plan multi-institución)
 
-No usar JWT propio mientras no sea un requerimiento explicito.
+Estado objetivo: autenticación con JWT de Supabase Auth. Ver `PLAN_MULTI_INSTITUCION_DECISIONES.md`.
 
-Todos los endpoints de negocio dependen de headers delegados:
-
-- `X-External-Auth-Id` es obligatorio
-- `X-Auth-Provider` es opcional; por defecto `delegated`
-- `X-User-Type` permite `ESTUDIANTE`, `ADMIN`, `SECRETARIA`
-- `X-User-Email` es opcional
-
-La extraccion del contexto se hace en `app/core/security.py:get_auth_context()`.
-Los endpoints administrativos deben pasar por `require_admin()`.
-
-Mapeo de roles:
-
-- Header `ESTUDIANTE` -> respuesta `STUDENT`
-- Header `SECRETARIA` -> respuesta `STAFF`
-- Header `ADMIN` -> respuesta `ADMIN`
+- `get_auth_context()` resuelve `external_auth_id` desde `auth.users.id` (campo `sub` del JWT de Supabase), luego valida `is_active` en `app_users`, luego resuelve membresía activa en `institucion_miembros` (`tipo_miembro`, `institucion_id`) y `platform_admins` (`is_platform_admin`).
+- `app_users.role` está deprecado como fuente de autorización; no se consulta para permisos institucionales.
+- Headers delegados (`X-External-Auth-Id`, `X-User-Type`, etc.) quedan obsoletos; el cliente debe enviar `Authorization: Bearer <jwt>`.
+- Separación clara:
+  - `institucion_miembros` → administración de la institución (`/api/admin/*`)
+  - `platform_admins` → administración global (`/api/platform/*`) **pendiente FASE H**; actualmente bypass via `/admin/*` documentado
+- Regla de acceso cruzado: 404 si el recurso no pertenece a `auth.institucion_id`; el único bypass es `is_platform_admin` para `/platform/*`.
 
 ## Supabase
 
@@ -100,7 +95,6 @@ Reglas:
 - Usar repositories para acceso a Supabase y services para orquestacion.
 - Si Supabase no esta configurado, `/ready` devuelve `not_ready`.
 - Si Supabase no esta configurado, `/me` puede devolver `503`.
-- No asumir que Supabase ya persiste todo el dominio; hoy solo cubre usuario actual y checks de readiness.
 
 ## API actual
 
@@ -128,10 +122,14 @@ POST   /api/chat/feedback
 
 POST   /api/admin/documents
 GET    /api/admin/documents
+GET    /api/admin/documents/{documento_id}
+POST   /api/admin/documents/{documento_id}/versions
+DELETE /api/admin/documents/{documento_id}
 POST   /api/admin/reindex
 GET    /api/admin/audit
 GET    /api/admin/users
 GET    /api/admin/metrics
+GET    /api/admin/categories
 ```
 
 Notas:
@@ -143,7 +141,10 @@ Notas:
 - `chat/voice` transcribe real el audio via STT cuando `STT_ENABLED=true` (cliente compatible OpenAI apuntando a `OPENROUTER_BASE_URL` con `OPENROUTER_API_KEY`; endpoint `POST /audio/transcriptions`; modelo default `stt_model=x-ai/grok-stt-1.0`, `stt_response_format=verbose_json` configurable). Si `STT_ENABLED=false` la transcripcion es mock. Con `STT_ENABLED=true` la transcripcion se alimenta al mismo pipeline RAG+OpenRouter de `chat/query` (respuesta real, guard de dominio o fallback; tag `[voice]` en `observaciones`); con `STT_ENABLED=false` la respuesta queda mock. Con `TTS_ENABLED=true` la respuesta se sintetiza a audio via `/audio/speech` de OpenRouter (modelo `tts_model` default `hexgrad/kokoro-82m`, voz `tts_voice` default `ef_dora`, formato `tts_response_format`) guardado en `ruta_audio_respuesta`; si TTS falla, degradacion graceful con nota `TTS_FAILED` en `observaciones`.
 - `admin/documents` persiste archivos en disco y metadatos en Supabase; si `EMBEDDINGS_ENABLED=false` extrae texto localmente y si esta activo indexa chunks y embeddings.
 - `admin/reindex` reindexa versiones activas con `IndexingService`; no es solo un cambio de estado mock.
-- `admin/users` lista usuarios de Supabase mediante `UsersRepository`.
+- `GET /admin/config`, `PUT /admin/config/{clave}` (configuración operativa institucional + global; `editable_desde_dashboard`; precedencia institucional > global)
+- `GET /admin/subscription`, `GET /admin/plan`, `GET /admin/pagos`, `GET /admin/comprobantes` (billing lectura, aislamiento por institución)
+- `GET /platform/institutions`, `POST /platform/institutions/{id}/members`, `DELETE /platform/institutions/{id}/members/{member_id}`, `GET /platform/users`, `GET /platform/metrics`, `GET /platform/audit`, `GET /platform/plans`, `GET /platform/subscriptions`, `GET /platform/pagos`, `GET /platform/comprobantes` (administración global)
+- `admin/users` lista usuarios de Supabase mediante `UsersRepository` (ahora con `institucion_id`, `tipo_membro`, `is_platform_admin`, `nombre_institucion`).
 - `admin/metrics` expone metricas IA agregadas desde `audit_logs` y `message_documents` (outcomes LLM/GUARD/LLM_FAILED, rates, tokens por modelo, avg similarity de retrieval, split voice/text).
 - El contrato para frontend esta documentado en `FRONTEND_API_INTEGRATION.md`.
 
@@ -174,7 +175,7 @@ El modelo esperado incluye al menos estas entidades conceptuales:
 - log_auditoria
 - pii_mapping
 
-Usar `modelo_inicial_datos.md` y `tables.sql` como guia funcional, no como reflejo exacto de todo lo ya implementado.
+Usar `migrations/001_multi_institution.sql` y `all_tables.json` como guia funcional (documentos antiguos `requisitos.md`, `modelo_inicial_datos.md` movidos a `borrar/`).
 
 ## Estructura relevante
 

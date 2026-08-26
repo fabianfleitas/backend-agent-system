@@ -8,13 +8,16 @@ La regla principal del repositorio sigue siendo esta: distinguir siempre entre e
 
 - FastAPI como framework principal.
 - Factory central en `app/main.py:create_app()`.
-- Auth delegada por headers externos.
+- Auth con JWT de Supabase Auth (implementado tras FASE B)
+- Aislamiento multi-institución por `institucion_id` (FASE A)
+- `app_users.role` deprecado; permisos desde `institucion_miembros.tipo_miembro` / `platform_admins`
 - `/me` y `/ready` usan Supabase de forma real.
 - Conversaciones, mensajes, documentos, versiones, audio metadata, auditoria, feedback y trazabilidad RAG persisten en Supabase mediante repositories.
-- Archivos subidos se guardan localmente en `storage/`, `storage/audio/` y `storage/documents/`.
+- Archivos subidos se guardan en **Supabase Storage** (bucket `documents` / `audio`) con prefijo institucional (`{institucion_id}/documents/`, `{institucion_id}/audio/`); metadatos en Supabase.
 - `chat/query` recupera contexto real cuando `EMBEDDINGS_ENABLED=true` y puede generar respuesta real con OpenRouter cuando `LLM_ENABLED=true`.
 - `chat/voice` puede transcribir con STT real cuando `STT_ENABLED=true` y sintetizar respuesta con TTS real cuando `TTS_ENABLED=true`.
-- La gestion documental ya incluye carga de PDFs, versionado, activacion de version y reindexacion.
+- `openapi.current.json` generado (`/docs`, `/openapi.json`); contrato actualizado con endpoints de `config`, `platform` y `billing`.
+- `FRONTEND_API_INTEGRATION.md` actualizado con contratos de `UserOut` completo (`tipo_miembro`, `is_platform_admin`, `institucion_id`), `MetricsOut` con series/filtros, `Platform` (`/api/platform/*`), `ConfigParam` (GET/PUT) y billing lectura (`/subscription`, `/plan`, `/pagos`, `/comprobantes`).
 - Existe una carpeta `tests/` con cobertura en desarrollo para servicios e integraciones criticas.
 
 ## Capacidad por flag
@@ -29,7 +32,7 @@ La regla principal del repositorio sigue siendo esta: distinguir siempre entre e
 
 - Python 3.10+
 - Dependencias de `requirements.txt`
-- Opcional: proyecto Supabase con las tablas definidas en `tables.sql`
+- Opcional: proyecto Supabase con tablas en `migrations/001_multi_institution.sql`; esquema completo en `all_tables.json`.
 
 ## Instalacion local
 
@@ -64,6 +67,7 @@ SUPABASE_SERVICE_ROLE_KEY=
 SUPABASE_SECRET_KEY=
 SUPABASE_STORAGE_BUCKET_DOCUMENTS=documents
 SUPABASE_STORAGE_BUCKET_AUDIO=audio
+SUPABASE_JWT_SECRET=  # para validación local del JWT de Supabase Auth
 
 OPENAI_API_KEY=
 
@@ -108,7 +112,10 @@ Documentacion interactiva:
 
 ```text
 http://127.0.0.1:8000/docs
+http://127.0.0.1:8000/openapi.json
 ```
+
+OpenAPI oficial (`openapi.current.json`) se genera desde `create_app()` con contrato actualizado: auth, multiinstitución, RAG, voz, documents, admin (`config`, `metrics`, `users`), `platform/*` y `billing` lectura.
 
 ## Endpoints principales
 
@@ -143,28 +150,47 @@ POST   /api/admin/reindex
 GET    /api/admin/audit
 GET    /api/admin/users
 GET    /api/admin/metrics
+GET    /api/admin/categories
+GET    /api/admin/config
+GET    /api/admin/subscription
+GET    /api/admin/plan
+GET    /api/admin/pagos
+GET    /api/admin/comprobantes
+GET    /api/platform/institutions
+GET    /api/platform/institutions/{id}/members
+GET    /api/platform/users
+GET    /api/platform/metrics
+GET    /api/platform/audit
+GET    /api/platform/plans
+GET    /api/platform/subscriptions
+GET    /api/platform/pagos
+GET    /api/platform/comprobantes
 ```
 
-## Autenticacion delegada
+## Autenticacion con Supabase Auth
 
-El backend no emite JWT propio. Los endpoints de negocio dependen de headers delegados:
+El backend valida JWT emitidos por Supabase Auth. El cliente debe enviar:
 
 ```http
-X-External-Auth-Id: <id externo obligatorio>
-X-Auth-Provider: delegated
-X-User-Type: ESTUDIANTE | ADMIN | SECRETARIA
-X-User-Email: usuario@institucion.edu
+Authorization: Bearer <jwt>
 ```
 
+Flujo:
+1. `get_auth_context()` extrae `sub` (campo `auth.users.id`) del JWT.
+2. Valida `is_active` en `app_users`.
+3. Resuelve membresía activa en `institucion_miembros` (`tipo_miembro`, `institucion_id`).
+4. Comprueba `platform_admins` (`is_platform_admin`).
+5. `app_users.role` está deprecado; no se consulta para permisos institucionales.
+
 Reglas:
-
-- `X-External-Auth-Id` es obligatorio.
-- `X-Auth-Provider` es opcional; por defecto es `delegated`.
-- `X-User-Type` por defecto es `ESTUDIANTE`.
-- `SECRETARIA` se mapea como `STAFF` en el usuario persistido.
-- Los endpoints administrativos requieren `ADMIN` o `SECRETARIA`.
-
-La extraccion del contexto vive en `app/core/security.py:get_auth_context()`.
+- `Authorization: Bearer <jwt>` obligatorio para endpoints de negocio.
+- `app_users.role` deprecado; permisos institucionales desde `institucion_miembros.tipo_membro` y `platform_admins.is_platform_admin`.
+- `platform_admin`: acceso a `/api/platform/*`; para `/admin/*` requiere membresía institucional.
+- Acceso cruzado: 404 si el recurso no pertenece a `auth.institucion_id`.
+- Admin institucional: `tipo_miembro` = `ADMIN` o `SECRETARIA` en `institucion_miembros`.
+- Superadmin (global): `is_platform_admin = true` en `platform_admins`; sin requerir institución.
+- Acceso cruzado: 404 si el recurso no pertenece a `auth.institucion_id`.
+- Headers delegados (`X-External-Auth-Id`, `X-User-Type`, etc.) quedan obsoletos.
 
 ## Contrato de chat
 
@@ -193,7 +219,7 @@ Para ver el contrato completo del frontend, ejemplos de payloads y comportamient
 
 ## Supabase y modelo de datos
 
-`tables.sql` contiene el modelo objetivo para Supabase/PostgreSQL con pgvector. Las entidades ya usadas por el backend incluyen:
+`migrations/001_multi_institution.sql` y `all_tables.json`
 
 - `app_users`
 - `conversaciones`

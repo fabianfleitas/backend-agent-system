@@ -23,36 +23,34 @@ class AuditRepository:
         pregunta_original: Optional[str] = None,
         observaciones: Optional[str] = None,
         embedding_model: Optional[str] = None,
+        institucion_id: Optional[int] = None,
     ) -> dict:
         response = (
             self.client.table("audit_logs")
-            .insert(
-                {
-                    "conversacion_id": conversation_id,
-                    "mensaje_id": message_id,
-                    "external_auth_id": external_auth_id,
-                    "pregunta_original": pregunta_original,
-                    "respuesta_texto": respuesta_texto,
-                    "proveedor_ia": proveedor_ia,
-                    "modelo_ia": modelo_ia,
-                    "tokens_input": tokens_input,
-                    "tokens_output": tokens_output,
-                    "tiempo_respuesta_ms": _milliseconds_as_int(tiempo_respuesta_ms),
-                    "observaciones": observaciones,
-                    "embedding_model": embedding_model,
-                }
-            )
+            .insert({
+                "conversacion_id": conversation_id,
+                "mensaje_id": message_id,
+                "external_auth_id": external_auth_id,
+                "pregunta_original": pregunta_original,
+                "respuesta_texto": respuesta_texto,
+                "proveedor_ia": proveedor_ia,
+                "modelo_ia": modelo_ia,
+                "tokens_input": tokens_input,
+                "tokens_output": tokens_output,
+                "tiempo_respuesta_ms": _milliseconds_as_int(tiempo_respuesta_ms),
+                "observaciones": observaciones,
+                "embedding_model": embedding_model,
+                "institucion_id": institucion_id,
+            })
             .execute()
         )
         return response.data[0]
 
-    def list_audit_logs(self) -> list[dict]:
-        response = (
-            self.client.table("audit_logs")
-            .select("*")
-            .order("fecha_evaluacion", desc=True)
-            .execute()
-        )
+    def list_audit_logs(self, institucion_id: Optional[int] = None) -> list[dict]:
+        query = self.client.table("audit_logs").select("*").order("fecha_evaluacion", desc=True)
+        if institucion_id is not None:
+            query = query.eq("institucion_id", institucion_id)
+        response = query.execute()
         return list(response.data or [])
 
     def update_observaciones(self, audit_id: str, observaciones: str) -> Optional[dict]:
@@ -69,4 +67,3 @@ def _milliseconds_as_int(value: Optional[float]) -> Optional[int]:
     if value is None:
         return None
     return int(round(value))
-

@@ -16,6 +16,7 @@ class DocumentsRepository:
         codigo_documento: Optional[str],
         titulo: str,
         descripcion: Optional[str],
+        institucion_id: int,
     ) -> dict:
         response = (
             self.client.table("documentos")
@@ -26,6 +27,7 @@ class DocumentsRepository:
                     "titulo": titulo,
                     "descripcion": descripcion,
                     "activo": True,
+                    "institucion_id": institucion_id,
                 }
             )
             .execute()
@@ -64,70 +66,76 @@ class DocumentsRepository:
         )
         return response.data[0]
 
-    def get_document_by_id(self, documento_id: int) -> Optional[dict]:
-        response = (
-            self.client.table("documentos")
-            .select("*, documento_versiones(*)")
-            .eq("id", documento_id)
-            .limit(1)
-            .execute()
-        )
+    def get_document_by_id(self, documento_id: int, institucion_id: Optional[int] = None) -> Optional[dict]:
+        query = self.client.table("documentos").select("*, documento_versiones(*)").eq("id", documento_id).limit(1)
+        if institucion_id is not None:
+            query = query.eq("institucion_id", institucion_id)
+        response = query.execute()
         return response.data[0] if response.data else None
 
-    def get_version_by_id(self, version_id: int) -> Optional[dict]:
-        response = (
+    def get_version_by_id(self, version_id: int, institucion_id: Optional[int] = None) -> Optional[dict]:
+        query = (
             self.client.table("documento_versiones")
-            .select("*")
+            .select("*, documentos!inner(institucion_id)")
             .eq("id", version_id)
             .limit(1)
-            .execute()
         )
+        if institucion_id is not None:
+            query = query.eq("documentos.institucion_id", institucion_id)
+        response = query.execute()
         return response.data[0] if response.data else None
 
-    def update_version(self, version_id: int, **fields: Any) -> Optional[dict]:
-        response = (
+    def update_version(self, version_id: int, institucion_id: Optional[int] = None, **fields: Any) -> Optional[dict]:
+        query = (
             self.client.table("documento_versiones")
             .update(fields)
             .eq("id", version_id)
-            .execute()
         )
+        if institucion_id is not None:
+            # Verificar pertenencia institucional antes de actualizar
+            version = self.get_version_by_id(version_id, institucion_id)
+            if version is None:
+                return None
+        response = query.execute()
         return response.data[0] if response.data else None
 
-    def list_versions_for_reindex(self, documento_id: Optional[int]) -> List[dict]:
+    def list_versions_for_reindex(self, documento_id: Optional[int], institucion_id: Optional[int] = None) -> List[dict]:
         if documento_id is not None:
-            response = (
+            query = (
                 self.client.table("documento_versiones")
-                .select("*")
+                .select("*, documentos!inner(institucion_id)")
                 .eq("documento_id", documento_id)
                 .eq("es_version_activa", True)
-                .execute()
             )
+            if institucion_id is not None:
+                query = query.eq("documentos.institucion_id", institucion_id)
+            response = query.execute()
+            return list(response.data or [])
         else:
-            response = (
+            # Reindex global: solo cuando no se requiere aislamiento (platform admin)
+            if institucion_id is not None:
+                return []  # No permitido reindex sin documento específico para una institución
+            query = (
                 self.client.table("documento_versiones")
-                .select("*")
+                .select("*, documentos!inner(institucion_id)")
                 .in_("status", ["PENDING", "FAILED"])
-                .execute()
+                .eq("es_version_activa", True)
             )
-        return list(response.data or [])
+            response = query.execute()
+            return list(response.data or [])
 
-    def deactivate_document(self, documento_id: int) -> Optional[dict]:
-        response = (
-            self.client.table("documentos")
-            .update({"activo": False})
-            .eq("id", documento_id)
-            .eq("activo", True)
-            .execute()
-        )
+    def deactivate_document(self, documento_id: int, institucion_id: Optional[int] = None) -> Optional[dict]:
+        query = self.client.table("documentos").update({"activo": False}).eq("id", documento_id).eq("activo", True)
+        if institucion_id is not None:
+            query = query.eq("institucion_id", institucion_id)
+        response = query.execute()
         return response.data[0] if response.data else None
 
-    def list_documents(self) -> list[dict]:
-        response = (
-            self.client.table("documentos")
-            .select("*, documento_versiones(*)")
-            .order("fecha_creacion", desc=True)
-            .execute()
-        )
+    def list_documents(self, institucion_id: Optional[int] = None) -> list[dict]:
+        query = self.client.table("documentos").select("*, documento_versiones(*)").order("fecha_creacion", desc=True)
+        if institucion_id is not None:
+            query = query.eq("institucion_id", institucion_id)
+        response = query.execute()
         return list(response.data or [])
 
     def _next_version_number(self, documento_id: int) -> int:

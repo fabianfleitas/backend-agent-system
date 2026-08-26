@@ -11,8 +11,6 @@ get {
 }
 
 headers {
-  X-External-Auth-Id: {{authId}}
-  X-Auth-Provider: {{authProvider}}
-  X-User-Type: {{adminType}}
-  X-User-Email: {{userEmail}}
+  Authorization: Bearer {{jwt}}
+  
 }

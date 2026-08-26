@@ -7,6 +7,7 @@ from typing import Optional
 
 from app.repositories.metrics_repository import MetricsRepository
 from app.repositories.users_repository import UsersRepository
+from app.core.security import AuthContext
 from app.schemas.common import UserOut, UserRole
 from app.schemas.system import MetricsOut
 
@@ -20,26 +21,91 @@ class AdminService:
         self.users_repository = users_repository or UsersRepository()
         self.metrics_repository = metrics_repository or MetricsRepository()
 
-    def list_users(self) -> list[UserOut]:
-        users = self.users_repository.list_users()
+    def list_users(self, auth: Optional[AuthContext] = None) -> list[UserOut]:
+        institution_id = None
+        if auth is not None and not auth.is_platform_admin:
+            institution_id = auth.institucion_id
+        users = self.users_repository.list_users(institucion_id=institution_id)
+        eids = [u["external_auth_id"] for u in users]
+        memberships = self.users_repository.get_memberships_batch(eids) if hasattr(self.users_repository, "get_memberships_batch") else {}
+        # Resolver nombres de institución para miembros
+        inst_ids = list({m.get("institucion_id") for m in memberships.values() if m.get("institucion_id")})
+        names_map = {}
+        if inst_ids:
+            try:
+                from app.core.supabase import get_supabase_client
+                resp = get_supabase_client().table("instituciones").select("id, nombre").in_("id", inst_ids).execute()
+                for r in (resp.data or []):
+                    names_map[r.get("id")] = r.get("nombre")
+            except Exception:
+                pass
         return [
             UserOut(
                 external_auth_id=user["external_auth_id"],
                 email=user.get("email"),
+                full_name=user.get("full_name"),
                 role=_role_out(user.get("role")),
+                institucion_id=memberships.get(user["external_auth_id"], {}).get("institucion_id"),
+                tipo_miembro=memberships.get(user["external_auth_id"], {}).get("tipo_miembro"),
+                is_platform_admin=memberships.get(user["external_auth_id"], {}).get("is_platform_admin", False),
+                nombre_institucion=names_map.get(memberships.get(user["external_auth_id"], {}).get("institucion_id")),
                 created_at=_parse_datetime(user["created_at"]),
-                updated_at=_parse_datetime(user.get("updated_at") or user["created_at"]),
+                updated_at=_parse_datetime(user["updated_at"] or user["created_at"]),
             )
             for user in users
         ]
 
-    def get_metrics(self) -> MetricsOut:
-        messages = self.metrics_repository.list_messages()
-        conversations = self.metrics_repository.list_conversations()
-        documents = self.metrics_repository.list_documents()
-        feedbacks = self.metrics_repository.list_feedbacks()
-        audit_logs = self.metrics_repository.list_audit_logs()
-        message_documents = self.metrics_repository.list_message_documents()
+    def get_metrics(
+        self,
+        auth: Optional[AuthContext] = None,
+        desde: Optional[str] = None,
+        hasta: Optional[str] = None,
+        categoria_id: Optional[int] = None,
+        modelo: Optional[str] = None,
+        documento_id: Optional[int] = None,
+        granularidad: Optional[str] = "day",
+    ) -> MetricsOut:
+        institution_id = None
+        if auth is not None and not auth.is_platform_admin:
+            institution_id = auth.institucion_id
+        messages = self.metrics_repository.list_messages(institucion_id=institution_id)
+        conversations = self.metrics_repository.list_conversations(institucion_id=institution_id)
+        documents = self.metrics_repository.list_documents(institucion_id=institution_id)
+        feedbacks = self.metrics_repository.list_feedbacks(institucion_id=institution_id)
+        audit_logs = self.metrics_repository.list_audit_logs(institucion_id=institution_id)
+        message_documents = self.metrics_repository.list_message_documents(institucion_id=institution_id)
+
+        # --- BLOQUE 2: filtros ---
+        # Documento / categoría → mensaje_ids
+        mensaje_ids_filtro = None
+        if documento_id is not None:
+            mensaje_ids_filtro = {md.get("mensaje_id") for md in message_documents if md.get("documento_id") == documento_id}
+            mensaje_ids_filtro = mensaje_ids_filtro - {None}
+        elif categoria_id is not None:
+            try:
+                from app.core.supabase import get_supabase_client
+                client = get_supabase_client()
+                docs_resp = client.table("documentos").select("id").eq("categoria_id", categoria_id).eq("institucion_id", institution_id or (auth.institucion_id if auth else None)).execute()
+                doc_ids = {d.get("id") for d in (docs_resp.data or []) if d.get("id")}
+                if doc_ids:
+                    mensaje_ids_filtro = {md.get("mensaje_id") for md in message_documents if md.get("documento_id") in doc_ids}
+                    mensaje_ids_filtro = mensaje_ids_filtro - {None}
+            except Exception:
+                pass
+
+        if mensaje_ids_filtro is not None:
+            audit_logs = [log for log in audit_logs if log.get("mensaje_id") in mensaje_ids_filtro]
+            message_documents = [md for md in message_documents if md.get("mensaje_id") in mensaje_ids_filtro]
+
+        if desde or hasta:
+            audit_logs = [log for log in audit_logs if _in_range(log.get("fecha_evaluacion"), desde, hasta)]
+            conversations = [c for c in conversations if _in_range(c.get("fecha_creacion"), desde, hasta)]
+            conv_ids = {c.get("id") for c in conversations}
+            messages = [m for m in messages if m.get("conversacion_id") in conv_ids]
+
+        if modelo:
+            audit_logs = [log for log in audit_logs if modelo in (log.get("modelo_ia") or "")]
+        # --- /BLOQUE 2 ---
 
         response_times = [
             float(message["tiempo_respuesta_ms"])
@@ -81,8 +147,74 @@ class AdminService:
             total_text_queries=ia["total_text_queries"],
             avg_response_time_voice=ia["avg_response_time_voice"],
             avg_response_time_text=ia["avg_response_time_text"],
+            series=_build_series(audit_logs, conversations, granularidad or "day"),
+            desde=desde,
+            hasta=hasta,
+            categoria_id=categoria_id,
+            modelo=modelo,
+            documento_id=documento_id,
+            granularidad=granularidad,
         )
 
+
+def _in_range(value: Optional[str], desde: Optional[str], hasta: Optional[str]) -> bool:
+    if value is None:
+        return False if (desde or hasta) else True
+    if desde and value < desde[:10]:
+        return False
+    if hasta and value > hasta[:10]:
+        return False
+    return True
+
+def _build_series(audit_logs: list[dict], conversations: list[dict], granularidad: str = "day") -> list:
+    from collections import defaultdict
+    series = defaultdict(lambda: {"conversaciones": 0, "tokens_input": 0, "tokens_output": 0, "llm": 0, "guard": 0, "llm_failed": 0})
+    # Audit-derived buckets
+    for log in audit_logs:
+        fecha = (log.get("fecha_evaluacion") or "")[:10]
+        if not fecha:
+            continue
+        if granularidad == "week":
+            # Simple week bucket by first day of week (Mon)
+            from datetime import datetime
+            try:
+                dt = datetime.fromisoformat(fecha)
+                fecha = (dt - __import__("datetime").timedelta(days=dt.weekday())).strftime("%Y-%m-%d")
+            except Exception:
+                pass
+        series[fecha]["tokens_input"] += int(log.get("tokens_input") or 0)
+        series[fecha]["tokens_output"] += int(log.get("tokens_output") or 0)
+        obs = (log.get("observaciones") or "")
+        if "LLM_FAILED" in obs:
+            series[fecha]["llm_failed"] += 1
+        elif "GUARD" in obs:
+            series[fecha]["guard"] += 1
+        elif "LLM" in obs:
+            series[fecha]["llm"] += 1
+    # Conversations bucket
+    for c in conversations:
+        fecha = (c.get("fecha_creacion") or "")[:10]
+        if fecha:
+            if granularidad == "week":
+                try:
+                    from datetime import datetime
+                    dt = datetime.fromisoformat(fecha)
+                    fecha = (dt - __import__("datetime").timedelta(days=dt.weekday())).strftime("%Y-%m-%d")
+                except Exception:
+                    pass
+            series[fecha]["conversaciones"] += 1
+    return [
+        {
+            "fecha": k,
+            "conversaciones": v["conversaciones"],
+            "tokens_input": v["tokens_input"],
+            "tokens_output": v["tokens_output"],
+            "llm": v["llm"],
+            "guard": v["guard"],
+            "llm_failed": v["llm_failed"],
+        }
+        for k, v in sorted(series.items())
+    ]
 
 def _average(values: list[float]) -> float:
     if not values:

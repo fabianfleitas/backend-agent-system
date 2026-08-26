@@ -124,7 +124,7 @@ def _result(sources=None):
     return _R()
 
 
-def _configure(chats, transcription, audio, synthesis=None, audit=None) -> FastAPI:
+def _configure(chats, transcription, audio, synthesis=None, audit=None, auth_override=None) -> FastAPI:
     app = FastAPI()
     app.include_router(chat_routes.router, prefix="/api/chat")
     app.dependency_overrides[chat_routes._get_chat_service] = lambda: chats
@@ -132,6 +132,13 @@ def _configure(chats, transcription, audio, synthesis=None, audit=None) -> FastA
     app.dependency_overrides[chat_routes._get_audio_service] = lambda: audio
     app.dependency_overrides[chat_routes._get_synthesis_service] = lambda: synthesis or FakeSynthesisService()
     app.dependency_overrides[chat_routes._get_audit_repository] = lambda: audit or FakeAuditRepository()
+    if auth_override is not None:
+        from app.core.security import get_auth_context
+        app.dependency_overrides[get_auth_context] = lambda: auth_override
+    else:
+        from tests.conftest import make_auth
+        from app.core.security import get_auth_context
+        app.dependency_overrides[get_auth_context] = lambda: make_auth(external_auth_id="student-1", institucion_id=1, tipo_miembro="ESTUDIANTE")
     return app
 
 
@@ -139,12 +146,11 @@ def _client(app: FastAPI) -> TestClient:
     return TestClient(app)
 
 
-def _post(client: TestClient):
+def _post(client: TestClient) -> None:
     return client.post(
         "/api/chat/voice",
         params={"conversation_id": 1},
         files={"audio": ("voice.wav", b"RIFF-data", "audio/wav")},
-        headers={"X-External-Auth-Id": "student-1"},
     )
 
 
@@ -246,12 +252,12 @@ def test_voice_tts_disabled_keeps_empty_audio(monkeypatch) -> None:
 
 
 def test_get_audio_response_success() -> None:
+    from tests.conftest import make_auth
     audio = FakeAudioService(response_audio=(b"ID3-mp3-bytes", "audio/mpeg"))
-    app = _configure(FakeChatService(), FakeTranscriptionService(), audio)
+    app = _configure(FakeChatService(), FakeTranscriptionService(), audio, auth_override=make_auth(external_auth_id="student-1", institucion_id=1, tipo_miembro="ESTUDIANTE"))
     client = _client(app)
     resp = client.get(
         "/api/chat/audio/1",
-        headers={"X-External-Auth-Id": "student-1"},
     )
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "audio/mpeg"
@@ -259,24 +265,24 @@ def test_get_audio_response_success() -> None:
 
 
 def test_get_audio_response_forbidden() -> None:
+    from tests.conftest import make_auth
     audio = FakeAudioService(raise_permission=True)
-    app = _configure(FakeChatService(), FakeTranscriptionService(), audio)
+    app = _configure(FakeChatService(), FakeTranscriptionService(), audio, auth_override=make_auth(external_auth_id="student-2", institucion_id=1, tipo_miembro="ESTUDIANTE"))
     client = _client(app)
     resp = client.get(
         "/api/chat/audio/1",
-        headers={"X-External-Auth-Id": "student-2"},
     )
     assert resp.status_code == 403
     assert resp.json()["detail"] == "No autorizado para acceder a este audio"
 
 
 def test_get_audio_response_not_found() -> None:
+    from tests.conftest import make_auth
     audio = FakeAudioService(response_audio=None)
-    app = _configure(FakeChatService(), FakeTranscriptionService(), audio)
+    app = _configure(FakeChatService(), FakeTranscriptionService(), audio, auth_override=make_auth(external_auth_id="student-1", institucion_id=1, tipo_miembro="ESTUDIANTE"))
     client = _client(app)
     resp = client.get(
         "/api/chat/audio/999",
-        headers={"X-External-Auth-Id": "student-1"},
     )
     assert resp.status_code == 404
     assert resp.json()["detail"] == "Audio no encontrado"

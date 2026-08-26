@@ -71,11 +71,11 @@ class FakeDocumentsRepository:
         self.updates: List[Dict[str, Any]] = []
         self.calls: List[str] = []
 
-    def get_version_by_id(self, version_id: int) -> Optional[dict]:
+    def get_version_by_id(self, version_id: int, institucion_id: Optional[int] = None) -> Optional[dict]:
         self.calls.append("get_version_by_id")
         return self.version
 
-    def update_version(self, version_id: int, **fields: Any) -> Optional[dict]:
+    def update_version(self, version_id: int, institucion_id: Optional[int] = None, **fields: Any) -> Optional[dict]:
         self.updates.append(fields)
         if self.version is not None:
             self.version = {**self.version, **fields}

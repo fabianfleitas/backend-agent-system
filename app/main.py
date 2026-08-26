@@ -19,7 +19,37 @@ from app.utils.files import ensure_dir
 def create_app() -> FastAPI:
     configure_logging()
 
-    app = FastAPI(title=settings.app_name)
+    app = FastAPI(
+        title=settings.app_name,
+        openapi_url="/openapi.json",
+        docs_url="/docs",
+    )
+
+    def _custom_openapi() -> dict:
+        from fastapi.openapi.utils import get_openapi
+        if app.openapi_schema:
+            return app.openapi_schema
+        openapi_schema = get_openapi(
+            title=f"{settings.app_name} — Backend Multiinstitución",
+            version="1.0.0",
+            description="API institucional con RAG, voz, historial, auditoría y billing de lectura. Isolamiento por institución. Auth: JWT Supabase.",
+            routes=app.routes,
+        )
+        openapi_schema["info"]["contact"] = {"name": "Soporte institucional", "url": "https://example.org"}
+        openapi_schema["servers"] = [{"url": "/api", "description": "API local"}]
+        openapi_schema["tags"] = [
+            {"name": "global", "description": "Health, ready, me"},
+            {"name": "chat", "description": "Texto, voz, feedback"},
+            {"name": "conversations", "description": "Historial e interacciones"},
+            {"name": "admin", "description": "Administración institucional (docs, audit, metrics, config, billing)"},
+            {"name": "categories", "description": "Categorías institucionales"},
+            {"name": "platform", "description": "Administración global / platform admin (instituciones, usuarios globales, metrics, audit, billing)"},
+        ]
+        app.openapi_schema = openapi_schema
+        return openapi_schema
+
+    app.openapi = _custom_openapi
+    app.openapi = _custom_openapi
 
     def _split(value: str) -> list[str]:
         return [v.strip() for v in value.split(",") if v.strip()]

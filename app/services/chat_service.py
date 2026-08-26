@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 
 from app.core.config import settings
+from app.services.config_service import ConfigService
 from app.core.security import AuthContext
 from app.repositories.audit_repository import AuditRepository
 from app.repositories.conversations_repository import ConversationsRepository
@@ -61,10 +62,12 @@ class ChatService:
         self.message_documents_repository = message_documents_repository or MessageDocumentsRepository()
         self.generation_service = generation_service or GenerationService()
 
-    def get_owned_conversation(self, conversation_id: int, external_auth_id: str) -> Optional[dict]:
-        conversation = self.conversations_repository.get_conversation(conversation_id)
+    def get_owned_conversation(self, conversation_id: int, external_auth_id: str, institucion_id: int = None) -> Optional[dict]:
+        conversation = self.conversations_repository.get_conversation(conversation_id, institucion_id=institucion_id)
         if not conversation or conversation.get("external_auth_id") != external_auth_id:
             return None
+        # Si se pasó institucion_id y el recurso pertenece a otra, ya filtrado por repo; 
+        # si no coincide el external_auth_id, es 404 (no existe para este usuario/institución)
         return conversation
 
     def answer_text_query(self, auth: AuthContext, conversation_id: int, message: str) -> Optional[ChatResult]:
@@ -88,7 +91,10 @@ class ChatService:
         origin: str,
     ) -> Optional[ChatResult]:
         self.users_repository.get_or_create_user(auth)
-        conversation = self.get_owned_conversation(conversation_id, auth.external_auth_id)
+        from fastapi import HTTPException
+        if auth.institucion_id is None and not auth.is_platform_admin:
+            raise HTTPException(status_code=403, detail="Institution membership required")
+        conversation = self.get_owned_conversation(conversation_id, auth.external_auth_id, auth.institucion_id)
         if not conversation:
             return None
 
@@ -100,7 +106,7 @@ class ChatService:
         )
 
         start = time.perf_counter()
-        retrieved = self.retrieval_service.retrieve(message) if settings.embeddings_enabled else None
+        retrieved = self.retrieval_service.retrieve(message, auth.institucion_id) if settings.embeddings_enabled else None
         embedding_model = None
         modelo_ia = "mock"
         tokens_input: Optional[int] = None
@@ -132,7 +138,9 @@ class ChatService:
                 }
                 for chunk in retrieved.chunks
             ]
-            if settings.llm_enabled:
+            config = ConfigService()
+            llm_enabled = config.get_bool("llm_enabled", auth.institucion_id, settings.llm_enabled)
+            if llm_enabled:
                 history = self._build_history(conversation_id, exclude_id=user_message["id"])
                 generation = self.generation_service.generate(
                     message, retrieved.chunks, history=history
@@ -147,7 +155,7 @@ class ChatService:
                     logger.error(
                         "LLM generation failed conversation_id=%s model=%s error=%s",
                         conversation_id,
-                        settings.llm_model,
+                        config.get_str("llm_model", auth.institucion_id, settings.llm_model),
                         generation.error,
                     )
                     answer = LLM_UNAVAILABLE_MESSAGE
@@ -197,6 +205,7 @@ class ChatService:
             tiempo_respuesta_ms=elapsed_ms,
             observaciones=observaciones,
             embedding_model=embedding_model,
+            institucion_id=auth.institucion_id,
         )
         assistant_msg = (
             self.messages_repository.update_message_audit_id(assistant_msg["id"], audit_log["id"])
@@ -275,7 +284,7 @@ class ChatService:
         transcription: str,
     ) -> Optional[ChatResult]:
         self.users_repository.get_or_create_user(auth)
-        conversation = self.get_owned_conversation(conversation_id, auth.external_auth_id)
+        conversation = self.get_owned_conversation(conversation_id, auth.external_auth_id, auth.institucion_id)
         if not conversation:
             return None
 
@@ -317,6 +326,7 @@ class ChatService:
             tokens_output=tokens_output,
             tiempo_respuesta_ms=elapsed_ms,
             observaciones="MOCK: sin evaluación automática [voice]",
+            institucion_id=auth.institucion_id,
         )
         assistant_msg = (
             self.messages_repository.update_message_audit_id(assistant_msg["id"], audit_log["id"])
@@ -345,10 +355,17 @@ class ChatService:
         message = self.messages_repository.get_message(message_id)
         if not message or message.get("external_auth_id") != auth.external_auth_id:
             return None
+        # Validación de institución: el mensaje debe pertenecer a la misma institución
+        conversation = self.conversations_repository.get_conversation(
+            message.get("conversacion_id"), institucion_id=auth.institucion_id
+        )
+        if not conversation:
+            return None  # 404: mensaje de otra institución
         return self.feedback_repository.create_feedback(
             message_id=message_id,
             rating=rating,
             comment=comment,
             audit_id=audit_id,
             external_auth_id=auth.external_auth_id,
+            institucion_id=auth.institucion_id,
         )

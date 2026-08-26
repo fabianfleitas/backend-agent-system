@@ -15,6 +15,7 @@ class RetrievalRepository:
         query_embedding: List[float],
         match_count: int,
         similarity_threshold: float,
+        institucion_id: int,
     ) -> List[dict]:
         response = (
             self.client.rpc(
@@ -23,6 +24,7 @@ class RetrievalRepository:
                     "query_embedding": vector_to_pgstring(query_embedding),
                     "match_count": match_count,
                     "similarity_threshold": similarity_threshold,
+                    "p_institucion_id": institucion_id,
                 },
             )
             .execute()

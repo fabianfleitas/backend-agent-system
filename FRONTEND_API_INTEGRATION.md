@@ -22,26 +22,30 @@ GET /me
 
 ## Headers requeridos
 
-Todos los endpoints de negocio y `/me` dependen de autenticacion delegada por headers.
+Todos los endpoints de negocio y `/me` dependen de autenticacion con JWT de Supabase Auth (`Authorization: Bearer <jwt>`).
 
 El frontend debe enviar siempre:
 
 ```http
-X-External-Auth-Id: <id externo del usuario>
+Authorization: Bearer <jwt_de_supabase>
 ```
 
 Headers opcionales:
 
 ```http
-X-Auth-Provider: delegated
-X-User-Type: ESTUDIANTE | ADMIN | SECRETARIA
-X-User-Email: usuario@institucion.edu
+Authorization: Bearer <jwt>
+
+Reglas de auth:
+- `Authorization: Bearer <jwt>` obligatorio (JWT de Supabase Auth).
+- `tipo_miembro` (`ESTUDIANTE`/`ADMIN`/`SECRETARIA`) resuelto desde `institucion_miembros`.
+- `is_platform_admin` resuelto desde `platform_admins`.
+- `app_users.role` deprecado; no se consulta.
 ```
 
 Reglas importantes:
 
-- Si falta `X-External-Auth-Id`, el backend responde `401`.
-- Los endpoints administrativos requieren `X-User-Type: ADMIN` o `X-User-Type: SECRETARIA`.
+- Si falta `Authorization: Bearer <jwt>`, el backend responde `401`.
+- Los endpoints administrativos (`/api/admin/*`) requieren `tipo_miembro` de `ADMIN` o `SECRETARIA` en `institucion_miembros` (o `is_platform_admin=true` para `/api/platform/*`). `app_users.role` está deprecado como fuente de autorización.
 - `SECRETARIA` se devuelve al frontend como role `STAFF` en las respuestas.
 - No usar JWT propio contra este backend mientras siga activa la autenticacion delegada.
 
@@ -462,8 +466,9 @@ Para reproducir el audio de respuesta generado en `/api/chat/voice`, el frontend
 
 ```http
 GET /api/chat/audio/{audio_interaction_id}
-X-External-Auth-Id: usr_ext_12345
-X-User-Type: ESTUDIANTE
+Authorization: Bearer <jwt>
+X-User-Type: ADMIN/SECRETARIA (deprecado; backend resuelve tipo_miembro)
+X-External-Auth-Id: usr_ext_12345 (deprecado; backend usa sub del JWT)
 ```
 
 Respuesta exitosa:
@@ -473,7 +478,9 @@ Respuesta exitosa:
 - `Body`: Stream binario de los bytes del audio.
 
 Errores:
-- `401 Unauthorized`: Falta `X-External-Auth-Id`.
+- `401 Unauthorized`: Falta `Authorization` / JWT de Supabase inválido, o `app_users.is_active=false`.
+- `403 Forbidden`: Usuario sin institución activa (`institucion_miembros` faltante) o `tipo_miembro` insuficiente.
+- `404 Not Found`: Recurso inexistente o pertenece a otra institución (acceso cruzado).
 - `403 Forbidden`: El audio pertenece a otra conversación/usuario (aislamiento por estudiante).
 - `404 Not Found`: No existe la interacción o no se generó archivo de audio.
 
@@ -481,9 +488,9 @@ Ejemplo de consumo en Frontend:
 ```ts
 async function getAudioBlobUrl(audioInteractionId: number): Promise<string> {
   const response = await fetch(`/api/chat/audio/${audioInteractionId}`, {
-    headers: {
-      'X-External-Auth-Id': currentUserId,
-      'X-User-Type': 'ESTUDIANTE',
+      'Authorization': 'Bearer ' + tokenSupabase,
+      'Authorization': 'Bearer ' + tokenSupabase,
+      // El backend resuelve tipo_miembro desde institucion_miembros; no enviar X-User-Type
     },
   });
   if (!response.ok) {
@@ -535,13 +542,14 @@ Validaciones:
 
 Secuencia sugerida para validar integracion con el modulo de estudiante:
 
-1. Obtener o crear identidad delegada del alumno con `X-External-Auth-Id`.
-2. Crear conversacion con `POST /api/conversations`.
-3. Enviar texto con `POST /api/chat/query` y actualizar el store usando `conversation_id`, `user_message` y `assistant_message`.
-4. Enviar voz con `POST /api/chat/voice?conversation_id=...` usando `multipart/form-data`.
-5. Refrescar historial con `GET /api/conversations/{conversation_id}` para reconciliar mensajes persistidos.
-6. Listar conversaciones con `GET /api/conversations?include_hidden=false`.
-7. Enviar feedback sobre el `assistant_message.id` recibido.
+1. Obtener JWT de Supabase Auth (`supabase.auth.signIn` / `getSession`). El backend resuelve `external_auth_id` desde `sub` del JWT (campo `auth.users.id`).
+2. El backend valida `is_active` en `app_users`, luego resuelve `institucion_id` y `tipo_miembro` en `institucion_miembros` (o `is_platform_admin` en `platform_admins`). No se confía en headers del cliente.
+3. Crear conversacion con `POST /api/conversations`.
+4. Enviar texto con `POST /api/chat/query` y actualizar el store usando `conversation_id`, `user_message` y `assistant_message`.
+5. Enviar voz con `POST /api/chat/voice?conversation_id=...` usando `multipart/form-data`.
+6. Refrescar historial con `GET /api/conversations/{conversation_id}` para reconciliar mensajes persistidos.
+7. Listar conversaciones con `GET /api/conversations?include_hidden=false`.
+8. Enviar feedback sobre el `assistant_message.id` recibido.
 
 Resultados esperados:
 
@@ -582,13 +590,15 @@ ADMIN
 Todos los endpoints de esta seccion requieren:
 
 ```http
-X-User-Type: ADMIN
+Authorization: Bearer <jwt>
+# Admin institucional: tipo_miembro = ADMIN / SECRETARIA en institucion_miembros
 ```
 
 o:
 
 ```http
-X-User-Type: SECRETARIA
+Authorization: Bearer <jwt>
+# Secretaria: tipo_miembro = SECRETARIA (STAFF) en institucion_miembros
 ```
 
 ### Subir documento
@@ -848,7 +858,7 @@ Respuesta:
 }
 ```
 
-En la implementacion actual, reindexar solo cambia metadata mock: marca versiones como `READY`, setea `indexed_at` y mantiene `total_chunks` en `0`.
+Reindexar ejecuta `IndexingService.index_version()` sobre versiones `PENDING/FAILED`; extrae texto real, genera chunks/embeddings y actualiza `total_chunks`; no es cambio de metadata mock.
 
 ### Auditoria
 
@@ -883,6 +893,7 @@ Respuesta:
 
 ```http
 GET /api/admin/users?limit=20&offset=0
+GET /api/admin/categories?limit=20&offset=0
 ```
 
 Respuesta paginada con usuarios:
@@ -907,6 +918,13 @@ Respuesta paginada con usuarios:
 ```
 
 ### Metricas
+
+```http
+GET /api/admin/metrics
+GET /api/platform/metrics
+```
+
+Nota: `/api/admin/subscription`, `/plan`, `/pagos`, `/comprobantes` disponibles; `/api/platform/plans`, `/subscriptions`, `/pagos`, `/comprobantes` para platform admin.
 
 ```http
 GET /api/admin/metrics
@@ -941,7 +959,14 @@ Respuesta:
   "total_voice_queries": 0,
   "total_text_queries": 2,
   "avg_response_time_voice": 0.0,
-  "avg_response_time_text": 2.1
+  "avg_response_time_text": 2.1,
+  "series": [{"fecha":"2026-08-25","conversaciones":1,"tokens_input":586,"tokens_output":87,"llm":1,"guard":1,"llm_failed":0}],
+  "desde": null,
+  "hasta": null,
+  "categoria_id": null,
+  "modelo": null,
+  "documento_id": null,
+  "granularidad": "day"
 }
 ```
 
@@ -959,6 +984,23 @@ Campos IA:
   segun el sufijo `[voice]`/`[text]` en `observaciones`.
 
 Nota: en el store actual `system_status` puede venir por default del schema aunque no lo devuelva explicitamente el servicio.
+
+## Platform Admin (`/api/platform/*`)
+
+Requiere `is_platform_admin = true` (JWT de Supabase + registro `platform_admins`).
+
+```http
+GET /api/platform/institutions
+GET /api/platform/institutions/{id}
+GET /api/platform/institutions/{id}/members
+POST /api/platform/institutions/{id}/members
+DELETE /api/platform/institutions/{id}/members/{member_id}
+GET /api/platform/users
+GET /api/platform/metrics
+GET /api/platform/audit
+```
+
+Contratos: `InstitutionOut`, `MemberOut`, `MemberIn`, `UserOut`, `MetricsOut`, `AuditLogOut` con paginación.
 
 ## Health y readiness
 
@@ -1011,15 +1053,15 @@ Casos principales:
 
 | Status | Caso |
 | --- | --- |
-| `401` | Falta `X-External-Auth-Id` |
-| `403` | Usuario sin rol admin/staff en endpoints `/api/admin` |
-| `404` | Conversacion inexistente o perteneciente a otro usuario |
+| `401` | Falta `Authorization` / JWT de Supabase inválido / `is_active=false` |
+| `403` | Sin institución activa (`institucion_miembros`) o `tipo_miembro` insuficiente; o intento de acceso cross-institution con membresía inactiva (403, sin revelar existencia) |
+| `404` | Recurso inexistente o pertenece a otra institución (acceso cruzado) |
 | `422` | Body invalido, query params fuera de rango o multipart incompleto |
 
 ## Checklist de cambios en frontend
 
-- Enviar `X-External-Auth-Id` en todas las llamadas al backend.
-- Enviar `X-User-Type` segun sesion: `ESTUDIANTE`, `ADMIN` o `SECRETARIA`.
+- Enviar `Authorization: Bearer <jwt>` en todas las llamadas al backend.
+- Enviar `Authorization: Bearer <jwt>`; el backend resuelve `tipo_miembro` desde `institucion_miembros` (no confiar en headers del cliente).
 - Crear conversacion con `POST /api/conversations` antes del primer mensaje.
 - Reemplazar historial plano por consumo de `GET /api/conversations` y `GET /api/conversations/{id}`.
 - Leer listados desde `response.items` y paginacion desde `response.pagination`.
@@ -1030,7 +1072,7 @@ Casos principales:
 - Guardar `audit_id` para feedback y trazabilidad.
 - Implementar feedback con `POST /api/chat/feedback`.
 - Tratar `DELETE /api/conversations/{id}` como ocultar conversacion, no como borrado permanente.
-- Reproducir audio de respuesta consumiendo `GET /api/chat/audio/{audio_interaction_id}` con headers de autenticación (`X-External-Auth-Id`) y generando un Object URL (`URL.createObjectURL(blob)`).
+- Reproducir audio de respuesta consumiendo `GET /api/chat/audio/{audio_interaction_id}` con header `Authorization: Bearer <jwt>` y generando un Object URL (`URL.createObjectURL(blob)`).
 - En admin, subir documentos con `multipart/form-data` y mostrar estado de version activa (`PENDING`, `PROCESSING`, `READY`, `FAILED`).
 - En admin, usar `GET /api/admin/documents/{id}` para ver el detalle y todas las versiones de un documento.
 - En admin, usar `DELETE /api/admin/documents/{id}` para desactivar (soft-delete) un documento.

@@ -27,6 +27,9 @@ class Settings(BaseSettings):
         default=None,
         validation_alias=AliasChoices("SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SECRET_KEY"),
     )
+    supabase_jwt_secret: Optional[str] = Field(
+        default=None, alias="SUPABASE_JWT_SECRET"
+    )
     supabase_storage_bucket_documents: str = "documents"
     supabase_storage_bucket_audio: str = "audio"
 

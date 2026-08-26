@@ -105,7 +105,12 @@ class ChatFeedbackOut(BaseModel):
 class UserOut(BaseModel):
     external_auth_id: str
     email: Optional[str] = None
+    full_name: Optional[str] = None
     role: UserRole
+    institucion_id: Optional[int] = None
+    tipo_miembro: Optional[str] = None
+    is_platform_admin: bool = False
+    nombre_institucion: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

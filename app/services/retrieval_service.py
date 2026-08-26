@@ -7,6 +7,7 @@ from typing import List, Optional
 
 from app.core.config import settings
 from app.repositories.retrieval_repository import RetrievalRepository
+from app.services.config_service import ConfigService
 from app.services.embedding_service import EmbeddingService
 
 logger = logging.getLogger(__name__)
@@ -39,15 +40,24 @@ class RetrievalService:
         retrieval_repository: Optional[RetrievalRepository] = None,
         match_count: Optional[int] = None,
         similarity_threshold: Optional[float] = None,
+        config_service: Optional[Any] = None,
     ) -> None:
         self.embedding_service = embedding_service or EmbeddingService()
         self.retrieval_repository = retrieval_repository or RetrievalRepository()
-        self.match_count = match_count or settings.retrieval_match_count
-        self.similarity_threshold = (
-            similarity_threshold if similarity_threshold is not None else settings.retrieval_similarity_threshold
-        )
+        self.match_count = match_count
+        self.similarity_threshold = similarity_threshold
+        self.config_service = config_service or ConfigService()
 
-    def retrieve(self, query: str) -> RetrievalResult:
+    def _resolve_params(self, institucion_id: Optional[int]) -> tuple[int, float]:
+        mc = self.match_count
+        st = self.similarity_threshold
+        if mc is None:
+            mc = self.config_service.get_int("retrieval_match_count", institucion_id, settings.retrieval_match_count)
+        if st is None:
+            st = self.config_service.get_float("retrieval_similarity_threshold", institucion_id, settings.retrieval_similarity_threshold)
+        return mc, st
+
+    def retrieve(self, query: str, institucion_id: Optional[int] = None) -> RetrievalResult:
         start = time.perf_counter()
         result = RetrievalResult()
         if not query.strip():
@@ -67,10 +77,18 @@ class RetrievalService:
             return result
 
         try:
+            if institucion_id is None:
+                result.ok = False
+                result.error = "institution_id required for retrieval isolation"
+                return result
+            match_count, similarity_threshold = self._resolve_params(institucion_id)
+            self.match_count = match_count
+            self.similarity_threshold = similarity_threshold
             rows = self.retrieval_repository.match_chunks(
                 query_embedding=embedding.embedding,
-                match_count=self.match_count,
-                similarity_threshold=self.similarity_threshold,
+                match_count=match_count,
+                similarity_threshold=similarity_threshold,
+                institucion_id=institucion_id,
             )
         except Exception as exc:
             result.ok = False

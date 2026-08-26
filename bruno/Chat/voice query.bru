@@ -15,10 +15,8 @@ params:query {
 }
 
 headers {
-  X-External-Auth-Id: {{authId}}
-  X-Auth-Provider: {{authProvider}}
-  X-User-Type: {{userType}}
-  X-User-Email: {{userEmail}}
+  Authorization: Bearer {{jwt}}
+  
 }
 
 body:multipartForm {

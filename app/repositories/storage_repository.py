@@ -6,6 +6,12 @@ from app.core.config import settings
 from app.core.supabase import get_supabase_client
 
 
+def _validate_bucket_path(path: str) -> str:
+    if ".." in path or path.startswith("/") or path.startswith("\\"):
+        raise ValueError("unsafe_bucket_path")
+    return path
+
+
 class StorageRepository:
     def __init__(self, client: Optional[Any] = None) -> None:
         self.client = client or get_supabase_client()
@@ -26,6 +32,7 @@ class StorageRepository:
         )
 
     def download_document(self, path: str) -> bytes:
+        _validate_bucket_path(path)
         return (
             self.client.storage.from_(settings.supabase_storage_bucket_documents)
             .download(path)
@@ -47,6 +54,7 @@ class StorageRepository:
         )
 
     def download_audio(self, path: str) -> bytes:
+        _validate_bucket_path(path)
         return (
             self.client.storage.from_(settings.supabase_storage_bucket_audio)
             .download(path)
@@ -61,6 +69,7 @@ class StorageRepository:
         upsert: bool = False,
     ) -> str:
         bucket = self.client.storage.from_(bucket_name)
+        path = _validate_bucket_path(path)
         bucket.upload(
             path,
             content,

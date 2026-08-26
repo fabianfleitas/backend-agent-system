@@ -51,9 +51,9 @@ def _message_out(m: dict) -> MessageOut:
 def _check_ownership(
     service: ConversationsService,
     conversation_id: int,
-    external_auth_id: str,
+    auth: AuthContext,
 ) -> dict:
-    conv = service.get_owned_conversation(conversation_id, external_auth_id)
+    conv = service.get_owned_conversation(conversation_id, auth.external_auth_id, auth.institucion_id)
     if not conv:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
     return conv
@@ -67,7 +67,7 @@ def list_conversations(
     auth: AuthContext = Depends(get_auth_context),
 ) -> PaginatedResponse[ConversationSummaryOut]:
     service = _get_service()
-    conversations = service.list_conversations(auth.external_auth_id, include_hidden=include_hidden)
+    conversations = service.list_conversations(auth.external_auth_id, include_hidden=include_hidden, institucion_id=auth.institucion_id)
     total = len(conversations)
     page = conversations[offset : offset + limit]
     return PaginatedResponse[ConversationSummaryOut](
@@ -90,7 +90,7 @@ def get_conversation(
     auth: AuthContext = Depends(get_auth_context),
 ) -> ConversationDetailOut:
     service = _get_service()
-    conv = _check_ownership(service, conversation_id, auth.external_auth_id)
+    conv = _check_ownership(service, conversation_id, auth)
     messages = service.get_messages(conversation_id)
     return ConversationDetailOut(
         id=conv["id"],
@@ -105,7 +105,7 @@ def hide_conversation(
     auth: AuthContext = Depends(get_auth_context),
 ) -> ConversationSummaryOut:
     service = _get_service()
-    conv = service.hide_conversation(auth.external_auth_id, conversation_id)
+    conv = service.hide_conversation(auth.external_auth_id, conversation_id, auth.institucion_id)
     if not conv:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
     return _summary_out(conv, service.count_messages(conv["id"]))
@@ -117,6 +117,6 @@ def get_conversation_messages(
     auth: AuthContext = Depends(get_auth_context),
 ) -> List[MessageOut]:
     service = _get_service()
-    _check_ownership(service, conversation_id, auth.external_auth_id)
+    _check_ownership(service, conversation_id, auth)
     messages = service.get_messages(conversation_id)
     return [_message_out(m) for m in messages]

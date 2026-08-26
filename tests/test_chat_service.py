@@ -19,11 +19,15 @@ class FakeConversationsRepository:
             "id": 1,
             "external_auth_id": "student-1",
             "title": "Consultas",
+            "institucion_id": 1,
         }
         self.touch_calls = 0
 
-    def get_conversation(self, conversation_id: int) -> Optional[dict]:
+    def get_conversation(self, conversation_id: int, institucion_id: Optional[int] = None) -> Optional[dict]:
         if conversation_id == self.conversation["id"]:
+            # Si se filtra por institución, debe coincidir (para aislamiento)
+            if institucion_id is not None and self.conversation.get("institucion_id") != institucion_id:
+                return None
             return self.conversation
         return None
 
@@ -89,7 +93,7 @@ class FakeRetrievalService:
         self.calls: List[str] = []
         self.retrieved = False
 
-    def retrieve(self, query: str):
+    def retrieve(self, query: str, institucion_id: Optional[int] = None):
         self.calls.append(query)
         self.retrieved = True
         return self.result
@@ -144,7 +148,7 @@ def _chunk(chunk_id: int, similarity: float = 0.85) -> RetrievedChunk:
 
 
 def _auth() -> AuthContext:
-    return AuthContext(external_auth_id="student-1", auth_provider="delegated", tipo_usuario="ESTUDIANTE")
+    return AuthContext(external_auth_id="student-1", institucion_id=1, tipo_miembro="ESTUDIANTE", is_platform_admin=False)
 
 
 def _make_service(

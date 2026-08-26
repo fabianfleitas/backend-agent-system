@@ -37,9 +37,9 @@ class AudioService:
     ) -> dict:
         self.users_repository.get_or_create_user(auth)
         source_ext = os.path.splitext(source_filename or "")[1] or ".bin"
-        original_path = f"audio/{uuid.uuid4().hex}{source_ext}"
+        original_path = f"{auth.institucion_id}/audio/{uuid.uuid4().hex}{source_ext}"
         response_ext = _audio_extension(response_content_type)
-        response_path = f"audio/{uuid.uuid4().hex}{response_ext}"
+        response_path = f"{auth.institucion_id}/audio/{uuid.uuid4().hex}{response_ext}"
         self.storage_repository.upload_audio(
             path=original_path,
             content=audio_bytes,
@@ -61,6 +61,7 @@ class AudioService:
             formato_audio=source_content_type,
             tamano_bytes=len(audio_bytes),
             duracion_segundos=duracion_segundos,
+            institucion_id=auth.institucion_id,
         )
 
     def get_audio_interaction(self, audio_interaction_id: int) -> Optional[dict]:
@@ -71,10 +72,24 @@ class AudioService:
         audio_interaction_id: int,
         auth: AuthContext,
     ) -> Optional[tuple[bytes, str]]:
-        interaction = self.audio_repository.get_audio_interaction(audio_interaction_id)
+        interaction = self.audio_repository.get_audio_interaction(
+            audio_interaction_id, institucion_id=auth.institucion_id
+        )
         if not interaction:
+            # Intento de acceso a recurso de otra institución → 404
+            # Verificar si existe con cualquier institución para distinguir 404 vs 403 es opcional;
+            # aquí simplificamos: si no aparece con la institución del auth, es 404 (regla cruzado)
             return None
-        if auth.tipo_usuario not in ("ADMIN", "SECRETARIA") and interaction.get("external_auth_id") != auth.external_auth_id:
+        # Regla 404/403: si institución no coincide y no es superadmin → 404
+        # Si institución coincide pero otro usuario → 403 (PermissionError)
+        if auth.institucion_id is not None and interaction.get("institucion_id") != auth.institucion_id and not auth.is_platform_admin:
+            return None  # 404 acceso cruzado
+        is_admin_same_inst = (
+            auth.tipo_miembro in ("ADMIN", "SECRETARIA")
+            and auth.institucion_id is not None
+            and interaction.get("institucion_id") == auth.institucion_id
+        )
+        if interaction.get("external_auth_id") != auth.external_auth_id and not auth.is_platform_admin and not is_admin_same_inst:
             raise PermissionError("No autorizado para acceder a este audio")
         response_path = interaction.get("ruta_audio_respuesta")
         if not response_path:

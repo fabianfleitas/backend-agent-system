@@ -15,10 +15,18 @@ class UsersService:
 
     def get_or_create_current_user(self, auth: AuthContext) -> UserOut:
         user = self.repository.get_or_create_user(auth)
+        # Resolver membresía institucional para completar UserOut
+        from app.repositories.institutions_repository import InstitutionsRepository
+        inst_repo = InstitutionsRepository()
+        membership = inst_repo.get_active_membership(auth.external_auth_id)
         return UserOut(
             external_auth_id=user["external_auth_id"],
             email=user.get("email"),
+            full_name=user.get("full_name"),
             role=_role_out(user.get("role")),
+            institucion_id=membership.get("institucion_id") if membership else None,
+            tipo_miembro=membership.get("tipo_miembro") if membership else None,
+            is_platform_admin=inst_repo.is_platform_admin(auth.external_auth_id),
             created_at=_parse_datetime(user["created_at"]),
             updated_at=_parse_datetime(user.get("updated_at") or user["created_at"]),
         )

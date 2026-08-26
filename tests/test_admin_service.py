@@ -14,27 +14,27 @@ class FakeMetricsRepository:
         self.audit_logs = kwargs.get("audit_logs", [])
         self.message_documents = kwargs.get("message_documents", [])
 
-    def list_messages(self):
+    def list_messages(self, institucion_id=None):
         return list(self.messages)
 
-    def list_conversations(self):
+    def list_conversations(self, institucion_id=None):
         return list(self.conversations)
 
-    def list_documents(self):
+    def list_documents(self, institucion_id=None):
         return list(self.documents)
 
-    def list_feedbacks(self):
+    def list_feedbacks(self, institucion_id=None):
         return list(self.feedbacks)
 
-    def list_audit_logs(self):
+    def list_audit_logs(self, institucion_id=None):
         return list(self.audit_logs)
 
-    def list_message_documents(self):
+    def list_message_documents(self, institucion_id=None):
         return list(self.message_documents)
 
 
 class FakeUsersRepository:
-    def list_users(self):
+    def list_users(self, institucion_id=None):
         return []
 
 
@@ -137,7 +137,7 @@ def test_metrics_out_builds_full_response() -> None:
         audit_logs=[_audit("LLM: ... [text]", modelo_ia="openai/gpt-4o-mini", tokens_in=100, tokens_out=50, t_ms=900.0)],
         message_documents=[{"similarity_score": 0.85}],
     )
-    metrics = service.get_metrics()
+    metrics = service.get_metrics(auth=None)
     assert metrics.total_queries == 1
     assert metrics.total_conversations == 1
     assert metrics.total_documents == 1
@@ -151,7 +151,7 @@ def test_metrics_out_builds_full_response() -> None:
 
 def test_metrics_empty_returns_defaults() -> None:
     service = _make_service()
-    metrics = service.get_metrics()
+    metrics = service.get_metrics(auth=None)
     assert metrics.total_queries == 0
     assert metrics.total_llm_responses == 0
     assert metrics.guard_rate == 0.0

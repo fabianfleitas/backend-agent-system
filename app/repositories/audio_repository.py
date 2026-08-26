@@ -21,36 +21,32 @@ class AudioRepository:
         tamano_bytes: Optional[int],
         duracion_segundos: Optional[float] = None,
         transcription_model: Optional[str] = None,
+        institucion_id: int = None,
     ) -> dict:
         response = (
             self.client.table("audio_interactions")
-            .insert(
-                {
-                    "conversacion_id": conversation_id,
-                    "mensaje_id": message_id,
-                    "external_auth_id": external_auth_id,
-                    "ruta_audio_original": ruta_audio_original,
-                    "ruta_audio_respuesta": ruta_audio_respuesta,
-                    "transcripcion": transcripcion,
-                    "transcription_model": transcription_model,
-                    "duracion_segundos": duracion_segundos,
-                    "formato_audio": formato_audio,
-                    "tamano_bytes": tamano_bytes,
-                }
-            )
+            .insert({
+                "conversacion_id": conversation_id,
+                "mensaje_id": message_id,
+                "external_auth_id": external_auth_id,
+                "ruta_audio_original": ruta_audio_original,
+                "ruta_audio_respuesta": ruta_audio_respuesta,
+                "transcripcion": transcripcion,
+                "transcription_model": transcription_model,
+                "duracion_segundos": duracion_segundos,
+                "formato_audio": formato_audio,
+                "tamano_bytes": tamano_bytes,
+                "institucion_id": institucion_id,
+            })
             .execute()
         )
         return response.data[0]
 
-    def get_audio_interaction(self, audio_interaction_id: int) -> Optional[dict]:
-        response = (
-            self.client.table("audio_interactions")
-            .select("*")
-            .eq("id", audio_interaction_id)
-            .limit(1)
-            .execute()
-        )
+    def get_audio_interaction(self, audio_interaction_id: int, institucion_id: Optional[int] = None) -> Optional[dict]:
+        query = self.client.table("audio_interactions").select("*").eq("id", audio_interaction_id).limit(1)
+        if institucion_id is not None:
+            query = query.eq("institucion_id", institucion_id)
+        response = query.execute()
         if response.data:
             return response.data[0]
         return None
-

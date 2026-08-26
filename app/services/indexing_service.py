@@ -45,9 +45,9 @@ class IndexingService:
         self.storage_repository = storage_repository or StorageRepository()
         self.embedding_service = embedding_service or EmbeddingService()
 
-    def index_version(self, version_id: int, file_bytes: Optional[bytes] = None) -> IndexingResult:
+    def index_version(self, version_id: int, file_bytes: Optional[bytes] = None, institucion_id: Optional[int] = None) -> IndexingResult:
         start = time.perf_counter()
-        version = self.documents_repository.get_version_by_id(version_id)
+        version = self.documents_repository.get_version_by_id(version_id, institucion_id=institucion_id)
         if not version:
             return IndexingResult(
                 version_id=version_id,
@@ -55,7 +55,7 @@ class IndexingService:
                 ok=False,
                 error="version not found",
             )
-        self.documents_repository.update_version(version_id, status="PROCESSING", error_message=None)
+        self.documents_repository.update_version(version_id, institucion_id=institucion_id, status="PROCESSING", error_message=None)
 
         try:
             pages, texto_extraido = self._resolve_text(version, file_bytes)
