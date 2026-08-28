@@ -52,6 +52,84 @@ class PlanOut(BaseModel):
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
 
+
+class StripePlanSyncIn(BaseModel):
+    plan_id: int
+
+
+class StripePlanSyncOut(BaseModel):
+    plan_id: int
+    stripe_product_id: Optional[str] = None
+    stripe_price_id: Optional[str] = None
+    stripe_product_created: bool = False
+    stripe_price_created: bool = False
+
+
+class SubscriptionCreateIn(BaseModel):
+    plan_id: int
+
+
+class SubscriptionCreateOut(BaseModel):
+    subscription_id: str
+    customer_id: str
+    status: Optional[str] = None
+    latest_invoice_payment_intent_id: Optional[str] = None
+    client_secret: Optional[str] = None
+
+
+class SubscriptionCancelIn(BaseModel):
+    cancel_at_period_end: bool = True
+
+
+class SubscriptionActionOut(BaseModel):
+    subscription_id: str
+    customer_id: Optional[str] = None
+    status: Optional[str] = None
+    cancel_at_period_end: bool = False
+    canceled_at: Optional[str] = None
+
+
+class CheckoutSessionIn(BaseModel):
+    plan_id: int
+    success_url: str = "https://example.com/success"
+    cancel_url: str = "https://example.com/cancel"
+
+class CheckoutSessionOut(BaseModel):
+    url: Optional[str] = None
+    session_id: Optional[str] = None
+
+class StripeSubscriptionOut(BaseModel):
+    subscription_id: str
+    customer_id: Optional[str] = None
+    status: Optional[str] = None
+    cancel_at_period_end: bool = False
+    current_period_end: Optional[str] = None
+    current_period_start: Optional[str] = None
+    latest_invoice_payment_intent_id: Optional[str] = None
+    latest_invoice_status: Optional[str] = None
+
+
+class StripePortalSessionIn(BaseModel):
+    return_url: str
+
+
+class StripePortalSessionOut(BaseModel):
+    url: str
+    id: Optional[str] = None
+    customer_id: Optional[str] = None
+
+
+class SubscriptionChangePlanIn(BaseModel):
+    plan_id: int
+
+
+class SubscriptionChangePlanOut(BaseModel):
+    subscription_id: str
+    customer_id: Optional[str] = None
+    status: Optional[str] = None
+    latest_invoice_payment_intent_id: Optional[str] = None
+    client_secret: Optional[str] = None
+
 class SubscriptionOut(BaseModel):
     id: int
     institucion_id: Optional[int] = None
@@ -80,6 +158,18 @@ class PagoOut(BaseModel):
     proveedor: Optional[str] = None
     descripcion: Optional[str] = None
     fecha_pago: Optional[str] = None
+    created_at: Optional[str] = None
+
+class SubscriptionHistoryOut(BaseModel):
+    id: int
+    suscripcion_id: int
+    tipo_evento: Optional[str] = None
+    estado_anterior: Optional[str] = None
+    estado_nuevo: Optional[str] = None
+    plan_anterior_id: Optional[int] = None
+    plan_nuevo_id: Optional[int] = None
+    descripcion: Optional[str] = None
+    external_auth_id: Optional[str] = None
     created_at: Optional[str] = None
 
 class ComprobanteOut(BaseModel):
@@ -144,6 +234,10 @@ class CategoryOut(BaseModel):
     institucion_id: int
     fecha_creacion: datetime
 
+
+class CategoryIn(BaseModel):
+    nombre: str
+    descripcion: Optional[str] = None
 
 class AdminReindexIn(BaseModel):
     documento_id: Optional[int] = Field(default=None)

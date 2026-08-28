@@ -13,6 +13,19 @@ class InstitutionsRepository:
         resp = self.client.table("instituciones").select("*").eq("id", institucion_id).limit(1).execute()
         return resp.data[0] if resp.data else None
 
+    def update_stripe_customer_id(self, institucion_id: int, stripe_customer_id: str) -> Optional[dict]:
+        resp = (
+            self.client.table("instituciones")
+            .update({"stripe_customer_id": stripe_customer_id})
+            .eq("id", institucion_id)
+            .execute()
+        )
+        return resp.data[0] if resp.data else None
+
+    def get_by_customer_id(self, stripe_customer_id: str) -> Optional[dict]:
+        resp = self.client.table("instituciones").select("*").eq("stripe_customer_id", stripe_customer_id).limit(1).execute()
+        return resp.data[0] if resp.data else None
+
     def list_instituciones(self, activo: bool = True) -> list[dict]:
         q = self.client.table("instituciones").select("*").eq("activo", activo).order("nombre")
         resp = q.execute()

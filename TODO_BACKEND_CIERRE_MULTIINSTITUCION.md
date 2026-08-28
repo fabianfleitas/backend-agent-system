@@ -29,7 +29,7 @@ Cerrar el backend antes de la productivización final del Admin Dashboard, conte
 - [x] `institucion_miembros.tipo_miembro` como fuente principal de permisos institucionales.
 - [x] `platform_admins.is_active` para permisos de plataforma.
 - [x] `app_users.role` queda como legacy/compatibilidad.
-- [ ] Revisar que ningún endpoint nuevo use `app_users.role` como fuente autoritativa.
+- [x] Revisar que ningún endpoint nuevo use `app_users.role` como fuente autoritativa.
 - [ ] Documentar formalmente la deprecación de `app_users.role`.
 
 ### Regla de pertenencia
@@ -158,19 +158,19 @@ Debe poder demostrarse que la información identificable del usuario no se enví
 
 **Decisión:** validar en service cargando/validando primero la conversación.
 
-- [ ] Confirmar implementación.
-- [ ] Verificar ownership de conversación.
-- [ ] Verificar acceso a mensajes.
+- [x] Confirmar implementación.
+- [x] Verificar ownership de conversación.
+- [x] Verificar acceso a mensajes.
 - [ ] Verificar `message_documents`.
 - [ ] Tests cross-tenant.
 
 ### Voz
 
 - [ ] Revisar `POST /api/chat/voice`.
-- [ ] Confirmar STT.
+- [x] Confirmar STT.
 - [ ] Confirmar anonimización.
 - [ ] Confirmar persistencia de audio según política.
-- [ ] Confirmar TTS.
+- [x] Confirmar TTS.
 - [ ] Confirmar `GET /api/chat/audio/{audio_interaction_id}`.
 - [ ] Revisar aislamiento de audio.
 
@@ -239,7 +239,12 @@ Primero modelo + repositories + endpoints de lectura. La integración Stripe com
 - [ ] `suscripcion_historial`
 - [ ] `pagos`
 - [ ] `comprobantes`
-- [ ] `stripe_eventos`
+- [x] `stripe_eventos`
+- [x] Checkout Session (`stripe/checkout`)
+- [x] Subscription read (`stripe/subscription`), create/cancel/reactivate/change-plan, portal, sync-plan
+- [x] Webhook (`/api/billing/stripe/webhook`) con persistencia real (`pagos`, `comprobantes`, `suscripciones`)
+- [x] Aligned DB checks (`003_billing_estado_checks.sql`)
+- [ ] Persistencia completa del webhook verificada con checkout pagado (próximo paso opcional)
 - [ ] `notificaciones`
 - [ ] `configuracion_smtp`
 - [ ] `plantillas_email`

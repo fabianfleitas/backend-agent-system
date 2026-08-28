@@ -35,6 +35,11 @@ class Settings(BaseSettings):
 
     openai_api_key: Optional[str] = None
 
+    stripe_secret_key: Optional[str] = None
+    stripe_webhook_secret: Optional[str] = None
+    stripe_api_version: str = "2024-06-20"
+    stripe_account_id: Optional[str] = None
+
     openrouter_api_key: Optional[str] = None
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
     llm_model: str = "openai/gpt-4o-mini"

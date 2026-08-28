@@ -17,6 +17,21 @@ from app.schemas.admin import (
     DocumentDetailOut,
     PagoOut,
     PlanOut,
+    SubscriptionCreateIn,
+    CheckoutSessionIn,
+    CheckoutSessionOut,
+    SubscriptionCreateOut,
+    SubscriptionActionOut,
+    SubscriptionCancelIn,
+    StripePlanSyncIn,
+    StripePlanSyncOut,
+    StripeSubscriptionOut,
+    StripePortalSessionIn,
+    StripePortalSessionOut,
+    SubscriptionChangePlanIn,
+    SubscriptionChangePlanOut,
+    CheckoutSessionOut,
+    SubscriptionHistoryOut,
     SubscriptionOut,
 )
 from app.schemas.common import (
@@ -33,6 +48,8 @@ from app.schemas.system import MetricsOut
 from app.services.admin_service import AdminService
 from app.services.audit_service import AuditService
 from app.services.documents_service import DocumentsService
+from app.services.billing_service import BillingService
+from app.services.stripe_agent_service import get_stripe_agent_service
 
 
 router = APIRouter()
@@ -376,6 +393,21 @@ def update_config(
 
 
 # --- Billing lectura institucional ---
+@router.get("/subscription/history", response_model=PaginatedResponse[SubscriptionHistoryOut])
+def get_subscription_history(
+    auth: AuthContext = Depends(get_admin_auth),
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+) -> PaginatedResponse[SubscriptionHistoryOut]:
+    from app.services.billing_service import BillingService
+    items = BillingService().get_subscription_history(auth)
+    total = len(items)
+    page = items[offset:offset+limit]
+    return PaginatedResponse[SubscriptionHistoryOut](
+        items=[SubscriptionHistoryOut(**item) for item in page],
+        pagination=PaginationMeta(total=total, limit=limit, offset=offset),
+    )
+
 @router.get("/subscription", response_model=SubscriptionOut)
 def get_subscription(
     auth: AuthContext = Depends(get_admin_auth),
@@ -472,6 +504,191 @@ def list_pagos(
             ) for r in page
         ],
         pagination=PaginationMeta(total=total, limit=limit, offset=offset),
+    )
+
+
+@router.post("/stripe/sync-plan", response_model=StripePlanSyncOut)
+def sync_plan_with_stripe(
+    payload: StripePlanSyncIn,
+    auth: AuthContext = Depends(get_admin_auth),
+) -> StripePlanSyncOut:
+    service = get_stripe_agent_service()
+    if not service.configured:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Stripe is not configured")
+
+    repo = BillingService().repo
+    plan = repo.get_plan(payload.plan_id)
+    if not plan:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Plan not found")
+
+    metadata = {"plan_id": str(plan["id"]), "codigo": plan.get("codigo") or ""}
+    product_created = False
+    price_created = False
+
+    product = service.create_or_update_product(
+        name=plan["nombre"],
+        description=plan.get("descripcion"),
+        metadata=metadata,
+        stripe_product_id=plan.get("stripe_product_id"),
+    )
+    if not plan.get("stripe_product_id"):
+        product_created = True
+
+    interval = (plan.get("intervalo") or "monthly").lower()
+    recurring_interval = "month" if interval.startswith("month") else "year" if interval.startswith("year") else None
+    currency = (plan.get("moneda") or "USD").lower()
+    unit_amount = int(round(float(plan.get("precio") or 0) * 100))
+
+    price = service.create_or_update_price(
+        product_id=product["id"],
+        unit_amount=unit_amount,
+        currency=currency,
+        recurring_interval=recurring_interval,
+        metadata=metadata,
+        stripe_price_id=plan.get("stripe_price_id"),
+        active=bool(plan.get("activo", True)),
+    )
+    if not plan.get("stripe_price_id"):
+        price_created = True
+
+    updated = repo.update_plan_stripe_refs(payload.plan_id, stripe_product_id=product["id"], stripe_price_id=price["id"])
+    return StripePlanSyncOut(
+        plan_id=payload.plan_id,
+        stripe_product_id=updated.get("stripe_product_id") if updated else product["id"],
+        stripe_price_id=updated.get("stripe_price_id") if updated else price["id"],
+        stripe_product_created=product_created,
+        stripe_price_created=price_created,
+    )
+
+
+@router.post("/stripe/create-subscription", response_model=SubscriptionCreateOut)
+def create_subscription_with_stripe(
+    payload: SubscriptionCreateIn,
+    auth: AuthContext = Depends(get_admin_auth),
+) -> SubscriptionCreateOut:
+    try:
+        subscription = BillingService().create_subscription_for_institution(auth, payload.plan_id)
+    except PermissionError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc))
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc))
+
+    latest_invoice = subscription.get("latest_invoice") or {}
+    payment_intent = latest_invoice.get("payment_intent") or {}
+    client_secret = payment_intent.get("client_secret") if isinstance(payment_intent, dict) else None
+    return SubscriptionCreateOut(
+        subscription_id=subscription["id"],
+        customer_id=subscription["customer"],
+        status=subscription.get("status"),
+        latest_invoice_payment_intent_id=payment_intent.get("id") if isinstance(payment_intent, dict) else None,
+        client_secret=client_secret,
+    )
+
+
+@router.post("/stripe/cancel-subscription", response_model=SubscriptionActionOut)
+def cancel_subscription_with_stripe(
+    payload: SubscriptionCancelIn,
+    auth: AuthContext = Depends(get_admin_auth),
+) -> SubscriptionActionOut:
+    try:
+        updated = BillingService().cancel_subscription_for_institution(auth, cancel_at_period_end=payload.cancel_at_period_end)
+    except PermissionError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc))
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc))
+
+    return SubscriptionActionOut(
+        subscription_id=updated["id"],
+        customer_id=updated.get("customer"),
+        status=updated.get("status"),
+        cancel_at_period_end=bool(updated.get("cancel_at_period_end", False)),
+        canceled_at=str(updated.get("canceled_at")) if updated.get("canceled_at") else None,
+    )
+
+
+@router.post("/stripe/checkout", response_model=CheckoutSessionOut)
+def create_checkout_session(
+    payload: CheckoutSessionIn,
+    auth: AuthContext = Depends(get_admin_auth),
+) -> CheckoutSessionOut:
+    session = BillingService().create_checkout_session_for_institution(
+        auth, payload.plan_id, payload.success_url, payload.cancel_url
+    )
+    return CheckoutSessionOut(url=session.get("url"), session_id=session.get("id"))
+
+
+@router.get("/stripe/subscription", response_model=StripeSubscriptionOut)
+def get_stripe_subscription(
+    auth: AuthContext = Depends(get_admin_auth),
+) -> StripeSubscriptionOut:
+    result = BillingService().get_stripe_subscription(auth)
+    latest_invoice = result.get("latest_invoice") or {}
+    payment_intent = latest_invoice.get("payment_intent") or {}
+    return StripeSubscriptionOut(
+        subscription_id=result.get("id"),
+        customer_id=result.get("customer"),
+        status=result.get("status"),
+        cancel_at_period_end=bool(result.get("cancel_at_period_end", False)),
+        current_period_end=str(result.get("current_period_end")) if result.get("current_period_end") else None,
+        current_period_start=str(result.get("current_period_start")) if result.get("current_period_start") else None,
+        latest_invoice_payment_intent_id=payment_intent.get("id") if isinstance(payment_intent, dict) else None,
+        latest_invoice_status=latest_invoice.get("status") if isinstance(latest_invoice, dict) else None,
+    )
+
+
+@router.post("/stripe/reactivate-subscription", response_model=SubscriptionActionOut)
+def reactivate_subscription_with_stripe(
+    auth: AuthContext = Depends(get_admin_auth),
+) -> SubscriptionActionOut:
+    try:
+        updated = BillingService().reactivate_subscription_for_institution(auth)
+    except PermissionError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc))
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc))
+
+    return SubscriptionActionOut(
+        subscription_id=updated["id"],
+        customer_id=updated.get("customer"),
+        status=updated.get("status"),
+        cancel_at_period_end=bool(updated.get("cancel_at_period_end", False)),
+        canceled_at=str(updated.get("canceled_at")) if updated.get("canceled_at") else None,
+    )
+
+
+@router.post("/stripe/portal-session", response_model=StripePortalSessionOut)
+def create_portal_session(
+    payload: StripePortalSessionIn,
+    auth: AuthContext = Depends(get_admin_auth),
+) -> StripePortalSessionOut:
+    result = BillingService().create_billing_portal_session(auth, return_url=payload.return_url)
+    return StripePortalSessionOut(
+        url=result.get("url"),
+        id=result.get("id"),
+        customer_id=result.get("customer"),
+    )
+
+
+@router.post("/stripe/change-plan", response_model=SubscriptionChangePlanOut)
+def change_plan_with_stripe(
+    payload: SubscriptionChangePlanIn,
+    auth: AuthContext = Depends(get_admin_auth),
+) -> SubscriptionChangePlanOut:
+    updated = BillingService().change_subscription_plan(auth, payload.plan_id)
+    latest_invoice = updated.get("latest_invoice") or {}
+    payment_intent = latest_invoice.get("payment_intent") or {}
+    return SubscriptionChangePlanOut(
+        subscription_id=updated.get("id"),
+        customer_id=updated.get("customer"),
+        status=updated.get("status"),
+        latest_invoice_payment_intent_id=payment_intent.get("id") if isinstance(payment_intent, dict) else None,
+        client_secret=payment_intent.get("client_secret") if isinstance(payment_intent, dict) else None,
     )
 
 

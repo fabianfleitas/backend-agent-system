@@ -71,6 +71,11 @@ SUPABASE_JWT_SECRET=  # para validación local del JWT de Supabase Auth
 
 OPENAI_API_KEY=
 
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+STRIPE_API_VERSION=2024-06-20
+STRIPE_ACCOUNT_ID=
+
 OPENROUTER_API_KEY=
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 LLM_MODEL=openai/gpt-4o-mini
@@ -101,6 +106,9 @@ Notas:
 - Si Supabase no esta configurado, `/ready` devuelve `not_ready`.
 - Si Supabase no esta configurado, `/me` puede devolver `503`.
 - `OPENAI_API_KEY` hoy solo impacta el readiness.
+- `STRIPE_SECRET_KEY` y `STRIPE_WEBHOOK_SECRET` habilitan la capa Stripe agentic/runtime.
+- `STRIPE_WEBHOOK_SECRET` (ej. `whsec_...`) es obligatorio para que `/api/billing/stripe/webhook` procese eventos de Stripe; configurar con `stripe listen` o endpoint en Dashboard.
+- `STRIPE_API_VERSION` y `STRIPE_ACCOUNT_ID` opcionales; por defecto `2024-06-20`.
 
 ## Ejecutar
 
@@ -156,6 +164,15 @@ GET    /api/admin/subscription
 GET    /api/admin/plan
 GET    /api/admin/pagos
 GET    /api/admin/comprobantes
+POST   /api/admin/stripe/checkout
+GET    /api/admin/stripe/subscription
+POST   /api/admin/stripe/portal-session
+POST   /api/admin/stripe/change-plan
+POST   /api/admin/stripe/sync-plan
+POST   /api/admin/stripe/create-subscription
+POST   /api/admin/stripe/cancel-subscription
+POST   /api/admin/stripe/reactivate-subscription
+POST   /api/billing/stripe/webhook
 GET    /api/platform/institutions
 GET    /api/platform/institutions/{id}/members
 GET    /api/platform/users
@@ -269,4 +286,3 @@ Objetivo:
 - No asumir que `/ready` valida OpenAI real; hoy solo verifica presencia de key.
 - No asumir que los paths de audio/documentos son URLs publicas.
 - Mantener separado el codigo de RAG, voz, IA, historial y documentos.
-

@@ -51,7 +51,7 @@ def test_list_by_institution_no_membership_empty() -> None:
 def test_get_by_id_same_institution_found() -> None:
     repo = FakeCategoriesRepository({1: [{"id": 3, "nombre": "Aranceles", "institucion_id": 1, "activo": True, "fecha_creacion": "2026-01-01", "descripcion": ""}]})
     svc = CategoriesService(repository=repo)
-    result = svc.get_by_id(3, make_auth(institucion_id=1))
+    result = svc.get_by_id(make_auth(institucion_id=1), 3)
     assert result is not None
     assert result["nombre"] == "Aranceles"
 
@@ -59,5 +59,5 @@ def test_get_by_id_same_institution_found() -> None:
 def test_get_by_id_different_institution_none() -> None:
     repo = FakeCategoriesRepository({2: [{"id": 3, "nombre": "Aranceles", "institucion_id": 2, "activo": True, "fecha_creacion": "2026-01-01", "descripcion": ""}]})
     svc = CategoriesService(repository=repo)
-    result = svc.get_by_id(3, make_auth(institucion_id=1))
+    result = svc.get_by_id(make_auth(institucion_id=1), 3)
     assert result is None
