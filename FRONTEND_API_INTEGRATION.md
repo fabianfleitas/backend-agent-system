@@ -175,11 +175,19 @@ Respuesta:
       "tokens_output": null,
       "tiempo_respuesta_ms": null,
       "fecha_envio": "2026-06-12T18:30:00.000000Z",
-      "audit_id": null
+      "audit_id": null,
+      "sources": [],
+      "rating": null,
+      "feedback_comment": null
     }
   ]
 }
 ```
+
+Nota: `sources` (documentos recuperados: `[{document_id, document, page, similarity_score}]`),
+`rating` (1-5) y `feedback_comment` se llenan en `GET /api/conversations/{id}` y
+`GET /api/conversations/{id}/messages` a partir de `message_documents` y `feedback`.
+Solo los mensajes `ASSISTANT` con RAG real llevan `sources`.
 
 Roles esperados en mensajes:
 
@@ -596,6 +604,17 @@ STAFF
 ADMIN
 ```
 
+### Editar perfil
+
+```http
+PUT /me
+```
+
+Request: `{ "full_name": "Nuevo nombre" }` (`UserUpdateIn`).
+
+- Solo `full_name` es editable; `email`/`role`/membresía no se modifican por este endpoint.
+- Respuesta: `UserOut` actualizado.
+
 ## Administracion
 
 Todos los endpoints de esta seccion requieren:
@@ -900,6 +919,79 @@ Respuesta:
 }
 ```
 
+### Notificaciones / SMTP (admin institucional)
+
+```http
+GET  /api/admin/smtp
+PUT  /api/admin/smtp
+GET  /api/admin/notifications
+POST /api/admin/notifications/send-test
+```
+
+- `GET /api/admin/smtp` → `SmtpConfigOut` (precedencia institucional > global; 404 si no hay).
+- `PUT /api/admin/smtp` → `SmtpConfigIn` (sin `password` en la respuesta; si se envía `password`, se guarda en `password_secret_ref` — dev-mode, sin secret manager).
+- `GET /api/admin/notifications` → paginado `NotificationOut`.
+- `POST /api/admin/notifications/send-test` → `{email, asunto?, mensaje?}`; crea y envía, persistido con estados `PENDING/SENT/FAILED`.
+- Envío real vía `smtplib` (STARTTLS/SSL/TLS/NONE); credencial global en env `SMTP_PASSWORD`.
+
+### Plantillas de email (admin institucional)
+
+```http
+GET    /api/admin/email-templates
+POST   /api/admin/email-templates
+PUT    /api/admin/email-templates/{template_id}
+DELETE /api/admin/email-templates/{template_id}
+```
+
+- `EmailTemplateIn`: `{codigo, nombre, asunto, contenido_html?, contenido_texto?, activo?}`.
+- Institucional vs global: el admin institucional gestiona las de su institución; el
+  platform admin (con membresía) gestiona las globales (`institucion_id = null`).
+- `DELETE` = soft-deactivate (`activo=false`).
+
+### Exportaciones CSV (admin institucional)
+
+```http
+GET /api/admin/audit/export
+GET /api/admin/comprobantes/export
+GET /api/admin/metrics/export
+```
+
+- Respuesta: `text/csv` con `Content-Disposition: attachment`.
+- `metrics/export` incluye secciones: AGREGADOS, TOKENS POR MODELO, TOP DOCUMENTOS, DISTRIBUCION POR CATEGORIA y SERIE.
+- En el frontend usar `responseType: 'blob'` y descargar (helper `exportCsv` en `app/src/lib/download.ts`).
+
+### Feedback (moderación global)
+
+```http
+GET /api/admin/feedback?limit=20&offset=0
+GET /api/admin/feedback?conversacion_id=7&rating=4
+```
+
+Parámetros opcionales: `conversacion_id`, `message_id`, `rating` (1-5).
+
+Respuesta paginada (`AdminFeedbackOut`):
+
+```json
+{
+  "items": [
+    {
+      "id": 1,
+      "message_id": 10,
+      "conversacion_id": 7,
+      "rating": 5,
+      "comment": "Muy útil",
+      "external_auth_id": "user-123",
+      "contenido_texto": "¿Cuál es el reglamento?",
+      "audit_id": "6b0f9f86-8f2c-4c49-9d3d-3a9f5bb0a2d1",
+      "created_at": "2026-06-12T18:31:00.000000Z"
+    }
+  ],
+  "pagination": { "total": 1, "limit": 20, "offset": 0 }
+}
+```
+
+Solo visibles los feedback de la propia institución (aislamiento por `institucion_id`).
+
 ### Usuarios
 
 ```http
@@ -972,6 +1064,8 @@ Respuesta:
   "avg_response_time_voice": 0.0,
   "avg_response_time_text": 2.1,
   "series": [{"fecha":"2026-08-25","conversaciones":1,"tokens_input":586,"tokens_output":87,"llm":1,"guard":1,"llm_failed":0}],
+  "top_documents": [{"documento_id": 10, "titulo": "Reglamento", "consultas": 2}],
+  "documents_by_category": [{"categoria_id": 3, "nombre": "Reglamentos", "consultas": 2}],
   "desde": null,
   "hasta": null,
   "categoria_id": null,
@@ -992,6 +1086,8 @@ Campos IA:
 - `tokens_by_model`: consumo por `modelo_ia` (`{modelo: {input, output}}`).
 - `avg_retrieval_similarity`: promedio de `similarity_score` en `message_documents`.
 - `total_voice_queries`/`total_text_queries` y `avg_response_time_voice/text`: split por canal
+- `top_documents`: documentos más consultados (dedupe por mensaje+documento, top 10) → `[{documento_id, titulo, consultas}]`.
+- `documents_by_category`: distribución por categoría → `[{categoria_id, nombre, consultas}]` (categorías sin nombre = NULL → "Sin categoría").
   segun el sufijo `[voice]`/`[text]` en `observaciones`.
 
 Nota: en el store actual `system_status` puede venir por default del schema aunque no lo devuelva explicitamente el servicio.
@@ -1002,25 +1098,37 @@ Requiere `is_platform_admin = true` (JWT de Supabase + registro `platform_admins
 
 ```http
 GET /api/platform/institutions
+POST /api/platform/institutions
 GET /api/platform/institutions/{id}
+PUT /api/platform/institutions/{id}
+DELETE /api/platform/institutions/{id}
 GET /api/platform/institutions/{id}/members
 POST /api/platform/institutions/{id}/members
 DELETE /api/platform/institutions/{id}/members/{member_id}
 GET /api/platform/users
 GET /api/platform/metrics
 GET /api/platform/audit
+GET /api/platform/plans
+POST /api/platform/plans
+PUT /api/platform/plans/{plan_id}
+DELETE /api/platform/plans/{plan_id}
 ```
 
-Contratos: `InstitutionOut`, `MemberOut`, `MemberIn`, `UserOut`, `MetricsOut`, `AuditLogOut` con paginación.
+Contratos: `InstitutionOut`, `InstitutionIn`, `MemberOut`, `MemberIn`, `PlanOut`, `PlanIn`, `UserOut`, `MetricsOut`, `AuditLogOut` con paginación.
+
+- CRUD de instituciones: `POST /api/platform/institutions` (body `InstitutionIn`), `PUT .../{id}`, `DELETE .../{id}` (soft-deactivate `activo=false`; no borra miembros/documentos).
+- CRUD de planes: `POST /api/platform/plans` (body `PlanIn`), `PUT .../{plan_id}`, `DELETE .../{plan_id}` (soft-deactivate; para activar en checkout/change-plan, sincronizar con Stripe vía `POST /api/admin/stripe/sync-plan`).
 
 ## Billing lectura (institucional)
 ```http
 GET /api/admin/subscription
 GET /api/admin/plan
+GET /api/admin/plans
 GET /api/admin/pagos
 GET /api/admin/comprobantes
 ```
-Respuesta: `SubscriptionOut` (plan anidado `PlanOut`), `PlanOut`, `PaginatedResponse[PagoOut/ComprobanteOut]`.
+Respuesta: `SubscriptionOut` (plan anidado `PlanOut`), `PlanOut`, `list[PlanOut]`, `PaginatedResponse[PagoOut/ComprobanteOut]`.
+- `GET /api/admin/plans` (nuevo, 2026-09-20): lista los planes **activos y sincronizados con Stripe** (`stripe_price_id` presente) — los únicos válidos para `change-plan`. `PlanOut` incluye `stripe_product_id`/`stripe_price_id`.
 
 ## Subscription / Billing lectura
 - `GET /api/admin/subscription/history` (nuevo)
@@ -1063,6 +1171,7 @@ Respuesta: `SubscriptionOut` (plan anidado `PlanOut`), `PlanOut`, `PaginatedResp
 - Request: `{plan_id: int}` (`SubscriptionChangePlanIn`)
 - Response: `SubscriptionChangePlanOut` (`subscription_id`, `customer_id`, `status`, `latest_invoice_payment_intent_id`, `client_secret`)
 - Usa `proration_behavior=create_prorations` en Stripe.
+- El selector de planes debe consumir `GET /api/admin/plans` (solo planes con `stripe_price_id`).
 
 **Portal (`POST /api/admin/stripe/portal-session`)**
 - Request: `{return_url: str}` (`StripePortalSessionIn`)

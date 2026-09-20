@@ -30,6 +30,62 @@ class BillingRepository:
         resp = self.client.table("planes").select("*").eq("id", plan_id).limit(1).execute()
         return resp.data[0] if resp.data else None
 
+    def create_plan(
+        self,
+        nombre: str,
+        codigo: Optional[str] = None,
+        descripcion: Optional[str] = None,
+        precio: Optional[float] = None,
+        moneda: Optional[str] = None,
+        intervalo: Optional[str] = None,
+        max_documentos: Optional[int] = None,
+        max_usuarios: Optional[int] = None,
+        max_estudiantes: Optional[int] = None,
+        features: Optional[dict] = None,
+    ) -> dict:
+        payload: dict = {"nombre": nombre, "activo": True}
+        if codigo is not None:
+            payload["codigo"] = codigo
+        if descripcion is not None:
+            payload["descripcion"] = descripcion
+        if precio is not None:
+            payload["precio"] = precio
+        if moneda is not None:
+            payload["moneda"] = moneda
+        if intervalo is not None:
+            payload["intervalo"] = intervalo
+        if max_documentos is not None:
+            payload["max_documentos"] = max_documentos
+        if max_usuarios is not None:
+            payload["max_usuarios"] = max_usuarios
+        if max_estudiantes is not None:
+            payload["max_estudiantes"] = max_estudiantes
+        if features is not None:
+            payload["features"] = features
+        resp = self.client.table("planes").insert(payload).execute()
+        return resp.data[0]
+
+    def update_plan(self, plan_id: int, **campos) -> Optional[dict]:
+        payload = {k: v for k, v in campos.items() if v is not None}
+        if not payload:
+            return self.get_plan(plan_id)
+        resp = (
+            self.client.table("planes")
+            .update(payload)
+            .eq("id", plan_id)
+            .execute()
+        )
+        return resp.data[0] if resp.data else None
+
+    def deactivate_plan(self, plan_id: int) -> Optional[dict]:
+        resp = (
+            self.client.table("planes")
+            .update({"activo": False})
+            .eq("id", plan_id)
+            .execute()
+        )
+        return resp.data[0] if resp.data else None
+
     def update_plan_stripe_refs(self, plan_id: int, *, stripe_product_id: Optional[str] = None, stripe_price_id: Optional[str] = None) -> Optional[dict]:
         payload = {}
         if stripe_product_id is not None:

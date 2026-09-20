@@ -15,6 +15,15 @@ class UsersService:
 
     def get_or_create_current_user(self, auth: AuthContext) -> UserOut:
         user = self.repository.get_or_create_user(auth)
+        return self._user_out(user, auth)
+
+    def update_current_user(self, auth: AuthContext, full_name: Optional[str] = None) -> UserOut:
+        user = self.repository.update_user(auth.external_auth_id, full_name=full_name)
+        if not user:
+            user = self.repository.get_or_create_user(auth)
+        return self._user_out(user, auth)
+
+    def _user_out(self, user: dict, auth: AuthContext) -> UserOut:
         # Resolver membresía institucional para completar UserOut
         from app.repositories.institutions_repository import InstitutionsRepository
         inst_repo = InstitutionsRepository()

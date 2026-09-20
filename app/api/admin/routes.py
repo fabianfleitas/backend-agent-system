@@ -3,10 +3,11 @@ from __future__ import annotations
 import uuid
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Response, UploadFile, status
 
 from app.core.security import AuthContext, get_admin_auth, require_institution_admin
 from app.schemas.admin import (
+    AdminFeedbackOut,
     AdminReindexIn,
     AdminReindexOut,
     AdminUploadDocumentOut,
@@ -45,6 +46,7 @@ from app.schemas.common import (
     UserRole,
 )
 from app.schemas.system import MetricsOut
+from app.utils.csv_export import csv_response, metrics_to_csv, to_csv
 from app.services.admin_service import AdminService
 from app.services.audit_service import AuditService
 from app.services.documents_service import DocumentsService
@@ -287,6 +289,68 @@ def list_users(
     )
 
 
+@router.get("/feedback", response_model=PaginatedResponse[AdminFeedbackOut])
+def list_feedback(
+    conversacion_id: Optional[int] = Query(default=None),
+    message_id: Optional[int] = Query(default=None),
+    rating: Optional[int] = Query(default=None, ge=1, le=5),
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    auth: AuthContext = Depends(get_admin_auth),
+) -> PaginatedResponse[AdminFeedbackOut]:
+    rows = AdminService().list_feedback(
+        auth,
+        conversacion_id=conversacion_id,
+        message_id=message_id,
+        rating=rating,
+    )
+    total = len(rows)
+    page = rows[offset : offset + limit]
+    return PaginatedResponse[AdminFeedbackOut](
+        items=[
+            AdminFeedbackOut(
+                id=r["id"],
+                message_id=r["message_id"],
+                conversacion_id=(r.get("mensajes") or {}).get("conversacion_id"),
+                rating=r["rating"],
+                comment=r.get("comment"),
+                external_auth_id=r.get("external_auth_id"),
+                contenido_texto=(r.get("mensajes") or {}).get("contenido_texto"),
+                audit_id=str(r.get("audit_id")) if r.get("audit_id") else None,
+                created_at=str(r.get("created_at")) if r.get("created_at") else None,
+            )
+            for r in page
+        ],
+        pagination=PaginationMeta(total=total, limit=limit, offset=offset),
+    )
+
+
+@router.get("/audit/export")
+def export_audit(auth: AuthContext = Depends(get_admin_auth)) -> Response:
+    logs = AuditService().list_audit_logs(auth)
+    csv_text = to_csv(
+        logs,
+        ["id", "mensaje_id", "score_fidelidad", "score_relevancia", "score_contexto", "observaciones", "fecha_evaluacion"],
+    )
+    return csv_response(csv_text, "audit.csv")
+
+
+@router.get("/comprobantes/export")
+def export_comprobantes(auth: AuthContext = Depends(get_admin_auth)) -> Response:
+    rows = BillingService().list_comprobantes(auth)
+    csv_text = to_csv(
+        rows,
+        ["id", "institucion_id", "pago_id", "tipo_comprobante", "numero", "estado", "importe", "moneda", "referencia_externa", "fecha_emision"],
+    )
+    return csv_response(csv_text, "comprobantes.csv")
+
+
+@router.get("/metrics/export")
+def export_metrics(auth: AuthContext = Depends(get_admin_auth)) -> Response:
+    m = AdminService().get_metrics(auth)
+    return csv_response(metrics_to_csv(m), "metrics.csv")
+
+
 @router.get("/metrics", response_model=MetricsOut)
 def get_metrics(
     auth: AuthContext = Depends(get_admin_auth),
@@ -473,9 +537,39 @@ def get_plan(
         max_estudiantes=plan.get("max_estudiantes"),
         features=plan.get("features") if isinstance(plan.get("features"), dict) else None,
         activo=plan.get("activo", True),
+        stripe_product_id=plan.get("stripe_product_id"),
+        stripe_price_id=plan.get("stripe_price_id"),
         created_at=str(plan.get("created_at")) if plan.get("created_at") else None,
         updated_at=str(plan.get("updated_at")) if plan.get("updated_at") else None,
     )
+
+
+@router.get("/plans", response_model=list[PlanOut])
+def list_plans(
+    auth: AuthContext = Depends(get_admin_auth),
+) -> list[PlanOut]:
+    plans = BillingService().list_plans_for_admin()
+    return [
+        PlanOut(
+            id=p.get("id"),
+            codigo=p.get("codigo"),
+            nombre=p.get("nombre") or "",
+            descripcion=p.get("descripcion"),
+            precio=p.get("precio"),
+            moneda=p.get("moneda"),
+            intervalo=p.get("intervalo"),
+            max_documentos=p.get("max_documentos"),
+            max_usuarios=p.get("max_usuarios"),
+            max_estudiantes=p.get("max_estudiantes"),
+            features=p.get("features") if isinstance(p.get("features"), dict) else None,
+            activo=p.get("activo", True),
+            stripe_product_id=p.get("stripe_product_id"),
+            stripe_price_id=p.get("stripe_price_id"),
+            created_at=str(p.get("created_at")) if p.get("created_at") else None,
+            updated_at=str(p.get("updated_at")) if p.get("updated_at") else None,
+        )
+        for p in plans
+    ]
 
 
 @router.get("/pagos", response_model=PaginatedResponse[PagoOut])

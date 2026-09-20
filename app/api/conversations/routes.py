@@ -12,6 +12,7 @@ from app.schemas.common import (
     MessageOut,
     PaginatedResponse,
     PaginationMeta,
+    SourceOut,
 )
 from app.services.conversations_service import ConversationsService
 
@@ -32,6 +33,16 @@ def _summary_out(c: dict, message_count: int) -> ConversationSummaryOut:
 
 
 def _message_out(m: dict) -> MessageOut:
+    sources = [
+        SourceOut(
+            document_id=s["document_id"],
+            document=s.get("document") or ("#" + str(s["document_id"])),
+            page=s.get("page") or 1,
+            similarity_score=float(s.get("similarity_score") or 0.0),
+        )
+        for s in (m.get("_sources") or [])
+        if s.get("document_id") is not None
+    ]
     return MessageOut(
         id=m["id"],
         conversacion_id=m["conversacion_id"],
@@ -45,6 +56,9 @@ def _message_out(m: dict) -> MessageOut:
         tiempo_respuesta_ms=m.get("tiempo_respuesta_ms"),
         fecha_envio=m["fecha_envio"],
         audit_id=UUID(m["audit_id"]) if m.get("audit_id") else None,
+        sources=sources,
+        rating=m.get("_rating"),
+        feedback_comment=m.get("_feedback_comment"),
     )
 
 

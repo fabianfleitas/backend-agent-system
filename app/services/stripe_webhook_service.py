@@ -4,6 +4,8 @@ from typing import Any, Optional
 
 from app.repositories.billing_repository import BillingRepository
 from app.repositories.stripe_events_repository import StripeEventsRepository
+from app.repositories.institutions_repository import InstitutionsRepository
+from app.services.notification_service import NotificationService
 
 
 class StripeWebhookService:
@@ -11,9 +13,50 @@ class StripeWebhookService:
         self,
         events_repo: Optional[StripeEventsRepository] = None,
         billing_repo: Optional[BillingRepository] = None,
+        notifications_service: Optional[NotificationService] = None,
+        institutions_repo: Optional[InstitutionsRepository] = None,
     ) -> None:
         self.events_repo = events_repo or StripeEventsRepository()
         self.billing_repo = billing_repo or BillingRepository()
+        self.notifications_service = notifications_service or NotificationService()
+        self.institutions_repo = institutions_repo or InstitutionsRepository()
+
+    def _notify(
+        self,
+        institucion_id: Optional[int],
+        suscripcion_id: Optional[int],
+        event_id: str,
+        tipo: str,
+        asunto: str,
+        contenido: str,
+    ) -> None:
+        try:
+            if institucion_id is None:
+                return
+            institution = self.institutions_repo.get_institucion(institucion_id)
+            destinatario = (institution or {}).get("email_contacto")
+            if not destinatario:
+                return
+            self.notifications_service.send_automated(
+                institucion_id,
+                destinatario=destinatario,
+                asunto=asunto,
+                contenido=contenido,
+                contenido_texto=contenido,
+                tipo=tipo,
+                suscripcion_id=suscripcion_id,
+                clave_idempotencia=f"stripe-{event_id}-{tipo}",
+            )
+        except Exception:
+            pass
+
+    def _institution_by_customer(self, stripe_customer_id: Optional[str]) -> Optional[dict]:
+        if not stripe_customer_id:
+            return None
+        try:
+            return self.institutions_repo.get_by_customer_id(stripe_customer_id)
+        except Exception:
+            return None
 
     def register_event(self, stripe_event_id: str, event_type: str, payload: dict[str, Any]) -> dict:
         existing = self.events_repo.get_event(stripe_event_id)
@@ -78,6 +121,22 @@ class StripeWebhookService:
                 )
         except Exception:
             pass
+        # Notificaciones automáticas
+        try:
+            updated = self.billing_repo.get_subscription_by_stripe_id(stripe_subscription_id)
+            if updated:
+                institution = self._institution_by_customer(stripe_customer_id)
+                inst_id = (institution or {}).get("id")
+                sid = updated.get("id")
+                estado = updated.get("estado")
+                if estado == "CANCELLED":
+                    self._notify(inst_id, sid, event["id"], "SUBSCRIPTION_CANCELED", "Suscripción cancelada", "Tu suscripción fue cancelada.")
+                elif estado == "EXPIRED":
+                    self._notify(inst_id, sid, event["id"], "SUBSCRIPTION_EXPIRED", "Suscripción expirada", "Tu suscripción expiró.")
+                if updated.get("plan_id") != plan_anterior_id:
+                    self._notify(inst_id, sid, event["id"], "PLAN_CHANGED", "Plan cambiado", "Tu plan fue actualizado.")
+        except Exception:
+            pass
 
     def _handle_invoice_event(self, event: dict[str, Any]) -> None:
         obj = event.get("data", {}).get("object", {})
@@ -90,16 +149,8 @@ class StripeWebhookService:
                 if sub_id:
                     sub = self.billing_repo.get_subscription_by_stripe_id(sub_id)
                     if sub:
-                        institu = None
-                        try:
-                            from app.repositories.institutions_repository import InstitutionsRepository
-                            inst_repo = InstitutionsRepository()
-                            # Try by customer via sub stripe_customer_id
-                            customer_id = sub.get("stripe_customer_id")
-                            if customer_id:
-                                institu = inst_repo.get_by_customer_id(customer_id)
-                        except Exception:
-                            pass
+                        customer_id = sub.get("stripe_customer_id")
+                        institu = self._institution_by_customer(customer_id)
                         if institu:
                             # Deduplicate by referencia_externa = invoice.number or id
                             invoice_number = obj.get("number") or obj.get("id")
@@ -116,6 +167,7 @@ class StripeWebhookService:
                                     referencia_externa=str(obj.get("id")),
                                     fecha_emision=obj.get("status_transitions", {}).get("paid_at"),
                                 )
+                            self._notify(institu.get("id"), sub.get("id"), event["id"], "PAYMENT_SUCCESS", "Pago recibido", f"Tu pago fue procesado correctamente.")
         except Exception:
             pass
         # On payment failed, mark subscription PENDING_PAYMENT
@@ -140,6 +192,7 @@ class StripeWebhookService:
                         estado_nuevo="PENDING_PAYMENT",
                         descripcion=f"Invoice {obj.get('id')} failed",
                     )
+                    self._notify(sub.get("institucion_id"), sub["id"], event["id"], "PAYMENT_FAILED", "Pago rechazado", "Tu pago no pudo procesarse. Revisa tu método de pago.")
         except Exception:
             pass
 

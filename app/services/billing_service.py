@@ -62,6 +62,10 @@ class BillingService:
     def list_plans(self) -> list[dict]:
         return self.repo.list_planes()
 
+    def list_plans_for_admin(self) -> list[dict]:
+        plans = self.repo.list_planes()
+        return [p for p in plans if p.get("stripe_price_id")]
+
     def create_subscription_for_institution(self, auth: AuthContext, plan_id: int) -> dict:
         if auth.is_platform_admin:
             raise PermissionError("Platform admin cannot create institutional subscriptions directly")

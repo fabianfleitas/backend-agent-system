@@ -17,6 +17,18 @@ from app.services.indexing_service import IndexingService
 logger = logging.getLogger(__name__)
 
 
+
+def _validate_pdf(file_bytes: bytes, content_type: Optional[str]) -> None:
+    """Valida MIME y magic-bytes de PDF + tamaño máximo (50 MB)."""
+    if content_type not in ("application/pdf", "application/x-pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF documents are allowed")
+    max_size = 50 * 1024 * 1024  # 50 MB
+    if len(file_bytes) > max_size:
+        raise HTTPException(status_code=413, detail="File too large (max 50MB)")
+    if not file_bytes[:4] == b"%PDF":
+        raise HTTPException(status_code=400, detail="Invalid PDF file (magic bytes)")
+
+
 class DocumentsService:
     def __init__(
         self,
@@ -43,11 +55,7 @@ class DocumentsService:
         if auth.institucion_id is None and not auth.is_platform_admin:
             raise HTTPException(status_code=403, detail="Institution membership required")
         # Validación de uploads (seguridad)
-        if content_type not in ("application/pdf", "application/x-pdf"):
-            raise HTTPException(status_code=400, detail="Only PDF documents are allowed")
-        max_size = 50 * 1024 * 1024  # 50 MB
-        if len(file_bytes) > max_size:
-            raise HTTPException(status_code=413, detail="File too large (max 50MB)")
+        _validate_pdf(file_bytes, content_type)
         # Validación de institución para categoría (FASE C)
         if categoria_id is not None:
             from app.repositories.categories_repository import CategoriesRepository
@@ -115,6 +123,7 @@ class DocumentsService:
         if document.get("institucion_id") != auth.institucion_id and not auth.is_platform_admin:
             raise HTTPException(status_code=404, detail="Document belongs to another institution")
         self.users_repository.get_or_create_user(auth)
+        _validate_pdf(file_bytes, content_type)
         ext = os.path.splitext(filename or "")[1] or ".pdf"
         storage_path = f"{auth.institucion_id}/documents/{uuid.uuid4().hex}{ext}"
         ruta_archivo = self.storage_repository.upload_document(

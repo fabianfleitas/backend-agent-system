@@ -5,6 +5,7 @@ from typing import Optional
 from app.core.security import AuthContext
 from app.repositories.institutions_repository import InstitutionsRepository
 from app.repositories.audit_repository import AuditRepository
+from app.repositories.billing_repository import BillingRepository
 from app.services.admin_service import AdminService
 
 
@@ -14,16 +15,36 @@ class PlatformService:
         institutions_repo: Optional[InstitutionsRepository] = None,
         audit_repo: Optional[AuditRepository] = None,
         admin_service: Optional[AdminService] = None,
+        billing_repo: Optional[BillingRepository] = None,
     ) -> None:
         self.institutions_repo = institutions_repo or InstitutionsRepository()
         self.audit_repo = audit_repo or AuditRepository()
         self.admin_service = admin_service or AdminService()
+        self.billing_repo = billing_repo or BillingRepository()
 
     def list_institutions(self, activo: bool = True) -> list[dict]:
         return self.institutions_repo.list_instituciones(activo=activo)
 
     def get_institution(self, institucion_id: int) -> Optional[dict]:
         return self.institutions_repo.get_institucion(institucion_id)
+
+    def create_institution(self, **campos) -> dict:
+        return self.institutions_repo.create_institucion(**campos)
+
+    def update_institution(self, institucion_id: int, **campos) -> Optional[dict]:
+        return self.institutions_repo.update_institucion(institucion_id, **campos)
+
+    def deactivate_institution(self, institucion_id: int) -> Optional[dict]:
+        return self.institutions_repo.deactivate_institucion(institucion_id)
+
+    def create_plan(self, **campos) -> dict:
+        return self.billing_repo.create_plan(**campos)
+
+    def update_plan(self, plan_id: int, **campos) -> Optional[dict]:
+        return self.billing_repo.update_plan(plan_id, **campos)
+
+    def deactivate_plan(self, plan_id: int) -> Optional[dict]:
+        return self.billing_repo.deactivate_plan(plan_id)
 
     def list_members(self, institucion_id: int) -> list[dict]:
         return self.institutions_repo.list_members(institucion_id)

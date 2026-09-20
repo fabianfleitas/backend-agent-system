@@ -64,6 +64,9 @@ class MessageOut(BaseModel):
     tiempo_respuesta_ms: Optional[float] = None
     fecha_envio: datetime
     audit_id: Optional[UUID] = None
+    sources: List[SourceOut] = []
+    rating: Optional[int] = None
+    feedback_comment: Optional[str] = None
 
 
 class AudioInteractionOut(BaseModel):
@@ -113,6 +116,10 @@ class UserOut(BaseModel):
     nombre_institucion: Optional[str] = None
     created_at: datetime
     updated_at: datetime
+
+
+class UserUpdateIn(BaseModel):
+    full_name: Optional[str] = None
 
 
 class DocumentVersionOut(BaseModel):

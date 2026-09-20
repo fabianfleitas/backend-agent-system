@@ -27,8 +27,8 @@ No asumir que los mocks actuales satisfacen los requisitos funcionales.
 - **Storage real (Supabase Storage):** archivos subidos guardados en `SUPABASE_STORAGE_BUCKET_DOCUMENTS` y `SUPABASE_STORAGE_BUCKET_AUDIO` con prefijo institucional (`{institucion_id}/documents/`, `{institucion_id}/audio/`), no solo `storage/` local. Metadatos y trazabilidad en Supabase.
 - **Billing / Stripe:** endpoints administrativos (`/api/admin/stripe/*`) y webhook (`/api/billing/stripe/webhook`) implementados con integración real a Stripe; persistencia real en Supabase (`suscripciones`, `pagos`, `comprobantes`, `stripe_eventos`); `subscription_data` con metadata institucional; alignment de checks DB (`003_billing_estado_checks.sql`).
 - **Gestión documental:** carga de PDFs, versionado y reindexacion con extraccion/indexacion local o embeddings reales segun `EMBEDDINGS_ENABLED`; categorías aisladas por institución (`categorias.institucion_id`); validación de categoría al crear documento.
-- **FASE A-H implementadas:** B (Auth Supabase + RBAC), A (aislamiento multi-institución), D (RAG aislado por institución), E (conversaciones/voz), C (documental con categorías), F (audit/PII) implementada (ver PII/anonimización más abajo), G (billing/Stripe: checkout, suscripción, webhook, persistencia real) completada; H (dashboard) pendiente.
-- **Modelo SQL objetivo:** `migrations/001_multi_institution.sql`; esquema completo en `all_tables.json` (documentos antiguos `requisitos.md`, `modelo_inicial_datos.md` archivados o descartados; `tables.sql` no existe en esta versión).
+- **FASE A-H implementadas:** B (Auth Supabase + RBAC), A (aislamiento multi-institución), D (RAG aislado por institución), E (conversaciones/voz), C (documental con categorías), F (audit/PII) implementada (ver PII/anonimización más abajo), G (billing/Stripe: checkout, suscripción, webhook, persistencia real) completada; H (dashboard) productiva: el Admin Dashboard SPA opera sobre el contrato real; pendiente solo de endpoints institucionales agregados (`/api/admin/conversations`, dashboard agregado), sin marcado de fase.
+- **Modelo SQL objetivo:** `migrations/001_multi_institution.sql`; esquema completo en `all_tables.json`; `tables.sql` (esquema de referencia en la raíz).
 - **RAG parcial real:** recuperacion de contexto real en `chat/query` (retrieval de chunks + trazabilidad en `message_documents`); generacion de respuesta real via OpenRouter cuando `LLM_ENABLED=true`; `chat/voice` transcribe real via STT cuando `STT_ENABLED=true` y alimenta esa transcripcion al mismo pipeline RAG+OpenRouter (tag `[voice]` en audit); sintetiza respuesta a audio real via TTS (`/audio/speech`, OpenRouter) cuando `TTS_ENABLED=true` con degradacion graceful si falla; si STT esta off, voz es mock
 - **Gestion documental real parcial:** carga de PDFs, versionado y reindexacion con extraccion/indexacion local o embeddings reales segun `EMBEDDINGS_ENABLED`
 - **Procesamiento asincrono:** no implementado; `Celery`/`Redis` aun no existen en el codigo
@@ -77,8 +77,16 @@ Estado objetivo: autenticación con JWT de Supabase Auth. Ver `PLAN_MULTI_INSTIT
 - Headers delegados (`X-External-Auth-Id`, `X-User-Type`, etc.) quedan obsoletos; el cliente debe enviar `Authorization: Bearer <jwt>`.
 - Separación clara:
   - `institucion_miembros` → administración de la institución (`/api/admin/*`)
-  - `platform_admins` → administración global (`/api/platform/*`) **pendiente FASE H**; actualmente bypass via `/admin/*` documentado
+  - `platform_admins` → administración global (`/api/platform/*`) implementada; guard `get_platform_admin_auth()`/`require_platform_admin()`; sin bypass
 - Regla de acceso cruzado: 404 si el recurso no pertenece a `auth.institucion_id`; el único bypass es `is_platform_admin` para `/platform/*`.
+
+### Deprecación de `app_users.role` (política)
+
+- **Estado:** `app_users.role` está **deprecado**. NO es fuente de autorización (ni institucional ni de plataforma).
+- **Reemplazo:** `institucion_miembros.tipo_miembro` (`ADMIN | SECRETARIA | ESTUDIANTE`) para permisos institucionales; `platform_admins.is_platform_admin` para permisos de plataforma.
+- **En código:** se sigue escribiendo `role='STUDENT'` al crear un usuario (`users_repository.create_user`, `security.py`) solo por compatibilidad de esquema; no se lee para decidir accesos.
+- **En API:** `UserOut.role` se expone mapeado (`_role_out`) por compatibilidad con el frontend; no debe usarse para ocultar/mostrar capacidades.
+- **Timeline:** se eliminará de `UserOut`/OpenAPI en una versión futura; no crear dependencias nuevas sobre él.
 
 ## Supabase
 
@@ -105,13 +113,14 @@ Rutas globales:
 GET /health
 GET /ready
 GET /me
+PUT /me
 ```
 
 Rutas expuestas bajo `/api`:
 
 ```text
-POST   /api/conversations
-GET    /api/conversations
+POST   /api/conversations/
+GET    /api/conversations/
 GET    /api/conversations/{conversation_id}
 DELETE /api/conversations/{conversation_id}
 GET    /api/conversations/{conversation_id}/messages
@@ -128,9 +137,67 @@ POST   /api/admin/documents/{documento_id}/versions
 DELETE /api/admin/documents/{documento_id}
 POST   /api/admin/reindex
 GET    /api/admin/audit
+GET    /api/admin/audit/export
 GET    /api/admin/users
+GET    /api/admin/feedback
 GET    /api/admin/metrics
+GET    /api/admin/metrics/export
+
 GET    /api/admin/categories
+POST   /api/admin/categories
+PUT    /api/admin/categories/{categoria_id}
+DELETE /api/admin/categories/{categoria_id}
+
+GET    /api/admin/config
+PUT    /api/admin/config/{clave}
+GET    /api/admin/smtp
+PUT    /api/admin/smtp
+GET    /api/admin/notifications
+POST   /api/admin/notifications/send-test
+GET    /api/admin/email-templates
+POST   /api/admin/email-templates
+PUT    /api/admin/email-templates/{template_id}
+DELETE /api/admin/email-templates/{template_id}
+
+GET    /api/admin/subscription
+GET    /api/admin/subscription/history
+GET    /api/admin/plan
+GET    /api/admin/plans
+GET    /api/admin/pagos
+GET    /api/admin/comprobantes
+GET    /api/admin/comprobantes/export
+POST   /api/admin/stripe/checkout
+POST   /api/admin/stripe/portal-session
+POST   /api/admin/stripe/create-subscription
+POST   /api/admin/stripe/cancel-subscription
+POST   /api/admin/stripe/reactivate-subscription
+POST   /api/admin/stripe/change-plan
+POST   /api/admin/stripe/sync-plan
+GET    /api/admin/stripe/subscription
+
+POST   /api/billing/stripe/webhook
+
+GET    /api/platform/institutions
+GET    /api/platform/institutions/{institucion_id}
+POST   /api/platform/institutions
+PUT    /api/platform/institutions/{institucion_id}
+DELETE /api/platform/institutions/{institucion_id}
+GET    /api/platform/institutions/{institucion_id}/members
+POST   /api/platform/institutions/{institucion_id}/members
+DELETE /api/platform/institutions/{institucion_id}/members/{member_id}
+GET    /api/platform/users
+GET    /api/platform/metrics
+GET    /api/platform/metrics/export
+GET    /api/platform/audit
+GET    /api/platform/audit/export
+GET    /api/platform/plans
+POST   /api/platform/plans
+PUT    /api/platform/plans/{plan_id}
+DELETE /api/platform/plans/{plan_id}
+GET    /api/platform/subscriptions
+GET    /api/platform/pagos
+GET    /api/platform/comprobantes
+GET    /api/platform/comprobantes/export
 ```
 
 Notas:
@@ -138,16 +205,17 @@ Notas:
 - La ruta de salud actual es `/health`, no `/api/health`.
 - Las rutas antiguas `/api/student/*` ya no son el contrato actual.
 - `chat/query` recupera contexto real via RAG (`sources`, `message_documents`, `embedding_model` en audit) cuando `EMBEDDINGS_ENABLED=true` y hay versiones `READY`; cuando `LLM_ENABLED=true` la respuesta es generada por OpenRouter sobre el contexto (fallback controlado si el LLM falla, con sources reales y error en `observaciones`); con `LLM_ENABLED=false` la respuesta text es mock. Con `LLM_HISTORY_ENABLED=true` (default) el prompt incluye los turnos previos de la conversacion (aislados por conversacion/usuario, recortados por token budget), pero el contexto RAG sigue siendo la fuente de verdad.
-- `chat/query` recupera contexto real via RAG (`sources`, `message_documents`, `embedding_model` en audit) cuando `EMBEDDINGS_ENABLED=true` y hay versiones `READY`; cuando `LLM_ENABLED=true` la respuesta es generada por OpenRouter sobre el contexto (fallback controlado si el LLM falla, con sources reales y error en `observaciones`); con `LLM_ENABLED=false` la respuesta text es mock. Con `LLM_HISTORY_ENABLED=true` (default) el prompt incluye los turnos previos de la conversacion (aislados por conversacion/usuario, recortados por token budget), pero el contexto RAG sigue siendo la fuente de verdad.
 - `chat/voice` transcribe real el audio via STT cuando `STT_ENABLED=true` (cliente compatible OpenAI apuntando a `OPENROUTER_BASE_URL` con `OPENROUTER_API_KEY`; endpoint `POST /audio/transcriptions`; modelo default `stt_model=x-ai/grok-stt-1.0`, `stt_response_format=verbose_json` configurable). Si `STT_ENABLED=false` la transcripcion es mock. Con `STT_ENABLED=true` la transcripcion se alimenta al mismo pipeline RAG+OpenRouter de `chat/query` (respuesta real, guard de dominio o fallback; tag `[voice]` en `observaciones`); con `STT_ENABLED=false` la respuesta queda mock. Con `TTS_ENABLED=true` la respuesta se sintetiza a audio via `/audio/speech` de OpenRouter (modelo `tts_model` default `hexgrad/kokoro-82m`, voz `tts_voice` default `ef_dora`, formato `tts_response_format`) guardado en `ruta_audio_respuesta`; si TTS falla, degradacion graceful con nota `TTS_FAILED` en `observaciones`.
 - `admin/documents` persiste archivos en disco y metadatos en Supabase; si `EMBEDDINGS_ENABLED=false` extrae texto localmente y si esta activo indexa chunks y embeddings.
 - `admin/reindex` reindexa versiones activas con `IndexingService`; no es solo un cambio de estado mock.
 - `GET /api/admin/config`, `PUT /api/admin/config/{clave}` (configuración operativa institucional + global; `editable_desde_dashboard`; precedencia institucional > global)
 - `GET /api/admin/subscription`, `GET /api/admin/plan`, `GET /api/admin/pagos`, `GET /api/admin/comprobantes` (billing lectura, aislamiento por institución)
-- `GET /platform/institutions`, `POST /platform/institutions/{id}/members`, `DELETE /platform/institutions/{id}/members/{member_id}`, `GET /platform/users`, `GET /platform/metrics`, `GET /platform/audit`, `GET /platform/plans`, `GET /platform/subscriptions`, `GET /platform/pagos`, `GET /platform/comprobantes` (administración global)
-- `admin/users` lista usuarios de Supabase mediante `UsersRepository` (ahora con `institucion_id`, `tipo_membro`, `is_platform_admin`, `nombre_institucion`).
+- `GET /api/platform/institutions`, `GET /api/platform/institutions/{id}`, `GET/POST /api/platform/institutions/{id}/members`, `DELETE /api/platform/institutions/{id}/members/{member_id}`, `GET /api/platform/users`, `GET /api/platform/metrics`, `GET /api/platform/audit`, `GET /api/platform/plans`, `GET /api/platform/subscriptions`, `GET /api/platform/pagos`, `GET /api/platform/comprobantes` (administración global con `require_platform_admin()`)
+- `POST/PUT/DELETE /api/platform/institutions[/{id}]` y `POST/PUT/DELETE /api/platform/plans[/{id}]` (CRUD platform admin; delete = soft-deactivate `activo=false`; planes sincronizados con Stripe vía `sync-plan`)
+- `admin/users` lista usuarios de Supabase mediante `UsersRepository` (ahora con `institucion_id`, `tipo_miembro`, `is_platform_admin`, `nombre_institucion`).
 - `admin/metrics` expone metricas IA agregadas desde `audit_logs` y `message_documents` (outcomes LLM/GUARD/LLM_FAILED, rates, tokens por modelo, avg similarity de retrieval, split voice/text).
 - **PII/anonimización:** con `PII_ANONYMIZATION_ENABLED=true` (o `config_parametros.pii_anonymization_enabled`, precedencia institucional > global), `chat/query` y `chat/voice` anonimizan la pregunta antes de retrieval/LLM (Presidio NER `pii_nlp_model` default `es_core_news_md` + formatos locales cédula/teléfono + self-PII del perfil; tokens `[PII_TIPO_N]`; mappings en `pii_mappings` con `audit_id` y `expires_at` TTL). El texto anonimizado llega al proveedor; el original queda en `contenido_anonimizado`/`pregunta_anonimizada` y en `pii_mappings`. Si el detector no esta disponible y la politica esta ON, el flujo falla cerrado (`LLM_UNAVAILABLE_MESSAGE`, observaciones `PII_UNAVAILABLE`, sin llamadas externas). Config: `PII_MAPPING_RETENTION_DAYS` (default 90), `PII_NLP_MODEL`, `PII_LANGUAGE`; purga TTL con `scripts/purge_pii_mappings.py`. Ver §5 en `TODO_BACKEND_CIERRE_MULTIINSTITUCION.md`.
+- **Rate limiting:** token bucket in-memory (`app/core/rate_limit.py`, middleware en `main.py`), exentos `/health` `/ready` y el webhook de Stripe. Configurable vía `RATE_LIMIT_ENABLED`, `RATE_LIMIT_DEFAULT_LIMIT`, `RATE_LIMIT_DEFAULT_WINDOW_SECONDS`, `RATE_LIMIT_RULES` (ver `.env.example`). **Nota:** el bucket es por proceso; con múltiples workers no es un límite global distribuido.
 - El contrato para frontend esta documentado en `FRONTEND_API_INTEGRATION.md`.
 
 ## Persistencia actual vs objetivo
@@ -202,7 +270,7 @@ Usar `migrations/001_multi_institution.sql` y `all_tables.json` como guia funcio
 - Modelos de dominio temporales actuales: `@dataclass`.
 - Schemas de entrada/salida: `pydantic.BaseModel`.
 - Para escritura de archivos usar `app/utils/files.py`.
-- Usar `safe_join()` para evitar path traversal.
+- `safe_join()` ya NO existe; los paths se validan con `_validate_bucket_path` en `storage_repository.py` y se generan con `uuid4().hex`.
 - Ejecutar `ensure_dir()` antes de escribir en disco.
 - El startup crea `storage/`, `storage/audio/` y `storage/documents/`.
 - Mantener rutas delgadas; mover orquestacion a services y acceso externo a repositories.

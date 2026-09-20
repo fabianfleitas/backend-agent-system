@@ -14,6 +14,19 @@ class MetricSeriesPoint(BaseModel):
     guard: int = 0
     llm_failed: int = 0
 
+
+class DocumentMetricOut(BaseModel):
+    documento_id: int
+    titulo: Optional[str] = None
+    consultas: int = 0
+
+
+class CategoryMetricOut(BaseModel):
+    categoria_id: Optional[int] = None
+    nombre: Optional[str] = None
+    consultas: int = 0
+
+
 class MetricsOut(BaseModel):
     total_queries: int = 0
     total_conversations: int = 0
@@ -38,6 +51,8 @@ class MetricsOut(BaseModel):
     avg_response_time_voice: float = 0.0
     avg_response_time_text: float = 0.0
     series: List[MetricSeriesPoint] = []
+    top_documents: List[DocumentMetricOut] = []
+    documents_by_category: List[CategoryMetricOut] = []
     # Echo de filtros aplicados
     desde: Optional[str] = None
     hasta: Optional[str] = None

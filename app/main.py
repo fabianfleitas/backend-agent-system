@@ -4,12 +4,13 @@ import os
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.api.router import router as api_router
 from app.core.config import settings
 from app.core.logging import configure_logging
 from app.core.security import AuthContext, get_auth_context
-from app.schemas.common import UserOut
+from app.schemas.common import UserOut, UserUpdateIn
 from app.schemas.system import ReadyOut
 from app.services.system_service import SystemService
 from app.services.users_service import UsersService
@@ -109,6 +110,14 @@ def create_app() -> FastAPI:
 
     app.include_router(api_router, prefix=settings.api_prefix)
 
+    @app.exception_handler(Exception)
+    async def _internal_error_handler(request, exc: Exception):
+        # No exponer detalles internos; los 500 devuelven un JSON limpio.
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"detail": "Internal server error"},
+        )
+
     @app.get("/health")
     def health() -> dict:
         return {"status": "ok"}
@@ -132,6 +141,19 @@ def create_app() -> FastAPI:
     def me(auth: AuthContext = Depends(get_auth_context)) -> UserOut:
         try:
             return UsersService().get_or_create_current_user(auth)
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Supabase user persistence is not available",
+            ) from exc
+
+    @app.put("/me", response_model=UserOut)
+    def update_me(
+        payload: UserUpdateIn,
+        auth: AuthContext = Depends(get_auth_context),
+    ) -> UserOut:
+        try:
+            return UsersService().update_current_user(auth, full_name=payload.full_name)
         except Exception as exc:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

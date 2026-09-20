@@ -7,9 +7,10 @@ from typing import Optional
 
 from app.repositories.metrics_repository import MetricsRepository
 from app.repositories.users_repository import UsersRepository
+from app.repositories.feedback_repository import FeedbackRepository
 from app.core.security import AuthContext
 from app.schemas.common import UserOut, UserRole
-from app.schemas.system import MetricsOut
+from app.schemas.system import CategoryMetricOut, DocumentMetricOut, MetricsOut
 
 
 class AdminService:
@@ -17,9 +18,30 @@ class AdminService:
         self,
         users_repository: Optional[UsersRepository] = None,
         metrics_repository: Optional[MetricsRepository] = None,
+        feedback_repository: Optional[FeedbackRepository] = None,
     ) -> None:
         self.users_repository = users_repository or UsersRepository()
         self.metrics_repository = metrics_repository or MetricsRepository()
+        self.feedback_repository = feedback_repository or FeedbackRepository()
+
+    def list_feedback(
+        self,
+        auth: Optional[AuthContext] = None,
+        conversacion_id: Optional[int] = None,
+        message_id: Optional[int] = None,
+        rating: Optional[int] = None,
+    ) -> list[dict]:
+        institution_id = None
+        if auth is not None and not auth.is_platform_admin:
+            institution_id = auth.institucion_id
+        if institution_id is None:
+            return []
+        return self.feedback_repository.list_feedback(
+            institucion_id=institution_id,
+            conversacion_id=conversacion_id,
+            message_id=message_id,
+            rating=rating,
+        )
 
     def list_users(self, auth: Optional[AuthContext] = None) -> list[UserOut]:
         institution_id = None
@@ -124,6 +146,7 @@ class AdminService:
         ]
 
         ia = _aggregate_ia(audit_logs, message_documents)
+        top_documents, documents_by_category = _build_document_metrics(message_documents)
 
         return MetricsOut(
             total_queries=len(messages),
@@ -148,6 +171,14 @@ class AdminService:
             avg_response_time_voice=ia["avg_response_time_voice"],
             avg_response_time_text=ia["avg_response_time_text"],
             series=_build_series(audit_logs, conversations, granularidad or "day"),
+            top_documents=[
+                DocumentMetricOut(documento_id=d["documento_id"], titulo=d.get("titulo"), consultas=d["consultas"])
+                for d in top_documents
+            ],
+            documents_by_category=[
+                CategoryMetricOut(categoria_id=c["categoria_id"], nombre=c.get("nombre"), consultas=c["consultas"])
+                for c in documents_by_category
+            ],
             desde=desde,
             hasta=hasta,
             categoria_id=categoria_id,
@@ -220,6 +251,67 @@ def _average(values: list[float]) -> float:
     if not values:
         return 0.0
     return sum(values) / len(values)
+
+
+def _build_document_metrics(message_documents: list[dict]) -> tuple[list[dict], list[dict]]:
+    """Deriva "documentos más consultados" y "distribución por categoría".
+
+    Dedupe por (mensaje_id, documento_id): un documento usado N veces en un mismo
+    mensaje cuenta una única consulta. Los títulos/categorías se resuelven con
+    lookups a Supabase; si la DB no está disponible, se devuelven listas vacías.
+    """
+    deduped = {(md.get("mensaje_id"), md.get("documento_id")) for md in message_documents if md.get("documento_id")}
+    if not deduped:
+        return [], []
+
+    doc_usage: dict[int, int] = defaultdict(int)
+    doc_ids: set[int] = set()
+    for _, doc_id in deduped:
+        doc_usage[doc_id] += 1
+        doc_ids.add(doc_id)
+
+    docs: dict[int, dict] = {}
+    cats: dict[int, Optional[str]] = {}
+    try:
+        from app.core.supabase import get_supabase_client
+        client = get_supabase_client()
+        docs_resp = client.table("documentos").select("id, titulo, categoria_id").in_("id", list(doc_ids)).execute()
+        for d in (docs_resp.data or []):
+            docs[d.get("id")] = d
+            cid = d.get("categoria_id")
+            if cid is not None:
+                cats.setdefault(cid, None)
+        cids = [c for c in cats if c is not None]
+        if cids:
+            cat_resp = client.table("categorias").select("id, nombre").in_("id", cids).execute()
+            for c in (cat_resp.data or []):
+                cats[c.get("id")] = c.get("nombre")
+    except Exception:
+        pass
+
+    top_documents = sorted(
+        (
+            {"documento_id": doc_id, "titulo": docs.get(doc_id, {}).get("titulo"), "consultas": count}
+            for doc_id, count in doc_usage.items()
+        ),
+        key=lambda x: x["consultas"],
+        reverse=True,
+    )[:10]
+
+    cat_usage: dict[Optional[int], int] = defaultdict(int)
+    for doc_id, count in doc_usage.items():
+        cid = docs.get(doc_id, {}).get("categoria_id")
+        cat_usage[cid] += count
+
+    documents_by_category = sorted(
+        (
+            {"categoria_id": cid, "nombre": cats.get(cid) if cid is not None else None, "consultas": count}
+            for cid, count in cat_usage.items()
+        ),
+        key=lambda x: x["consultas"],
+        reverse=True,
+    )
+    return top_documents, documents_by_category
 
 
 def _aggregate_ia(audit_logs: list[dict], message_documents: list[dict]) -> dict:

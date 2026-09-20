@@ -157,3 +157,22 @@ def test_metrics_empty_returns_defaults() -> None:
     assert metrics.guard_rate == 0.0
     assert metrics.tokens_by_model == {}
     assert metrics.system_status == "healthy"
+    assert metrics.top_documents == []
+    assert metrics.documents_by_category == []
+
+
+def test_document_metrics_dedupe_by_message_document() -> None:
+    service = _make_service(
+        message_documents=[
+            {"mensaje_id": 1, "documento_id": 10},
+            {"mensaje_id": 1, "documento_id": 10},
+            {"mensaje_id": 1, "documento_id": 11},
+            {"mensaje_id": 2, "documento_id": 10},
+            {"mensaje_id": 3, "documento_id": None},
+        ]
+    )
+    metrics = service.get_metrics(auth=None)
+    top = {d.documento_id: d.consultas for d in metrics.top_documents}
+    assert top.get(10) == 2
+    assert top.get(11) == 1
+    assert len(metrics.top_documents) == 2

@@ -82,6 +82,8 @@ class Settings(BaseSettings):
     rate_limit_default_window_seconds: int = 60
     rate_limit_rules: str = "/api/chat/query:20:60,/api/chat/voice:10:60,/api/chat/feedback:30:60,/api/admin/documents:30:60,/api/admin/reindex:10:60,/api/admin/stripe:10:60"
 
+    smtp_password: Optional[str] = None
+
     retrieval_similarity_threshold: float = 0.30
     retrieval_match_count: int = 5
 

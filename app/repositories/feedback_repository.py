@@ -40,3 +40,39 @@ class FeedbackRepository:
             .execute()
         )
         return list(response.data or [])
+
+    def get_feedback_by_message_ids(self, message_ids: list[int]) -> list[dict]:
+        if not message_ids:
+            return []
+        response = (
+            self.client.table("feedback")
+            .select("message_id, rating, comment")
+            .in_("message_id", message_ids)
+            .execute()
+        )
+        return list(response.data or [])
+
+    def list_feedback(
+        self,
+        institucion_id: int,
+        conversacion_id: Optional[int] = None,
+        message_id: Optional[int] = None,
+        rating: Optional[int] = None,
+    ) -> list[dict]:
+        query = (
+            self.client.table("feedback")
+            .select("*, mensajes!inner(conversacion_id, contenido_texto)")
+            .eq("institucion_id", institucion_id)
+        )
+        if message_id is not None:
+            query = query.eq("message_id", message_id)
+        if rating is not None:
+            query = query.eq("rating", rating)
+        if conversacion_id is not None:
+            msg_resp = self.client.table("mensajes").select("id").eq("conversacion_id", conversacion_id).execute()
+            ids = [m["id"] for m in (msg_resp.data or [])]
+            if not ids:
+                return []
+            query = query.in_("message_id", ids)
+        response = query.order("created_at", desc=True).execute()
+        return list(response.data or [])

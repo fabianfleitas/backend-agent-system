@@ -12,6 +12,16 @@ class MemberIn(BaseModel):
     external_auth_id: str
     tipo_miembro: str = "ESTUDIANTE"
 
+class InstitutionIn(BaseModel):
+    codigo: Optional[str] = None
+    nombre: str
+    nombre_comercial: Optional[str] = None
+    ciudad: Optional[str] = None
+    pais: Optional[str] = None
+    direccion: Optional[str] = None
+    email_contacto: Optional[str] = None
+    telefono_contacto: Optional[str] = None
+
 class MemberOut(BaseModel):
     id: int
     external_auth_id: str
@@ -49,8 +59,23 @@ class PlanOut(BaseModel):
     max_estudiantes: Optional[int] = None
     features: Optional[dict] = None
     activo: bool = True
+    stripe_product_id: Optional[str] = None
+    stripe_price_id: Optional[str] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
+
+
+class PlanIn(BaseModel):
+    codigo: Optional[str] = None
+    nombre: str
+    descripcion: Optional[str] = None
+    precio: Optional[float] = None
+    moneda: Optional[str] = None
+    intervalo: Optional[str] = None
+    max_documentos: Optional[int] = None
+    max_usuarios: Optional[int] = None
+    max_estudiantes: Optional[int] = None
+    features: Optional[dict] = None
 
 
 class StripePlanSyncIn(BaseModel):
@@ -192,6 +217,85 @@ class ConfigParamIn(BaseModel):
     valor: str
     tipo: str = "string"
     descripcion: Optional[str] = None
+
+
+class EmailTemplateOut(BaseModel):
+    id: int
+    institucion_id: Optional[int] = None
+    codigo: str
+    nombre: str
+    asunto: str
+    contenido_html: Optional[str] = None
+    contenido_texto: Optional[str] = None
+    activo: bool = True
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+
+class EmailTemplateIn(BaseModel):
+    codigo: str
+    nombre: str
+    asunto: str
+    contenido_html: Optional[str] = None
+    contenido_texto: Optional[str] = None
+    activo: bool = True
+
+
+class SmtpConfigOut(BaseModel):
+    institucion_id: Optional[int] = None
+    servidor: str
+    puerto: int = 587
+    cifrado: str = "STARTTLS"
+    usuario: Optional[str] = None
+    correo_remitente: str
+    nombre_remitente: Optional[str] = None
+    timeout_segundos: int = 30
+    activo: bool = True
+
+
+class SmtpConfigIn(BaseModel):
+    servidor: str
+    puerto: int = 587
+    cifrado: str = "STARTTLS"
+    usuario: Optional[str] = None
+    password: Optional[str] = None
+    correo_remitente: str
+    nombre_remitente: Optional[str] = None
+    timeout_segundos: int = 30
+    activo: bool = True
+
+
+class NotificationOut(BaseModel):
+    id: int
+    institucion_id: Optional[int] = None
+    tipo: str = "SYSTEM"
+    canal: str = "EMAIL"
+    destinatario: str
+    asunto: Optional[str] = None
+    contenido: Optional[str] = None
+    estado: str = "PENDING"
+    fecha_programada: Optional[str] = None
+    fecha_envio: Optional[str] = None
+    error: Optional[str] = None
+    created_at: Optional[str] = None
+
+
+class SendTestIn(BaseModel):
+    email: str
+    asunto: Optional[str] = None
+    mensaje: Optional[str] = None
+
+
+class AdminFeedbackOut(BaseModel):
+    id: int
+    message_id: int
+    conversacion_id: Optional[int] = None
+    rating: int
+    comment: Optional[str] = None
+    external_auth_id: Optional[str] = None
+    contenido_texto: Optional[str] = None
+    audit_id: Optional[str] = None
+    created_at: Optional[str] = None
 
 class ConfigParamOut(BaseModel):
     id: int

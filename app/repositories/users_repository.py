@@ -99,6 +99,20 @@ class UsersRepository:
                 return existing_after_race
             raise
 
+    def update_user(self, external_auth_id: str, full_name: Optional[str] = None) -> Optional[dict]:
+        payload: dict = {}
+        if full_name is not None:
+            payload["full_name"] = full_name
+        if not payload:
+            return self.get_user_by_external_auth_id(external_auth_id)
+        response = (
+            self.client.table("app_users")
+            .update(payload)
+            .eq("external_auth_id", external_auth_id)
+            .execute()
+        )
+        return response.data[0] if response.data else None
+
     def list_users(self, institucion_id: Optional[int] = None) -> list[dict]:
         query = self.client.table("app_users").select("*")
         if institucion_id is not None:

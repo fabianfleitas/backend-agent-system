@@ -2,16 +2,27 @@ from __future__ import annotations
 
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 
 from app.api.admin.routes import _audit_out, get_admin_auth
 from app.core.security import AuthContext, get_auth_context, get_platform_admin_auth, require_platform_admin
 from app.repositories.audit_repository import AuditRepository
-from app.schemas.admin import InstitutionOut, MemberIn, MemberOut, PlanOut, SubscriptionOut, PagoOut, ComprobanteOut
+from app.schemas.admin import (
+    InstitutionIn,
+    InstitutionOut,
+    MemberIn,
+    MemberOut,
+    PlanIn,
+    PlanOut,
+    SubscriptionOut,
+    PagoOut,
+    ComprobanteOut,
+)
 from app.schemas.common import AuditLogOut, PaginatedResponse, PaginationMeta, UserOut
 from app.schemas.common import PaginatedResponse, PaginationMeta
 from app.schemas.common import AuditLogOut, UserOut
 from app.schemas.system import MetricsOut
+from app.utils.csv_export import csv_response, metrics_to_csv, to_csv
 from app.services.platform_service import PlatformService
 
 router = APIRouter()
@@ -78,6 +89,40 @@ def get_institution(
     if not row:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Institution not found")
     return _institution_out(row)
+
+
+@router.post("/institutions", response_model=InstitutionOut, status_code=status.HTTP_201_CREATED)
+def create_institution(
+    payload: InstitutionIn,
+    auth: AuthContext = Depends(get_platform_admin_auth),
+    service: PlatformService = Depends(_get_plat_service),
+) -> InstitutionOut:
+    row = service.create_institution(**payload.model_dump())
+    return _institution_out(row)
+
+
+@router.put("/institutions/{institucion_id}", response_model=InstitutionOut)
+def update_institution(
+    institucion_id: int,
+    payload: InstitutionIn,
+    auth: AuthContext = Depends(get_platform_admin_auth),
+    service: PlatformService = Depends(_get_plat_service),
+) -> InstitutionOut:
+    row = service.update_institution(institucion_id, **payload.model_dump())
+    if not row:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Institution not found")
+    return _institution_out(row)
+
+
+@router.delete("/institutions/{institucion_id}", status_code=status.HTTP_204_NO_CONTENT)
+def deactivate_institution(
+    institucion_id: int,
+    auth: AuthContext = Depends(get_platform_admin_auth),
+    service: PlatformService = Depends(_get_plat_service),
+) -> None:
+    row = service.deactivate_institution(institucion_id)
+    if not row:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Institution not found")
 
 
 @router.get("/institutions/{institucion_id}/members", response_model=list[MemberOut])
@@ -180,6 +225,25 @@ def get_audit(
     )
 
 
+@router.get("/audit/export")
+def export_audit_platform(auth: AuthContext = Depends(get_platform_admin_auth)) -> Response:
+    logs = _get_plat_service().list_audit_logs(auth)
+    return csv_response(to_csv(logs, ["id", "mensaje_id", "score_fidelidad", "score_relevancia", "score_contexto", "observaciones", "fecha_evaluacion"]), "audit.csv")
+
+
+@router.get("/comprobantes/export")
+def export_comprobantes_platform(auth: AuthContext = Depends(get_platform_admin_auth)) -> Response:
+    from app.repositories.billing_repository import BillingRepository
+    rows = BillingRepository().list_comprobantes()
+    return csv_response(to_csv(rows, ["id", "institucion_id", "pago_id", "tipo_comprobante", "numero", "estado", "importe", "moneda", "referencia_externa", "fecha_emision"]), "comprobantes.csv")
+
+
+@router.get("/metrics/export")
+def export_metrics_platform(auth: AuthContext = Depends(get_platform_admin_auth)) -> Response:
+    m = _get_plat_service().get_metrics(auth)
+    return csv_response(metrics_to_csv(m), "metrics.csv")
+
+
 # --- Billing lectura global (platform) ---
 @router.get("/plans", response_model=list[PlanOut])
 def list_plans(
@@ -206,6 +270,40 @@ def list_plans(
             updated_at=str(r.get("updated_at")) if r.get("updated_at") else None,
         ) for r in rows
     ]
+
+
+@router.post("/plans", response_model=PlanOut, status_code=status.HTTP_201_CREATED)
+def create_plan(
+    payload: PlanIn,
+    auth: AuthContext = Depends(get_platform_admin_auth),
+    service: PlatformService = Depends(_get_plat_service),
+) -> PlanOut:
+    row = service.create_plan(**payload.model_dump())
+    return _plan_out(row)
+
+
+@router.put("/plans/{plan_id}", response_model=PlanOut)
+def update_plan(
+    plan_id: int,
+    payload: PlanIn,
+    auth: AuthContext = Depends(get_platform_admin_auth),
+    service: PlatformService = Depends(_get_plat_service),
+) -> PlanOut:
+    row = service.update_plan(plan_id, **payload.model_dump())
+    if not row:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Plan not found")
+    return _plan_out(row)
+
+
+@router.delete("/plans/{plan_id}", status_code=status.HTTP_204_NO_CONTENT)
+def deactivate_plan(
+    plan_id: int,
+    auth: AuthContext = Depends(get_platform_admin_auth),
+    service: PlatformService = Depends(_get_plat_service),
+) -> None:
+    row = service.deactivate_plan(plan_id)
+    if not row:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Plan not found")
 
 
 @router.get("/subscriptions", response_model=PaginatedResponse[SubscriptionOut])

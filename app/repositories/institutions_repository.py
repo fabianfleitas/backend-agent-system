@@ -22,6 +22,59 @@ class InstitutionsRepository:
         )
         return resp.data[0] if resp.data else None
 
+    def create_institucion(
+        self,
+        nombre: str,
+        codigo: Optional[str] = None,
+        nombre_comercial: Optional[str] = None,
+        ciudad: Optional[str] = None,
+        pais: Optional[str] = None,
+        direccion: Optional[str] = None,
+        email_contacto: Optional[str] = None,
+        telefono_contacto: Optional[str] = None,
+    ) -> dict:
+        payload: dict = {
+            "nombre": nombre,
+            "activo": True,
+        }
+        if codigo is not None:
+            payload["codigo"] = codigo
+        if nombre_comercial is not None:
+            payload["nombre_comercial"] = nombre_comercial
+        if ciudad is not None:
+            payload["ciudad"] = ciudad
+        if pais is not None:
+            payload["pais"] = pais
+        if direccion is not None:
+            payload["direccion"] = direccion
+        if email_contacto is not None:
+            payload["email_contacto"] = email_contacto
+        if telefono_contacto is not None:
+            payload["telefono_contacto"] = telefono_contacto
+        resp = self.client.table("instituciones").insert(payload).execute()
+        return resp.data[0]
+
+    def update_institucion(self, institucion_id: int, **campos) -> Optional[dict]:
+        payload = {k: v for k, v in campos.items() if v is not None}
+        if not payload:
+            return self.get_institucion(institucion_id)
+        resp = (
+            self.client.table("instituciones")
+            .update(payload)
+            .eq("id", institucion_id)
+            .execute()
+        )
+        return resp.data[0] if resp.data else None
+
+    def deactivate_institucion(self, institucion_id: int) -> Optional[dict]:
+        resp = (
+            self.client.table("instituciones")
+            .update({"activo": False})
+            .eq("id", institucion_id)
+            .execute()
+        )
+        return resp.data[0] if resp.data else None
+
     def get_by_customer_id(self, stripe_customer_id: str) -> Optional[dict]:
         resp = self.client.table("instituciones").select("*").eq("stripe_customer_id", stripe_customer_id).limit(1).execute()
         return resp.data[0] if resp.data else None

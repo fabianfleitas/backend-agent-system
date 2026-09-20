@@ -22,3 +22,25 @@ class MessageDocumentsRepository:
             )
             inserted.extend(response.data or [])
         return inserted
+
+    def get_sources_by_message_ids(self, message_ids: List[int]) -> List[dict]:
+        if not message_ids:
+            return []
+        response = (
+            self.client.table("message_documents")
+            .select("*")
+            .in_("mensaje_id", message_ids)
+            .execute()
+        )
+        return list(response.data or [])
+
+    def get_document_titles(self, document_ids: List[int]) -> dict[int, Optional[str]]:
+        if not document_ids:
+            return {}
+        response = (
+            self.client.table("documentos")
+            .select("id, titulo")
+            .in_("id", document_ids)
+            .execute()
+        )
+        return {r.get("id"): r.get("titulo") for r in (response.data or [])}

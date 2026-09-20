@@ -98,8 +98,33 @@ TTS_RESPONSE_FORMAT=mp3
 EMBEDDINGS_ENABLED=false
 EMBEDDING_MODEL=text-embedding-3-small
 EMBEDDING_DIMENSIONS=1536
+EMBEDDING_TIMEOUT_SECONDS=30
+EMBEDDING_MAX_RETRIES=2
 RETRIEVAL_SIMILARITY_THRESHOLD=0.30
 RETRIEVAL_MATCH_COUNT=5
+
+LLM_TIMEOUT_SECONDS=60
+LLM_MAX_RETRIES=2
+STT_TIMEOUT_SECONDS=60
+STT_MAX_RETRIES=2
+TTS_TIMEOUT_SECONDS=60
+TTS_MAX_RETRIES=2
+
+CORS_ALLOW_ORIGINS=*
+CORS_ALLOW_METHODS=*
+CORS_ALLOW_HEADERS=*
+
+RATE_LIMIT_ENABLED=true
+RATE_LIMIT_DEFAULT_LIMIT=300
+RATE_LIMIT_DEFAULT_WINDOW_SECONDS=60
+RATE_LIMIT_RULES=/api/chat/query:20:60,/api/chat/voice:10:60,/api/chat/feedback:30:60,/api/admin/documents:30:60,/api/admin/reindex:10:60,/api/admin/stripe:10:60
+
+SMTP_PASSWORD=  # credencial global de SMTP si la config no trae password_secret_ref
+
+PII_ANONYMIZATION_ENABLED=false
+PII_MAPPING_RETENTION_DAYS=90
+PII_NLP_MODEL=es_core_news_md
+PII_LANGUAGE=es
 ```
 
 Notas:
@@ -135,13 +160,14 @@ Globales:
 GET /health
 GET /ready
 GET /me
+PUT /me
 ```
 
 API:
 
 ```text
-POST   /api/conversations
-GET    /api/conversations
+POST   /api/conversations/
+GET    /api/conversations/
 GET    /api/conversations/{conversation_id}
 DELETE /api/conversations/{conversation_id}
 GET    /api/conversations/{conversation_id}/messages
@@ -158,32 +184,67 @@ DELETE /api/admin/documents/{documento_id}
 POST   /api/admin/documents/{documento_id}/versions
 POST   /api/admin/reindex
 GET    /api/admin/audit
+GET    /api/admin/audit/export
 GET    /api/admin/users
+GET    /api/admin/feedback
 GET    /api/admin/metrics
+GET    /api/admin/metrics/export
+
 GET    /api/admin/categories
+POST   /api/admin/categories
+PUT    /api/admin/categories/{categoria_id}
+DELETE /api/admin/categories/{categoria_id}
+
 GET    /api/admin/config
+PUT    /api/admin/config/{clave}
+GET    /api/admin/smtp
+PUT    /api/admin/smtp
+GET    /api/admin/notifications
+POST   /api/admin/notifications/send-test
+GET    /api/admin/email-templates
+POST   /api/admin/email-templates
+PUT    /api/admin/email-templates/{template_id}
+DELETE /api/admin/email-templates/{template_id}
+
 GET    /api/admin/subscription
+GET    /api/admin/subscription/history
 GET    /api/admin/plan
+GET    /api/admin/plans
 GET    /api/admin/pagos
 GET    /api/admin/comprobantes
+GET    /api/admin/comprobantes/export
 POST   /api/admin/stripe/checkout
-GET    /api/admin/stripe/subscription
 POST   /api/admin/stripe/portal-session
-POST   /api/admin/stripe/change-plan
-POST   /api/admin/stripe/sync-plan
 POST   /api/admin/stripe/create-subscription
 POST   /api/admin/stripe/cancel-subscription
 POST   /api/admin/stripe/reactivate-subscription
+POST   /api/admin/stripe/change-plan
+POST   /api/admin/stripe/sync-plan
+GET    /api/admin/stripe/subscription
+
 POST   /api/billing/stripe/webhook
+
 GET    /api/platform/institutions
-GET    /api/platform/institutions/{id}/members
+POST   /api/platform/institutions
+GET    /api/platform/institutions/{institucion_id}
+PUT    /api/platform/institutions/{institucion_id}
+DELETE /api/platform/institutions/{institucion_id}
+GET    /api/platform/institutions/{institucion_id}/members
+POST   /api/platform/institutions/{institucion_id}/members
+DELETE /api/platform/institutions/{institucion_id}/members/{member_id}
 GET    /api/platform/users
 GET    /api/platform/metrics
+GET    /api/platform/metrics/export
 GET    /api/platform/audit
+GET    /api/platform/audit/export
 GET    /api/platform/plans
+POST   /api/platform/plans
+PUT    /api/platform/plans/{plan_id}
+DELETE /api/platform/plans/{plan_id}
 GET    /api/platform/subscriptions
 GET    /api/platform/pagos
 GET    /api/platform/comprobantes
+GET    /api/platform/comprobantes/export
 ```
 
 ## Autenticacion con Supabase Auth
@@ -203,12 +264,11 @@ Flujo:
 
 Reglas:
 - `Authorization: Bearer <jwt>` obligatorio para endpoints de negocio.
-- `app_users.role` deprecado; permisos institucionales desde `institucion_miembros.tipo_membro` y `platform_admins.is_platform_admin`.
+- `app_users.role` deprecado; permisos institucionales desde `institucion_miembros.tipo_miembro` y `platform_admins.is_platform_admin`.
 - `platform_admin`: acceso a `/api/platform/*`; para `/admin/*` requiere membresía institucional.
 - Acceso cruzado: 404 si el recurso no pertenece a `auth.institucion_id`.
 - Admin institucional: `tipo_miembro` = `ADMIN` o `SECRETARIA` en `institucion_miembros`.
 - Superadmin (global): `is_platform_admin = true` en `platform_admins`; sin requerir institución.
-- Acceso cruzado: 404 si el recurso no pertenece a `auth.institucion_id`.
 - Headers delegados (`X-External-Auth-Id`, `X-User-Type`, etc.) quedan obsoletos.
 
 ## Contrato de chat
@@ -257,7 +317,9 @@ Para ver el contrato completo del frontend, ejemplos de payloads y comportamient
 
 Actual:
 
-- Los documentos y audios subidos se escriben en `storage/`.
+- Los documentos y audios subidos se guardan en **Supabase Storage** con prefijo institucional
+  (`{institucion_id}/documents/`, `{institucion_id}/audio/`). El directorio `storage/` local es
+  solo fallback de desarrollo.
 - Los metadatos y trazabilidad ya se guardan en Supabase.
 - Ocultar una conversacion no borra fisicamente el historial.
 
@@ -268,6 +330,28 @@ Objetivo:
 - Trazabilidad RAG por documento y chunk.
 - Auditoria persistente por respuesta generada.
 - Storage privado para documentos y audios.
+
+## Notificaciones / SMTP
+
+- Config por institución (precedencia institucional > global) en `configuracion_smtp`;
+  plantillas en `plantillas_email`; envíos persistidos en `notificaciones` con estados
+  `PENDING/SENT/FAILED` e idempotencia por `clave_idempotencia`.
+- Envío con `smtplib` (STARTTLS/SSL/TLS/NONE); credencial global vía env `SMTP_PASSWORD`.
+- Endpoints: `GET/PUT /api/admin/smtp`, `GET /api/admin/notifications`,
+  `POST /api/admin/notifications/send-test`, CRUD `/api/admin/email-templates`.
+- El webhook de Stripe genera notificaciones automáticas: `PAYMENT_SUCCESS`,
+  `PAYMENT_FAILED`, `SUBSCRIPTION_CANCELED`, `SUBSCRIPTION_EXPIRED`, `PLAN_CHANGED`.
+
+## Exportaciones CSV
+
+- `GET /api/admin/{audit,comprobantes,metrics}/export` y
+  `GET /api/platform/{audit,comprobantes,metrics}/export` → `text/csv` + `Content-Disposition`.
+
+## Rate limiting
+
+- Token bucket **in-memory por proceso** (`app/core/rate_limit.py`), configurable con
+  `RATE_LIMIT_*`. Exento: `/health`, `/ready`, webhook Stripe. No es un límite global
+  distribuido (Redis queda como mejora futura).
 
 ## Prioridades tecnicas
 

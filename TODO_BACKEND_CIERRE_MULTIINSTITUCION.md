@@ -30,7 +30,7 @@ Cerrar el backend antes de la productivización final del Admin Dashboard, conte
 - [x] `platform_admins.is_active` para permisos de plataforma.
 - [x] `app_users.role` queda como legacy/compatibilidad.
 - [x] Revisar que ningún endpoint nuevo use `app_users.role` como fuente autoritativa.
-- [ ] Documentar formalmente la deprecación de `app_users.role`.
+- [x] Documentar formalmente la deprecación de `app_users.role`. **IMPLEMENTADO** — sección "Deprecación de `app_users.role` (política)" en `AGENTS.md`.
 
 ### Regla de pertenencia
 
@@ -59,24 +59,23 @@ Cerrar el backend antes de la productivización final del Admin Dashboard, conte
 - [x] `document_embeddings` → `document_chunks` → `documento_versiones` → `documentos`.
 - [x] `mensajes` → `conversaciones`.
 - [x] `message_documents` → `mensajes` → `conversaciones`.
-- [ ] Revisar cada repository con criterio de tenant isolation.
-- [ ] Revisar `SELECT`.
-- [ ] Revisar `INSERT`.
-- [ ] Revisar `UPDATE`.
-- [ ] Revisar `DELETE`.
-- [ ] Verificar que ningún `get_by_id()` permita recuperar recursos de otra institución.
+- [x] Revisar cada repository con criterio de tenant isolation. **IMPLEMENTADO** — repos filtran por `institucion_id`/`external_auth_id`: `DocumentsRepository`, `ConversationsRepository`, `MetricsRepository`, `AuditRepository`, `CategoriesRepository`, `BillingRepository`, `ConfigRepository`, `RetrievalRepository.match_chunks`, `AudioRepository.get_audio_interaction` (`retrieval_repository.py`, `audio_repository.py:45-52`). Excepción: `MessagesRepository.get_message` no es institution-aware por sí mismo, pero a nivel service `ChatService.create_feedback` valida ownership + institución de la conversación (`chat_service.py:407-415`).
+- [x] Revisar `SELECT`.
+- [x] Revisar `INSERT`.
+- [x] Revisar `UPDATE`.
+- [x] Revisar `DELETE`.
+- [x] Verificar que ningún `get_by_id()` permita recuperar recursos de otra institución.
 
 ### Respuesta cross-tenant
 
 **Decisión:** usar `404` cuando revelar la existencia del recurso pueda romper el aislamiento.
 
-- [ ] Documentos.
-- [ ] Versiones/chunks/embeddings.
-- [ ] Conversaciones/mensajes.
-- [ ] Usuarios.
-- [ ] Billing.
-- [ ] Tests de `404` cross-tenant (en curso: `test_cross_tenant_routes.py` base + repos + chat; faltan casos adicionales de rutas: audit/config/categories/users/metrics/billing/audio/feedback)
-- [ ] Tests de `404` cross-tenant (en curso: `test_cross_tenant_routes.py` base + repos + chat; faltan casos adicionales de rutas: audit/config/categories/users/metrics/billing/audio/feedback)
+- [x] Documentos.
+- [x] Versiones/chunks/embeddings.
+- [x] Conversaciones/mensajes.
+- [x] Usuarios.
+- [x] Billing.
+- [x] Tests de `404` cross-tenant (base: `test_cross_tenant_routes.py`, `test_cross_tenant_repos.py`, `test_cross_tenant_chat.py`, `test_isolation.py`; faltan casos de rutas: audit/config/categories/users/metrics/billing/audio/feedback). **IMPLEMENTADO** — `tests/test_cross_tenant_admin.py` cubre listas (200 vacías), recursos únicos (404), feedback POST (404) y controles positivos.
 
 ---
 
@@ -108,11 +107,11 @@ Cerrar el backend antes de la productivización final del Admin Dashboard, conte
 
 ## Multiinstitución
 
-- [ ] Confirmar que retrieval nunca mezcle instituciones.
-- [ ] Aplicar filtro institucional en retrieval.
-- [ ] Verificar `match_document_chunks()` y funciones equivalentes.
-- [ ] Probar documento A vs documento B.
-- [ ] Probar usuario A intentando consultar conocimiento de B.
+- [x] Confirmar que retrieval nunca mezcle instituciones. **IMPLEMENTADO** — `RetrievalService.retrieve` exige `institucion_id` y devuelve error si es `None` (`retrieval_service.py:80-92`); RPC `match_document_chunks` filtra por `institucion_id` + `status='READY'` + `es_version_activa=true` (`migrations/001_multi_institution.sql`).
+- [x] Aplicar filtro institucional en retrieval.
+- [x] Verificar `match_document_chunks()` y funciones equivalentes.
+- [x] Probar documento A vs documento B. **IMPLEMENTADO** — `tests/test_retrieval_isolation.py`, `tests/test_retrieval_service.py`.
+- [x] Probar usuario A intentando consultar conocimiento de B.
 
 ## Estados
 
@@ -124,13 +123,13 @@ y:
 
 `PROCESSING → ERROR`
 
-- [ ] `READY` implica realmente chunks + embeddings.
-- [ ] Actualizar `total_chunks`.
-- [ ] Actualizar `total_embeddings`.
-- [ ] Registrar `embedding_model`.
-- [ ] Registrar `indexed_at`.
-- [ ] Registrar `error_message`.
-- [ ] No marcar `READY` solo cambiando el status.
+- [x] `READY` implica realmente chunks + embeddings.
+- [x] Actualizar `total_chunks`.
+- [x] Actualizar `total_embeddings`.
+- [x] Registrar `embedding_model`.
+- [x] Registrar `indexed_at`.
+- [x] Registrar `error_message`.
+- [x] No marcar `READY` solo cambiando el status. **IMPLEMENTADO** — `IndexingService` escribe `PROCESSING → READY/FAILED` con `total_chunks`, `total_embeddings`, `embedding_model`, `indexed_at`, `error_message` (`indexing_service.py:58-174`).
 
 ---
 
@@ -162,18 +161,18 @@ Debe poder demostrarse que la información identificable del usuario no se enví
 - [x] Confirmar implementación.
 - [x] Verificar ownership de conversación.
 - [x] Verificar acceso a mensajes.
-- [ ] Verificar `message_documents`.
-- [ ] Tests cross-tenant.
+- [x] Verificar `message_documents` — trazabilidad RAG insertada por `ChatService._answer_query` (`chat_service.py:266-286`); fuente de métricas (`metrics_repository.py:60-90`).
+- [x] Tests cross-tenant. **IMPLEMENTADO** — `tests/test_cross_tenant_chat.py`, `tests/test_feedback_route.py`.
 
 ### Voz
 
-- [ ] Revisar `POST /api/chat/voice`.
+- [x] Revisar `POST /api/chat/voice`. **IMPLEMENTADO** — pipeline STT→PII→RAG→OpenRouter→TTS con tags `[voice]`/`PII:{n}`/`TTS_FAILED` y degradación mock controlada.
 - [x] Confirmar STT.
 - [x] Confirmar anonimización. **IMPLEMENTADO** — `chat/voice` alimenta la transcripción al mismo pipeline PII de `chat/query` (retrieval/LLM reciben texto anonimizado; tag `PII:{n}` / fail-closed `PII_UNAVAILABLE` en observaciones).
-- [ ] Confirmar persistencia de audio según política.
+- [x] Confirmar persistencia de audio según política. **IMPLEMENTADO** — audio a Supabase Storage con prefijo institucional `{institucion_id}/audio/` (`SUPABASE_STORAGE_BUCKET_AUDIO`).
 - [x] Confirmar TTS.
-- [ ] Confirmar `GET /api/chat/audio/{audio_interaction_id}`.
-- [ ] Revisar aislamiento de audio.
+- [x] Confirmar `GET /api/chat/audio/{audio_interaction_id}`. **IMPLEMENTADO** — `app/api/chat/routes.py:196-227` devuelve binario con `Content-Disposition: inline`.
+- [x] Revisar aislamiento de audio. **IMPLEMENTADO** — `AudioService.get_response_audio` (`audio_service.py:74-104`): otra institución → 404, mismo usuario OK, otro usuario → 403, `is_platform_admin` bypass. Tests: `tests/test_audio_service.py`, `tests/test_chat_voice_route.py`.
 
 ---
 
@@ -194,16 +193,16 @@ Debe poder demostrarse que la información identificable del usuario no se enví
 # 8. Usuarios y membresías
 
 - [x] `GET /api/admin/users`.
-- [ ] Completar `full_name`.
-- [ ] Completar `institucion_id`.
-- [ ] Completar `tipo_miembro`.
-- [ ] Completar `is_platform_admin`.
-- [ ] Incluir `nombre_institucion` si corresponde.
-- [ ] ADMIN solo ve usuarios de su institución.
-- [ ] Platform admin ve el alcance permitido.
-- [ ] Usuario sin membresía correctamente bloqueado.
-- [ ] Membresía inactiva correctamente bloqueada.
-- [ ] Impedir membresía simultánea en varias instituciones.
+- [x] Completar `full_name`. **IMPLEMENTADO** — `AdminService.list_users` (`admin_service.py:24-56`) + `UserOut` (`app/schemas/common.py:105-115`).
+- [x] Completar `institucion_id`.
+- [x] Completar `tipo_miembro`.
+- [x] Completar `is_platform_admin`.
+- [x] Incluir `nombre_institucion` si corresponde.
+- [x] ADMIN solo ve usuarios de su institución. **IMPLEMENTADO** — `UsersRepository.list_users` filtra miembros activos de la institución del auth (`users_repository.py:102-119`).
+- [x] Platform admin ve el alcance permitido.
+- [x] Usuario sin membresía correctamente bloqueado.
+- [x] Membresía inactiva correctamente bloqueada.
+- [x] Impedir membresía simultánea en varias instituciones.
 
 ---
 
@@ -237,11 +236,11 @@ Primero modelo + repositories + endpoints de lectura. La integración Stripe com
 
 ## Tablas
 
-- [ ] `planes`
-- [ ] `suscripciones`
-- [ ] `suscripcion_historial`
-- [ ] `pagos`
-- [ ] `comprobantes`
+- [x] `planes`
+- [x] `suscripciones`
+- [x] `suscripcion_historial`
+- [x] `pagos`
+- [x] `comprobantes`
 - [x] `stripe_eventos`
 - [x] Checkout Session (`stripe/checkout`)
 - [x] Subscription read (`stripe/subscription`), create/cancel/reactivate/change-plan, portal, sync-plan
@@ -254,30 +253,30 @@ Primero modelo + repositories + endpoints de lectura. La integración Stripe com
 
 ## Backend
 
-- [ ] Repositories.
-- [ ] Services.
-- [ ] Endpoints de lectura.
-- [ ] Planes.
-- [ ] Suscripciones.
-- [ ] Estado de suscripción.
-- [ ] Pagos.
-- [ ] Comprobantes.
-- [ ] Portal de facturación.
+- [x] Repositories.
+- [x] Services.
+- [x] Endpoints de lectura.
+- [x] Planes.
+- [x] Suscripciones.
+- [x] Estado de suscripción.
+- [x] Pagos.
+- [x] Comprobantes.
+- [x] Portal de facturación.
 
 ## Stripe completo
 
-- [ ] Checkout Session.
-- [ ] Webhooks.
-- [ ] Validación de firma.
-- [ ] Idempotencia.
+- [x] Checkout Session.
+- [x] Webhooks.
+- [x] Validación de firma.
+- [x] Idempotencia — vía `stripe_eventos` (`StripeWebhookService.register_event`, `stripe_webhook_service.py:18-39`).
 - [ ] Reintentos.
-- [ ] Sincronización de estados.
-- [ ] Cancelación.
-- [ ] Cambio de plan.
-- [ ] Renovación.
-- [ ] Vencimiento.
-- [ ] Facturación/comprobantes.
-- [ ] Persistencia de eventos Stripe.
+- [x] Sincronización de estados — handlers de webhook + `sync-plan`.
+- [x] Cancelación.
+- [x] Cambio de plan.
+- [x] Renovación — `invoice.payment_succeeded` actualiza pagos/comprobantes/suscripciones.
+- [x] Vencimiento. **IMPLEMENTADO (script manual)** — `scripts/check_subscription_expiry.py` (marca `EXPIRED` + historial + notificación cuando `fecha_vencimiento < now`); sin scheduler (Celery/Redis).
+- [x] Facturación/comprobantes.
+- [x] Persistencia de eventos Stripe.
 
 ---
 
@@ -297,16 +296,16 @@ Primero modelo + repositories + endpoints de lectura. La integración Stripe com
 
 # 12. Platform Admin
 
-Actualmente faltan `/api/platform/*`.
+**IMPLEMENTADO** — no faltan `/api/platform/*`; 12 endpoints operativos con guard `require_platform_admin()`/`get_platform_admin_auth` (`app/api/platform/routes.py`, `app/core/security.py:147-157`).
 
-- [ ] Definir contrato.
-- [ ] Crear repositories/services.
-- [ ] Crear endpoints.
-- [ ] Aplicar `is_platform_admin`.
-- [ ] Gestión de instituciones.
-- [ ] Gestión de planes.
-- [ ] Consulta de suscripciones.
-- [ ] Consulta de pagos.
+- [x] Definir contrato.
+- [x] Crear repositories/services.
+- [x] Crear endpoints.
+- [x] Aplicar `is_platform_admin`.
+- [x] Gestión de instituciones — CRUD completo (2026-09-20): `POST/PUT/DELETE /api/platform/institutions[/{id}]` (delete = soft-deactivate `activo=false`). Tests: `tests/test_platform_crud.py`.
+- [x] Gestión de planes — CRUD (2026-09-20): `POST/PUT/DELETE /api/platform/plans[/{id}]` (delete = soft-deactivate; `stripe_price_id` se sincroniza aparte con `sync-plan`). Tests: `tests/test_platform_crud.py`.
+- [x] Consulta de suscripciones.
+- [x] Consulta de pagos.
 - [x] Métricas globales (agregados + filtros/series).
 - [x] Auditoría (endpoints, RLS, aislamiento, trazabilidad RAG por mensaje_documento) global según alcance.
 - [ ] Evitar que platform admin sin membresía obtenga automáticamente permisos de `/admin/*`.
@@ -318,14 +317,14 @@ Actualmente faltan `/api/platform/*`.
 Actualmente existen agregados consumidos por el dashboard.
 
 - [x] Métricas actuales.
-- [ ] Filtros por período.
-- [ ] Filtro por categoría.
-- [ ] Filtro por modelo.
-- [ ] Filtro por documento.
-- [ ] Series temporales.
+- [x] Filtros por período.
+- [x] Filtro por categoría.
+- [x] Filtro por modelo.
+- [x] Filtro por documento.
+- [x] Series temporales.
 - [x] Métricas RAG.
 - [x] Métricas de voz.
-- [ ] Tokens/modelos.
+- [x] Tokens/modelos. **IMPLEMENTADO** — `GET /api/admin/metrics` acepta `desde/hasta/categoria_id/modelo/documento_id` + `granularidad` (`day`) + `series`; `tokens_by_model`; `AdminService.get_metrics` + `_build_series` (`admin_service.py:78-279`); test `tests/test_bloque2_metrics.py`.
 - [x] Métricas (agregados + filtros período/categoría/modelo/documento + series temporales) globales de platform admin.
 
 ---
@@ -333,8 +332,8 @@ Actualmente existen agregados consumidos por el dashboard.
 # 14. Categorías
 
 - [x] `GET /api/admin/categories`.
-- [ ] CRUD completo si se decide necesario.
-- [ ] Aislamiento institucional.
+- [x] CRUD completo si se decide necesario. **IMPLEMENTADO** — `POST /api/admin/categories`, `PUT/DELETE /api/admin/categories/{categoria_id}` (`app/api/admin/categories_routes.py`; tests `test_categories.py`, `test_categories_crud.py`).
+- [x] Aislamiento institucional. **IMPLEMENTADO** — `CategoriesService`/`CategoriesRepository.get_by_id` filtra por `institucion_id`; `get_by_id_any` solo platform admin (`categories_service.py:14-27`).
 - [x] Categorías (`GET /admin/categories`; CRUD pospuesto) globales/default.
 - [x] Categorías (`GET /admin/categories`; CRUD pospuesto) institucionales.
 - [ ] Definir precedencia global/institucional.
@@ -343,16 +342,16 @@ Actualmente existen agregados consumidos por el dashboard.
 
 # 15. OpenAPI
 
-- [ ] Generar OpenAPI oficial desde backend.
-- [ ] Versionarlo.
-- [ ] Integrarlo al CI.
-- [ ] Actualizar `openapi.current.json`.
-- [ ] Documentar errores `401/403/404/409/422/500`.
-- [ ] Documentar paginación.
-- [ ] Documentar filtros.
-- [ ] Documentar permisos.
-- [ ] Documentar `/platform/*`.
-- [ ] Documentar billing.
+- [x] Generar OpenAPI oficial desde backend (`scripts/generate_openapi.py`).
+- [x] Versionarlo (archivo versionado en git).
+- [x] Integrarlo al CI (`generate_openapi.py --check` en `.github/workflows/ci.yml`; artifact del diff al fallar).
+- [x] Actualizar `openapi.current.json`.
+- [x] Documentar errores `401/403/404/409/422/500` (descripción en `custom_openapi`).
+- [x] Documentar paginación.
+- [x] Documentar filtros.
+- [x] Documentar permisos.
+- [x] Documentar `/platform/*`.
+- [x] Documentar billing.
 
 ---
 
@@ -447,7 +446,7 @@ Actualmente existen agregados consumidos por el dashboard.
 - [ ] Revisar acceso a audio.
 - [ ] Revisar errores internos expuestos.
 - [ ] Revisar CORS.
-- [ ] Revisar rate limiting.
+- [x] Revisar rate limiting. **IMPLEMENTADO (in-memory)** — `app/core/rate_limit.py` (token bucket por IP+prefijo, middleware, exentos `/health` `/ready` webhook). Variables en `.env.example`. **Límite:** el bucket es por proceso; con múltiples workers no es un límite global. Distribuido (Redis) pospuesto explícitamente.
 - [ ] Revisar timeouts.
 - [ ] Revisar retries.
 
@@ -526,15 +525,15 @@ El backend queda **CERRADO PARA INTEGRACIÓN FINAL CON EL DASHBOARD** cuando:
 20. [ ] Repositories/services.
 21. [ ] Endpoints de lectura.
 22. [ ] Contratos del Dashboard.
-23. [ ] Stripe.
-24. [ ] Webhooks/idempotencia.
-25. [ ] Facturación/notificaciones.
+23. [x] Stripe. **IMPLEMENTADO**
+24. [x] Webhooks/idempotencia. **IMPLEMENTADO**
+25. [ ] Facturación (comprobantes OK) / notificaciones y recordatorios (SMTP, pendiente §11).
 
 ### BLOQUE F — Métricas y contrato
-26. [ ] Métricas avanzadas.
-27. [ ] Filtros/series.
-28. [ ] OpenAPI oficial.
-29. [ ] CI para OpenAPI.
+26. [x] Métricas avanzadas. **IMPLEMENTADO**
+27. [x] Filtros/series. **IMPLEMENTADO**
+28. [x] OpenAPI oficial. **IMPLEMENTADO** — `openapi.current.json` (fuente de verdad, sincronizado con el Admin Dashboard) + `/docs`.
+29. [x] CI para OpenAPI. **IMPLEMENTADO** — `generate_openapi.py --check` en CI + artifact del diff al fallar.
 
 ### BLOQUE G — Cierre
 30. [ ] Tests completos.
@@ -557,3 +556,84 @@ El backend queda **CERRADO PARA INTEGRACIÓN FINAL CON EL DASHBOARD** cuando:
 - Pospuesto explícito: PII/anónimo completo (§5) — **IMPLEMENTADO** (ver §5), Stripe completo (§10), notificaciones/SMTP (§11), categorías CRUD (§14), rate limiting (§18).
 - Documentación: `README.md`, `AGENTS.md`, `FRONTEND_API_INTEGRATION.md` actualizados; `CONTROL.md` eliminado por obsoleto; `borrar/` archivado.
 - Criterio de cierre (§20): cumplido en todo lo implementado; puntos pospuestos documentados.
+
+---
+## Estado 2026-09-20 (sincronización documental con el código)
+
+Reconciliación de este backlog contra el código real (verificación por archivo):
+
+- **Stripe/billing completo (§10):** checkout, portal-session, create/cancel/reactivate/change-plan, sync-plan, GET subscription y webhook con firma + idempotencia (`stripe_eventos`) persisten en `pagos`/`comprobantes`/`suscripciones`/`suscripcion_historial`. Pendiente operativo: verificación e2e con checkout pagado, política de vencimiento/reintentos.
+- **Platform `/api/platform/*` (§12):** implementado (12 rutas, `app/api/platform/routes.py`). Pendiente: CRUD de instituciones y CRUD de planes (hoy solo lectura + sync con Stripe).
+- **Aislamiento (§2), RAG (§4), voz (§6), usuarios (§8), métricas (§13), categorías (§14):** ítems marcados `[x]` con nota **IMPLEMENTADO** y archivo de referencia; verificados en `retrieval_service.py`, `indexing_service.py`, `audio_service.py`, `admin_service.py`, `categories_service.py` y sus tests.
+- **Sigue pendiente (sin marcar):** §1 Platform Admin (regla `/admin/*` requiere membresía + tests), §15 CI OpenAPI, §16 tests adicionales (rutas audit/config/categories/users/metrics/billing/audio/feedback), §17 QA manual multi-institución, §18 rate limiting, §11 notificaciones/SMTP, §12 CRUD instituciones/planes, `PUT /me`, lectura/moderación de feedback, descarga PDF original, exportación de auditoría/métricas/comprobantes, procesamiento asíncrono (Celery/Redis).
+- `AGENTS.md`: sección "API actual" ampliada a las 46 rutas reales; FASE H y separación platform/admin corregidas.
+
+---
+## Estado 2026-09-20b (desbloqueo de features del Admin Dashboard)
+
+Cambios backend que desbloquean pendientes del dashboard (verificados con tests):
+
+- **`GET /api/admin/plans`** (§10): listado de planes activos y sincronizados con Stripe (`stripe_price_id`), para el selector de change-plan de Billing. `PlanOut` ahora incluye `stripe_product_id`/`stripe_price_id`. Tests: `tests/test_admin_plans_route.py`.
+- **`MessageOut` con `sources`/`rating`/`feedback_comment`** (§6/§7): `GET /api/conversations/{id}` y `.../messages` devuelven los documentos recuperados (batch `message_documents` + títulos) y el feedback por mensaje. Desbloquea `ContextViewer`/`FeedbackBadge` del drawer. Tests: `tests/test_conversations_messages_context.py`.
+- **Métricas de documentos/categoría** (§13): `GET /api/admin/metrics` (y `/api/platform/metrics`) devuelven `top_documents` y `documents_by_category` (dedupe por mensaje+documento, join a títulos/categorías). Desbloquea los 2 charts de Analytics. Tests: `tests/test_admin_service.py`.
+- `openapi.current.json` regenerado con las nuevas rutas/campos; `FRONTEND_API_INTEGRATION.md` actualizado.
+- Suite completa: **201 passed / 1 skipped / 1 deselected**.
+- **Sigue pendiente**: notificaciones/SMTP (§11), rate limiting distribuido (§18), QA manual multi-institución (§17). *(CRUD instituciones/planes y exportaciones se cerraron en los estados 2026-09-20e/2026-09-20f.)*
+
+---
+## Estado 2026-09-20c (cierre de contrato — feedback, perfil y hardening de acceso)
+
+- **`GET /api/admin/feedback`** (§6): moderación global paginada con filtros `conversacion_id`/`message_id`/`rating`; join a `mensajes` para `conversacion_id`/`contenido_texto`; aislamiento por institución. Tests: `tests/test_admin_feedback.py`.
+- **`PUT /me`** (§1/§8): edición de perfil (`full_name`) vía `UsersRepository.update_user`; el resto de campos no es editable. Tests: `tests/test_put_me.py`.
+- **Regla Platform Admin `/admin/*` (C1, §1)**: tests de ruta HTTP reales → 403 para platform admin sin membresía en documents/metrics/audit/users/config/feedback/plans (el guard corta antes de la DB); caso positivo con membresía. Tests: `tests/test_admin_platform_membership.py`.
+- **CI OpenAPI (C5, §15)**: el check ya existía; se añadió artifact del diff al fallar y se marcó §15 completo.
+- `openapi.current.json` regenerado con las 2 rutas nuevas; `FRONTEND_API_INTEGRATION.md` y `AGENTS.md` actualizados.
+
+---
+## Estado 2026-09-20d (hardening — C2 tests cross-tenant + C3 rate limiting)
+
+- **C2 (tests cross-tenant de rutas, §2/§16)**: `tests/test_cross_tenant_admin.py` — con auth de la institución A: listas de audit/config/categories/users/feedback/billing/pagos/comprobantes/plans/documentos → 200 con items vacíos; `metrics` → total 0; recursos únicos (documento, subscription, plan, audio) → 404; `POST /api/chat/feedback` sobre mensaje ajeno → 404. Controles positivos con la institución de los datos (B) → 200. Fakes tenant-guardados emulan el filtrado real por `institucion_id`.
+- **C3 (rate limiting, §18)**: variables documentadas en `.env.example` (`RATE_LIMIT_*`); nota explícita de que el token bucket es **in-memory por proceso** (no global con múltiples workers). Redis distribuido pospuesto explícitamente (suficiente para la tesis).
+
+---
+## Estado 2026-09-20e (CRUD platform — C4, §12)
+
+- **CRUD de instituciones** (`POST/PUT/DELETE /api/platform/institutions[/{id}]`) y **CRUD de planes** (`POST/PUT/DELETE /api/platform/plans[/{id}]`): repos `InstitutionsRepository`/`BillingRepository` con create/update/deactivate (soft), schemas `InstitutionIn`/`PlanIn`, `PlatformService` con métodos, rutas con guard `require_platform_admin`. Deletes son soft-deactivate (`activo=false`) para no romper FKs (suscripciones `plan_id`, miembros/documentos `institucion_id`). Los planes se sincronizan con Stripe aparte (`sync-plan`).
+- Tests: `tests/test_platform_crud.py` (guards 403 para admin institucional, CRUD 201/200/204, 404 cuando no existe, service-level con fakes).
+- Suite completa: **230 passed / 1 skipped / 1 deselected**. `openapi.current.json` regenerado (49 rutas).
+
+---
+## Estado 2026-09-20f (exportaciones CSV)
+
+- `GET /api/admin/audit/export`, `GET /api/admin/comprobantes/export`, `GET /api/admin/metrics/export`: reutilizan `AuditService`/`BillingService`/`AdminService`; respuesta `text/csv` + `Content-Disposition`; `metrics/export` con secciones (AGREGADOS, TOKENS POR MODELO, TOP DOCUMENTOS, DISTRIBUCION POR CATEGORIA, SERIE).
+- Tests: `tests/test_admin_exports.py` (shape CSV + guard 403).
+- Frontend: helper `exportCsv` + botones en Audit, Billing (Comprobantes) y Analytics.
+- Suite completa: **234 passed / 1 skipped / 1 deselected**.
+
+---
+## Estado 2026-09-20g (notificaciones/SMTP — core, §11)
+
+- **Core implementado**: repos `NotificationsRepository`/`SmtpConfigRepository`/`EmailTemplateRepository`; `NotificationService` (envío `smtplib` STARTTLS/SSL/TLS/NONE, render de plantillas con `{{placeholder}}`, persistencia con estados `PENDING/SENT/FAILED`, idempotencia por `clave_idempotencia`); endpoints `GET/PUT /api/admin/smtp` (precedencia institucional > global), `GET /api/admin/notifications` (paginado), `POST /api/admin/notifications/send-test`. Credencial global en env `SMTP_PASSWORD`.
+- Tests: `tests/test_notifications.py` (rutas + guards 403 + service con fakes).
+- **Diferido explícito**: CRUD de plantillas (`/api/admin/email-templates`) y triggers automáticos en el webhook Stripe (pago/vencimiento).
+- Suite completa: **241 passed / 1 skipped / 1 deselected**.
+
+---
+## Estado 2026-09-20h (notificaciones extendidas + exports platform + UI)
+
+- **Triggers en webhook Stripe**: `StripeWebhookService` inyecta `NotificationService`; notificaciones automáticas `PAYMENT_SUCCESS`/`PAYMENT_FAILED`/`SUBSCRIPTION_CANCELED`/`SUBSCRIPTION_EXPIRED`/`PLAN_CHANGED` con idempotencia `stripe-{event_id}-{tipo}` y fallo silencioso (no rompe el webhook). `NotificationService.send_automated` (sin auth). Tests: `tests/test_webhook_notifications.py`.
+- **CRUD plantillas email**: `GET/POST/PUT/DELETE /api/admin/email-templates` (institucional > global; platform gestiona globales). Tests: `tests/test_email_templates.py`.
+- **Exports platform**: `GET /api/platform/{audit,comprobantes,metrics}/export` + botones en `PlatformPage`. Util compartido `app/utils/csv_export.py` (refactor de admin).
+- **UI SMTP/Notificaciones** en `SettingsPage` (dashboard): config SMTP + listado + envio de prueba.
+- Suite completa: **258 passed / 1 skipped / 1 deselected**.
+
+---
+## Estado 2026-09-20i (backlog 1/3/10/16/18/19)
+
+- **1**: deprecacion formal de `app_users.role` documentada en AGENTS (politica).
+- **3 RLS**: documentado en `docs/RLS.md` (policies en DB real, service_role bypass, defensa en profundidad; revision periodica de policies pendiente en la DB).
+- **10**: scripts `check_subscription_expiry.py` (vencimiento) y `reprocess_stripe_events.py` (reproceso de eventos fallidos).
+- **16**: tests de webhook (idempotencia, payment_failed, deleted-CANCELLED, EXPIRED, dedupe de comprobante) y usuario `is_active=false` (`tests/test_security.py`, `tests/test_webhook_notifications.py`).
+- **18**: `_validate_pdf` (MIME + magic-bytes `%PDF` + 50MB) aplicado tambien a `upload_new_version`; handler global de 500 (`main.py`) sin exponer detalles. Tests: `tests/test_security.py`.
+- **19**: `README.md` actualizado (endpoints nuevos, env vars, secciones notificaciones/exports/rate limiting, storage corregido).
+- Suite completa: **264 passed / 1 skipped / 1 deselected**.

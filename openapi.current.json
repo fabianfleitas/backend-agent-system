@@ -1,6 +1,95 @@
 {
   "components": {
     "schemas": {
+      "AdminFeedbackOut": {
+        "properties": {
+          "audit_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audit Id"
+          },
+          "comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment"
+          },
+          "contenido_texto": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contenido Texto"
+          },
+          "conversacion_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversacion Id"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "external_auth_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Auth Id"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "message_id": {
+            "title": "Message Id",
+            "type": "integer"
+          },
+          "rating": {
+            "title": "Rating",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "message_id",
+          "rating"
+        ],
+        "title": "AdminFeedbackOut",
+        "type": "object"
+      },
       "AdminReindexIn": {
         "properties": {
           "documento_id": {
@@ -329,6 +418,39 @@
           "nombre"
         ],
         "title": "CategoryIn",
+        "type": "object"
+      },
+      "CategoryMetricOut": {
+        "properties": {
+          "categoria_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Categoria Id"
+          },
+          "consultas": {
+            "default": 0,
+            "title": "Consultas",
+            "type": "integer"
+          },
+          "nombre": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nombre"
+          }
+        },
+        "title": "CategoryMetricOut",
         "type": "object"
       },
       "CategoryOut": {
@@ -1007,6 +1129,35 @@
         "title": "DocumentDetailOut",
         "type": "object"
       },
+      "DocumentMetricOut": {
+        "properties": {
+          "consultas": {
+            "default": 0,
+            "title": "Consultas",
+            "type": "integer"
+          },
+          "documento_id": {
+            "title": "Documento Id",
+            "type": "integer"
+          },
+          "titulo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Titulo"
+          }
+        },
+        "required": [
+          "documento_id"
+        ],
+        "title": "DocumentMetricOut",
+        "type": "object"
+      },
       "DocumentOut": {
         "properties": {
           "activo": {
@@ -1165,6 +1316,144 @@
         "title": "DocumentVersionOut",
         "type": "object"
       },
+      "EmailTemplateIn": {
+        "properties": {
+          "activo": {
+            "default": true,
+            "title": "Activo",
+            "type": "boolean"
+          },
+          "asunto": {
+            "title": "Asunto",
+            "type": "string"
+          },
+          "codigo": {
+            "title": "Codigo",
+            "type": "string"
+          },
+          "contenido_html": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contenido Html"
+          },
+          "contenido_texto": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contenido Texto"
+          },
+          "nombre": {
+            "title": "Nombre",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "nombre",
+          "asunto"
+        ],
+        "title": "EmailTemplateIn",
+        "type": "object"
+      },
+      "EmailTemplateOut": {
+        "properties": {
+          "activo": {
+            "default": true,
+            "title": "Activo",
+            "type": "boolean"
+          },
+          "asunto": {
+            "title": "Asunto",
+            "type": "string"
+          },
+          "codigo": {
+            "title": "Codigo",
+            "type": "string"
+          },
+          "contenido_html": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contenido Html"
+          },
+          "contenido_texto": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contenido Texto"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "institucion_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Institucion Id"
+          },
+          "nombre": {
+            "title": "Nombre",
+            "type": "string"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "id",
+          "codigo",
+          "nombre",
+          "asunto"
+        ],
+        "title": "EmailTemplateOut",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1176,6 +1465,96 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "InstitutionIn": {
+        "properties": {
+          "ciudad": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ciudad"
+          },
+          "codigo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Codigo"
+          },
+          "direccion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Direccion"
+          },
+          "email_contacto": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email Contacto"
+          },
+          "nombre": {
+            "title": "Nombre",
+            "type": "string"
+          },
+          "nombre_comercial": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nombre Comercial"
+          },
+          "pais": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pais"
+          },
+          "telefono_contacto": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Telefono Contacto"
+          }
+        },
+        "required": [
+          "nombre"
+        ],
+        "title": "InstitutionIn",
         "type": "object"
       },
       "InstitutionOut": {
@@ -1417,6 +1796,17 @@
             "title": "Fecha Envio",
             "type": "string"
           },
+          "feedback_comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feedback Comment"
+          },
           "id": {
             "title": "Id",
             "type": "integer"
@@ -1443,9 +1833,28 @@
             ],
             "title": "Proveedor Ia"
           },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          },
           "rol_mensaje": {
             "title": "Rol Mensaje",
             "type": "string"
+          },
+          "sources": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/SourceOut"
+            },
+            "title": "Sources",
+            "type": "array"
           },
           "temperatura": {
             "anyOf": [
@@ -1610,6 +2019,14 @@
             ],
             "title": "Documento Id"
           },
+          "documents_by_category": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CategoryMetricOut"
+            },
+            "title": "Documents By Category",
+            "type": "array"
+          },
           "granularidad": {
             "anyOf": [
               {
@@ -1678,6 +2095,14 @@
             "title": "Tokens By Model",
             "type": "object"
           },
+          "top_documents": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/DocumentMetricOut"
+            },
+            "title": "Top Documents",
+            "type": "array"
+          },
           "total_conversations": {
             "default": 0,
             "title": "Total Conversations",
@@ -1735,6 +2160,136 @@
           }
         },
         "title": "MetricsOut",
+        "type": "object"
+      },
+      "NotificationOut": {
+        "properties": {
+          "asunto": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asunto"
+          },
+          "canal": {
+            "default": "EMAIL",
+            "title": "Canal",
+            "type": "string"
+          },
+          "contenido": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contenido"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "destinatario": {
+            "title": "Destinatario",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "estado": {
+            "default": "PENDING",
+            "title": "Estado",
+            "type": "string"
+          },
+          "fecha_envio": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fecha Envio"
+          },
+          "fecha_programada": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fecha Programada"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "institucion_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Institucion Id"
+          },
+          "tipo": {
+            "default": "SYSTEM",
+            "title": "Tipo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "destinatario"
+        ],
+        "title": "NotificationOut",
+        "type": "object"
+      },
+      "PaginatedResponse_AdminFeedbackOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AdminFeedbackOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ],
+        "title": "PaginatedResponse[AdminFeedbackOut]",
         "type": "object"
       },
       "PaginatedResponse_AuditLogOut_": {
@@ -1835,6 +2390,26 @@
           "pagination"
         ],
         "title": "PaginatedResponse[DocumentOut]",
+        "type": "object"
+      },
+      "PaginatedResponse_NotificationOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NotificationOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ],
+        "title": "PaginatedResponse[NotificationOut]",
         "type": "object"
       },
       "PaginatedResponse_PagoOut_": {
@@ -2052,6 +2627,119 @@
         "title": "PagoOut",
         "type": "object"
       },
+      "PlanIn": {
+        "properties": {
+          "codigo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Codigo"
+          },
+          "descripcion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Descripcion"
+          },
+          "features": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Features"
+          },
+          "intervalo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intervalo"
+          },
+          "max_documentos": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Documentos"
+          },
+          "max_estudiantes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Estudiantes"
+          },
+          "max_usuarios": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Usuarios"
+          },
+          "moneda": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moneda"
+          },
+          "nombre": {
+            "title": "Nombre",
+            "type": "string"
+          },
+          "precio": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Precio"
+          }
+        },
+        "required": [
+          "nombre"
+        ],
+        "title": "PlanIn",
+        "type": "object"
+      },
       "PlanOut": {
         "properties": {
           "activo": {
@@ -2178,6 +2866,28 @@
             ],
             "title": "Precio"
           },
+          "stripe_price_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stripe Price Id"
+          },
+          "stripe_product_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stripe Product Id"
+          },
           "updated_at": {
             "anyOf": [
               {
@@ -2216,6 +2926,183 @@
           "services"
         ],
         "title": "ReadyOut",
+        "type": "object"
+      },
+      "SendTestIn": {
+        "properties": {
+          "asunto": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asunto"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "mensaje": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mensaje"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "title": "SendTestIn",
+        "type": "object"
+      },
+      "SmtpConfigIn": {
+        "properties": {
+          "activo": {
+            "default": true,
+            "title": "Activo",
+            "type": "boolean"
+          },
+          "cifrado": {
+            "default": "STARTTLS",
+            "title": "Cifrado",
+            "type": "string"
+          },
+          "correo_remitente": {
+            "title": "Correo Remitente",
+            "type": "string"
+          },
+          "nombre_remitente": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nombre Remitente"
+          },
+          "password": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password"
+          },
+          "puerto": {
+            "default": 587,
+            "title": "Puerto",
+            "type": "integer"
+          },
+          "servidor": {
+            "title": "Servidor",
+            "type": "string"
+          },
+          "timeout_segundos": {
+            "default": 30,
+            "title": "Timeout Segundos",
+            "type": "integer"
+          },
+          "usuario": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usuario"
+          }
+        },
+        "required": [
+          "servidor",
+          "correo_remitente"
+        ],
+        "title": "SmtpConfigIn",
+        "type": "object"
+      },
+      "SmtpConfigOut": {
+        "properties": {
+          "activo": {
+            "default": true,
+            "title": "Activo",
+            "type": "boolean"
+          },
+          "cifrado": {
+            "default": "STARTTLS",
+            "title": "Cifrado",
+            "type": "string"
+          },
+          "correo_remitente": {
+            "title": "Correo Remitente",
+            "type": "string"
+          },
+          "institucion_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Institucion Id"
+          },
+          "nombre_remitente": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nombre Remitente"
+          },
+          "puerto": {
+            "default": 587,
+            "title": "Puerto",
+            "type": "integer"
+          },
+          "servidor": {
+            "title": "Servidor",
+            "type": "string"
+          },
+          "timeout_segundos": {
+            "default": 30,
+            "title": "Timeout Segundos",
+            "type": "integer"
+          },
+          "usuario": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usuario"
+          }
+        },
+        "required": [
+          "servidor",
+          "correo_remitente"
+        ],
+        "title": "SmtpConfigOut",
         "type": "object"
       },
       "SourceOut": {
@@ -2997,6 +3884,23 @@
         "title": "UserRole",
         "type": "string"
       },
+      "UserUpdateIn": {
+        "properties": {
+          "full_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Name"
+          }
+        },
+        "title": "UserUpdateIn",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -3124,6 +4028,53 @@
           }
         },
         "summary": "Get Audit",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/admin/audit/export": {
+      "get": {
+        "operationId": "export_audit_api_admin_audit_export_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export Audit",
         "tags": [
           "admin"
         ]
@@ -3442,6 +4393,53 @@
           }
         },
         "summary": "List Comprobantes",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/admin/comprobantes/export": {
+      "get": {
+        "operationId": "export_comprobantes_api_admin_comprobantes_export_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export Comprobantes",
         "tags": [
           "admin"
         ]
@@ -3879,6 +4877,355 @@
         ]
       }
     },
+    "/api/admin/email-templates": {
+      "get": {
+        "operationId": "list_templates_api_admin_email_templates_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/EmailTemplateOut"
+                  },
+                  "title": "Response List Templates Api Admin Email Templates Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Templates",
+        "tags": [
+          "email_templates"
+        ]
+      },
+      "post": {
+        "operationId": "create_template_api_admin_email_templates_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailTemplateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailTemplateOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Template",
+        "tags": [
+          "email_templates"
+        ]
+      }
+    },
+    "/api/admin/email-templates/{template_id}": {
+      "delete": {
+        "operationId": "deactivate_template_api_admin_email_templates__template_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "template_id",
+            "required": true,
+            "schema": {
+              "title": "Template Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Deactivate Template",
+        "tags": [
+          "email_templates"
+        ]
+      },
+      "put": {
+        "operationId": "update_template_api_admin_email_templates__template_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "template_id",
+            "required": true,
+            "schema": {
+              "title": "Template Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailTemplateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailTemplateOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Template",
+        "tags": [
+          "email_templates"
+        ]
+      }
+    },
+    "/api/admin/feedback": {
+      "get": {
+        "operationId": "list_feedback_api_admin_feedback_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "conversacion_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Conversacion Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "message_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Message Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "rating",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 5,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Rating"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse_AdminFeedbackOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Feedback",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/api/admin/metrics": {
       "get": {
         "operationId": "get_metrics_api_admin_metrics_get",
@@ -4025,6 +5372,184 @@
         ]
       }
     },
+    "/api/admin/metrics/export": {
+      "get": {
+        "operationId": "export_metrics_api_admin_metrics_export_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export Metrics",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/admin/notifications": {
+      "get": {
+        "operationId": "list_notifications_api_admin_notifications_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse_NotificationOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Notifications",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/admin/notifications/send-test": {
+      "post": {
+        "operationId": "send_test_api_admin_notifications_send_test_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendTestIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Send Test",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
     "/api/admin/pagos": {
       "get": {
         "operationId": "list_pagos_api_admin_pagos_get",
@@ -4146,6 +5671,59 @@
         ]
       }
     },
+    "/api/admin/plans": {
+      "get": {
+        "operationId": "list_plans_api_admin_plans_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PlanOut"
+                  },
+                  "title": "Response List Plans Api Admin Plans Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Plans",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/api/admin/reindex": {
       "post": {
         "operationId": "reindex_api_admin_reindex_post",
@@ -4202,6 +5780,112 @@
         "summary": "Reindex",
         "tags": [
           "admin"
+        ]
+      }
+    },
+    "/api/admin/smtp": {
+      "get": {
+        "operationId": "get_smtp_api_admin_smtp_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SmtpConfigOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Smtp",
+        "tags": [
+          "notifications"
+        ]
+      },
+      "put": {
+        "operationId": "update_smtp_api_admin_smtp_put",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SmtpConfigIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SmtpConfigOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Smtp",
+        "tags": [
+          "notifications"
         ]
       }
     },
@@ -5562,6 +7246,53 @@
         ]
       }
     },
+    "/api/platform/audit/export": {
+      "get": {
+        "operationId": "export_audit_platform_api_platform_audit_export_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export Audit Platform",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
     "/api/platform/comprobantes": {
       "get": {
         "operationId": "list_comprobantes_platform_api_platform_comprobantes_get",
@@ -5634,6 +7365,53 @@
         ]
       }
     },
+    "/api/platform/comprobantes/export": {
+      "get": {
+        "operationId": "export_comprobantes_platform_api_platform_comprobantes_export_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export Comprobantes Platform",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
     "/api/platform/institutions": {
       "get": {
         "operationId": "list_institutions_api_platform_institutions_get",
@@ -5695,9 +7473,115 @@
         "tags": [
           "platform"
         ]
+      },
+      "post": {
+        "operationId": "create_institution_api_platform_institutions_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstitutionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstitutionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Institution",
+        "tags": [
+          "platform"
+        ]
       }
     },
     "/api/platform/institutions/{institucion_id}": {
+      "delete": {
+        "operationId": "deactivate_institution_api_platform_institutions__institucion_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "institucion_id",
+            "required": true,
+            "schema": {
+              "title": "Institucion Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Deactivate Institution",
+        "tags": [
+          "platform"
+        ]
+      },
       "get": {
         "operationId": "get_institution_api_platform_institutions__institucion_id__get",
         "parameters": [
@@ -5750,6 +7634,72 @@
           }
         },
         "summary": "Get Institution",
+        "tags": [
+          "platform"
+        ]
+      },
+      "put": {
+        "operationId": "update_institution_api_platform_institutions__institucion_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "institucion_id",
+            "required": true,
+            "schema": {
+              "title": "Institucion Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstitutionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstitutionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Institution",
         "tags": [
           "platform"
         ]
@@ -6089,6 +8039,53 @@
         ]
       }
     },
+    "/api/platform/metrics/export": {
+      "get": {
+        "operationId": "export_metrics_platform_api_platform_metrics_export_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export Metrics Platform",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
     "/api/platform/pagos": {
       "get": {
         "operationId": "list_pagos_platform_api_platform_pagos_get",
@@ -6209,6 +8206,180 @@
           }
         },
         "summary": "List Plans",
+        "tags": [
+          "platform"
+        ]
+      },
+      "post": {
+        "operationId": "create_plan_api_platform_plans_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Plan",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/api/platform/plans/{plan_id}": {
+      "delete": {
+        "operationId": "deactivate_plan_api_platform_plans__plan_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "title": "Plan Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Deactivate Plan",
+        "tags": [
+          "platform"
+        ]
+      },
+      "put": {
+        "operationId": "update_plan_api_platform_plans__plan_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "title": "Plan Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Plan",
         "tags": [
           "platform"
         ]
@@ -6422,6 +8593,60 @@
           }
         },
         "summary": "Me"
+      },
+      "put": {
+        "operationId": "update_me_me_put",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Me"
       }
     },
     "/ready": {
