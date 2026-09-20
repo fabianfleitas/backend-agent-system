@@ -33,17 +33,25 @@ class InstitutionsRepository:
 
     def get_active_membership(self, external_auth_id: str) -> Optional[dict]:
         # una sola membresía activa por usuario (membresía única)
+        # Intentar determinista: si hay >1 (por datos históricos), usar la más reciente y loggear
         resp = (
             self.client.table("institucion_miembros")
-            .select("*", "instituciones(nombre) as nombre_institucion")
+            .select("*, instituciones(nombre) as nombre_institucion")
             .eq("external_auth_id", external_auth_id)
             .eq("activo", True)
             .is_("fecha_salida", None)
-            .limit(1)
+            .order("fecha_ingreso", desc=True)
             .execute()
         )
-        if resp.data:
-            row = resp.data[0]
+        rows = resp.data or []
+        if len(rows) > 1:
+            import logging
+            logging.getLogger(__name__).warning(
+                "Duplicate active memberships for %s: %d found; using most recent (id=%s, inst=%s)",
+                external_auth_id, len(rows), rows[0].get("id"), rows[0].get("institucion_id"),
+            )
+        if rows:
+            row = rows[0]
             return {
                 "institucion_id": row.get("institucion_id"),
                 "tipo_miembro": row.get("tipo_miembro"),
@@ -78,17 +86,32 @@ class InstitutionsRepository:
         for row in (existing.data or []):
             if row.get("institucion_id") != institucion_id:
                 raise ValueError("User already has active membership in another institution")
-        resp = (
-            self.client.table("institucion_miembros")
-            .insert({
-                "institucion_id": institucion_id,
-                "external_auth_id": external_auth_id,
-                "tipo_miembro": tipo_miembro,
-                "activo": True,
-            })
-            .execute()
-        )
-        return resp.data[0]
+            # Si ya es miembro activo de esta misma institución, no duplicar
+            if row.get("institucion_id") == institucion_id:
+                return row
+        try:
+            resp = (
+                self.client.table("institucion_miembros")
+                .insert({
+                    "institucion_id": institucion_id,
+                    "external_auth_id": external_auth_id,
+                    "tipo_miembro": tipo_miembro,
+                    "activo": True,
+                })
+                .execute()
+            )
+            return resp.data[0]
+        except Exception as exc:
+            # Capturar violación de unicidad DB como defensa adicional
+            msg = str(exc).lower()
+            if "unique" in msg or "constraint" in msg or "duplicate" in msg or "institution" in msg:
+                # Intentar leer si ya existía (race)
+                existing_after = self.client.table("institucion_miembros").select("*").eq("external_auth_id", external_auth_id).eq("activo", True).execute()
+                for row in (existing_after.data or []):
+                    if row.get("institucion_id") == institucion_id:
+                        return row
+                raise ValueError("User already has active membership in another institution") from exc
+            raise
 
     def deactivate_member(self, membre_id: int) -> dict:
         resp = (

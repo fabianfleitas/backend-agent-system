@@ -27,11 +27,13 @@ La regla principal del repositorio sigue siendo esta: distinguir siempre entre e
 - `LLM_HISTORY_ENABLED=true`: agrega memoria conversacional al prompt, limitada por tokens y cantidad de mensajes.
 - `STT_ENABLED=true`: activa transcripcion real del audio.
 - `TTS_ENABLED=true`: activa sintesis de audio para la respuesta.
+- `PII_ANONYMIZATION_ENABLED=true`: activa anonimizacion PII antes de enviar la pregunta al retrieval/LLM (Presidio NER; requiere el modelo spaCy `es_core_news_md`). Si el detector no esta disponible y la politica esta ON, el flujo falla cerrado sin llamadas externas.
 
 ## Requisitos
 
 - Python 3.10+
 - Dependencias de `requirements.txt`
+- Para `PII_ANONYMIZATION_ENABLED=true`: modelo spaCy `python -m spacy download es_core_news_md`
 - Opcional: proyecto Supabase con tablas en `migrations/001_multi_institution.sql`; esquema completo en `all_tables.json`.
 
 ## Instalacion local

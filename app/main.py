@@ -14,6 +14,7 @@ from app.schemas.system import ReadyOut
 from app.services.system_service import SystemService
 from app.services.users_service import UsersService
 from app.utils.files import ensure_dir
+from app.core.rate_limit import RateLimiter, RateLimitMiddleware, RateLimitRule
 
 
 def create_app() -> FastAPI:
@@ -30,10 +31,18 @@ def create_app() -> FastAPI:
         if app.openapi_schema:
             return app.openapi_schema
         openapi_schema = get_openapi(
-            title=f"{settings.app_name} — Backend Multiinstitución",
+            title=settings.app_name + " — Backend Multiinstitución",
             version="1.0.0",
-            description="API institucional con RAG, voz, historial, auditoría y billing de lectura. Isolamiento por institución. Auth: JWT Supabase.",
+            description=(
+                "API institucional con RAG, voz, historial, auditoría y billing de lectura. "
+                "Aislamiento por institución. Auth: JWT Supabase. "
+                "Errores comunes: 401 (JWT faltante/inválido), 403 (permiso institucional), 404 (recurso no encontrado o cross-tenant), "
+                "409 (conflicto / membresía duplicada), 422 (validación de entrada), 500 (error interno). "
+                "Paginación: limit/offset; filtros por institución, documento, modelo, categoría, período."
+            ),
             routes=app.routes,
+            # Security scheme for Supabase JWT Bearer
+            openapi_version="3.1.0",
         )
         openapi_schema["info"]["contact"] = {"name": "Soporte institucional", "url": "https://example.org"}
         openapi_schema["servers"] = [{"url": "/api", "description": "API local"}]
@@ -45,10 +54,20 @@ def create_app() -> FastAPI:
             {"name": "categories", "description": "Categorías institucionales"},
             {"name": "platform", "description": "Administración global / platform admin (instituciones, usuarios globales, metrics, audit, billing)"},
         ]
+        # Security scheme (Supabase JWT Bearer)
+        if "components" not in openapi_schema:
+            openapi_schema["components"] = {}
+        openapi_schema["components"]["securitySchemes"] = {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT (Supabase Auth)",
+            }
+        }
+        openapi_schema["security"] = [{"bearerAuth": []}]
         app.openapi_schema = openapi_schema
         return openapi_schema
 
-    app.openapi = _custom_openapi
     app.openapi = _custom_openapi
 
     def _split(value: str) -> list[str]:
@@ -68,6 +87,24 @@ def create_app() -> FastAPI:
         allow_methods=allow_methods,
         allow_headers=allow_headers,
         allow_credentials=allow_credentials,
+    )
+
+    # Rate limiting middleware (in-memory token bucket; per-process)
+    limiter = RateLimiter()
+    rules = []
+    for part in (settings.rate_limit_rules or "").split(","):
+        part = part.strip()
+        if not part:
+            continue
+        try:
+            prefix, limit, window = part.split(":")
+            rules.append(RateLimitRule(prefix=prefix, limit=int(limit), window_seconds=int(window)))
+        except Exception:
+            pass
+    app.add_middleware(
+        RateLimitMiddleware,
+        limiter=limiter,
+        rules=rules,
     )
 
     app.include_router(api_router, prefix=settings.api_prefix)

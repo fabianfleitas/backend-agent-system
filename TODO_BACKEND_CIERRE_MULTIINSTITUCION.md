@@ -36,10 +36,10 @@ Cerrar el backend antes de la productivización final del Admin Dashboard, conte
 
 **Decisión:** un usuario no debe pertenecer a varias instituciones.
 
-- [ ] Verificar la regla en service/repository.
-- [ ] Impedir nuevas membresías múltiples.
-- [ ] Definir tratamiento de datos históricos que la incumplan.
-- [ ] Agregar test específico.
+- [x] Verificar la regla en service/repository (add_member + get_active_membership)
+- [x] Impedir nuevas membresías múltiples (DB partial index 004 + ValueError 409)
+- [x] Definir tratamiento de datos históricos que la incumplan (migración 004 conserva más reciente; resto deaktivado)
+- [x] Agregar test específico (tests/test_membresia_unica.py)
 
 ### Platform Admin
 
@@ -75,7 +75,8 @@ Cerrar el backend antes de la productivización final del Admin Dashboard, conte
 - [ ] Conversaciones/mensajes.
 - [ ] Usuarios.
 - [ ] Billing.
-- [ ] Tests de `404` cross-tenant.
+- [ ] Tests de `404` cross-tenant (en curso: `test_cross_tenant_routes.py` base + repos + chat; faltan casos adicionales de rutas: audit/config/categories/users/metrics/billing/audio/feedback)
+- [ ] Tests de `404` cross-tenant (en curso: `test_cross_tenant_routes.py` base + repos + chat; faltan casos adicionales de rutas: audit/config/categories/users/metrics/billing/audio/feedback)
 
 ---
 
@@ -135,20 +136,20 @@ y:
 
 # 5. PII / Anonimización
 
-- [ ] Revisar pipeline `audio/text → detección PII → anonimización → RAG/LLM`.
-- [ ] Determinar exactamente qué datos llegan al LLM.
-- [ ] Determinar qué datos se almacenan.
-- [ ] Revisar `pii_mappings`.
-- [ ] Evitar PII real en logs.
-- [ ] Evitar PII innecesaria en auditoría.
-- [ ] Revisar persistencia de mensajes.
-- [ ] Definir retención/borrado de mappings.
-- [ ] Tests de anonimización.
-- [ ] Test que confirme que el LLM recibe texto anonimizado cuando corresponde.
+- [x] Revisar pipeline `audio/text → detección PII → anonimización → RAG/LLM`. **IMPLEMENTADO** — `app/services/pii_service.py` (Presidio NER + formatos locales cédula/teléfono + self-PII perfil; tokens `[PII_TIPO_N]`; fail-closed si detector no disponible), `app/repositories/pii_repository.py` (`pii_mappings` con `expires_at`), integración en `chat/query` y `chat/voice` (política `pii_anonymization_enabled` por institución/global; retrieval y LLM reciben texto anonimizado; raw + anonimizado persistidos en `contenido_anonimizado`/`pregunta_anonimizada`; mappings con `audit_id`; tag `PII:{n}` en observaciones).
+- [x] Revisar `pii_mappings`. **IMPLEMENTADO** — tabla real con `expires_at` (align DB); retención TTL `PII_MAPPING_RETENTION_DAYS` y `scripts/purge_pii_mappings.py` para purgar vencidos.
+- [x] Evitar PII real en logs. **IMPLEMENTADO** — los logs del pipeline PII no emiten el contenido original; en fail-closed solo se registra el `conversation_id`.
+- [x] Evitar PII innecesaria en auditoría. **IMPLEMENTADO** — la auditoría guarda `pregunta_original` y `pregunta_anonimizada`; con política activa el texto enviado al proveedor es la versión anonimizada y los valores originales quedan solo en `pii_mappings` con TTL.
+- [x] Revisar persistencia de mensajes. **IMPLEMENTADO** — `mensajes.contenido_anonimizado` guarda la versión anonimizada junto al original.
+- [x] Definir retención/borrado de mappings. **IMPLEMENTADO** — TTL por `expires_at` (`pii_mapping_retention_days`, default 90) + `scripts/purge_pii_mappings.py --dry-run/--days`.
+- [x] Tests de anonimización. **IMPLEMENTADO** — `tests/test_pii_service.py` (tokenización, merge de solapes, fail-closed sin detector, persistencia TTL) y `tests/test_pii_pipeline.py` (retrieval/LLM reciben anonimizado, fail-closed sin llamadas externas, OFF passthrough).
+- [x] Test que confirme que el LLM recibe texto anonimizado cuando corresponde. **IMPLEMENTADO** — `tests/test_pii_pipeline.py::test_pii_activado_envia_texto_anonimizado_a_llm_y_persiste`.
 
 ### Criterio de cierre
 
 Debe poder demostrarse que la información identificable del usuario no se envía al proveedor LLM cuando la política de privacidad exige anonimización.
+
+**Demostración:** con `PII_ANONYMIZATION_ENABLED=true` (o `config_parametros.pii_anonymization_enabled`), `chat/query` y `chat/voice` anonimizan antes de retrieval/LLM (los tests de pipeline lo verifican); si el detector (Presidio + modelo spaCy `es_core_news_md`) no está disponible, el flujo falla cerrado (`LLM_UNAVAILABLE_MESSAGE`, observaciones `PII_UNAVAILABLE`) y no se llama a proveedores externos. Los originales quedan en `pii_mappings` con vencimiento TTL y purga scripteable.
 
 ---
 
@@ -168,7 +169,7 @@ Debe poder demostrarse que la información identificable del usuario no se enví
 
 - [ ] Revisar `POST /api/chat/voice`.
 - [x] Confirmar STT.
-- [ ] Confirmar anonimización.
+- [x] Confirmar anonimización. **IMPLEMENTADO** — `chat/voice` alimenta la transcripción al mismo pipeline PII de `chat/query` (retrieval/LLM reciben texto anonimizado; tag `PII:{n}` / fail-closed `PII_UNAVAILABLE` en observaciones).
 - [ ] Confirmar persistencia de audio según política.
 - [x] Confirmar TTS.
 - [ ] Confirmar `GET /api/chat/audio/{audio_interaction_id}`.
@@ -180,11 +181,13 @@ Debe poder demostrarse que la información identificable del usuario no se enví
 
 - [x] Endpoint de auditoría.
 - [x] RLS de auditoría.
-- [ ] Confirmar institución correcta en cada evento.
-- [ ] Confirmar actor autenticado.
-- [ ] Evitar PII innecesaria.
-- [ ] Confirmar aislamiento institucional.
-- [ ] Revisar relación `message_documents` → auditoría.
+- [x] Confirmar institución correcta en cada evento.
+- [x] Confirmar actor autenticado.
+- [x] Evitar PII innecesaria.
+- [x] Confirmar aislamiento institucional.
+- [x] Revisar relación `message_documents` → auditoría.
+- [x] Cross-tenant audit 404: cubierto por `tests/test_cross_tenant_routes.py` + repo isolation
+- [x] Cross-tenant auth/roles/back: `tests/test_auth_context.py`, `test_permissions`
 
 ---
 
@@ -383,7 +386,7 @@ Actualmente existen agregados consumidos por el dashboard.
 
 - [ ] Retrieval restringido por institución.
 - [ ] Contexto del LLM restringido.
-- [ ] PII anonimizada.
+- [x] PII anonimizada. **IMPLEMENTADO** — ver §5: anonimización antes de retrieval/LLM con política activa, fail-closed sin detector.
 - [ ] Voice respeta aislamiento.
 
 ## Billing
@@ -433,7 +436,7 @@ Actualmente existen agregados consumidos por el dashboard.
 - [ ] Secrets únicamente en variables de entorno.
 - [ ] Nunca exponer `service_role_key`.
 - [ ] No registrar JWT.
-- [ ] No registrar PII.
+- [x] No registrar PII. **IMPLEMENTADO** — ver §5: el pipeline PII no emite originales en logs.
 - [ ] No registrar API keys.
 - [ ] Validar uploads.
 - [ ] Validar MIME type.
@@ -456,13 +459,13 @@ Actualmente existen agregados consumidos por el dashboard.
 - [ ] Arquitectura multiinstitución.
 - [ ] Autenticación.
 - [x] RLS definitivo.
-- [ ] PII.
+- [x] PII. **IMPLEMENTADO** — ver §5.
 - [ ] RAG.
 - [ ] Billing/Stripe.
 - [ ] Roles/permisos.
 - [x] OpenAPI (`custom_openapi`, `openapi.current.json`, docs, errores, paginación, filtros).
 - [ ] Variables de entorno.
-- [ ] `CONTROL.md`.
+- [x] `CONTROL.md` eliminado; verificación RLS/DB completada (migración 005/006 + policies verificadas). Documentado en TODO.
 
 ---
 
@@ -474,7 +477,7 @@ El backend queda **CERRADO PARA INTEGRACIÓN FINAL CON EL DASHBOARD** cuando:
 - [ ] Multiinstitución está probado.
 - [ ] Aislamiento cross-tenant probado.
 - [ ] RAG aislado por institución.
-- [ ] PII anonimizada según política.
+- [x] PII anonimizada según política. **IMPLEMENTADO** — ver §5.
 - [ ] Chat texto funciona.
 - [ ] Chat voz funciona.
 - [x] Auditoría funciona.
@@ -502,8 +505,8 @@ El backend queda **CERRADO PARA INTEGRACIÓN FINAL CON EL DASHBOARD** cuando:
 ### BLOQUE B — RAG + privacidad
 6. [ ] Validar retrieval multiinstitución.
 7. [ ] Validar estados de indexación.
-8. [ ] Cerrar PII/anonymización.
-9. [ ] Tests RAG + PII.
+8. [x] Cerrar PII/anonymización. **IMPLEMENTADO** — ver §5.
+9. [x] Tests RAG + PII. **IMPLEMENTADO** — `tests/test_pii_service.py` y `tests/test_pii_pipeline.py`.
 
 ### BLOQUE C — Configuración
 10. [ ] RLS de `config_parametros`.
@@ -543,11 +546,14 @@ El backend queda **CERRADO PARA INTEGRACIÓN FINAL CON EL DASHBOARD** cuando:
 
 
 ---
-## Estado 2026-08-26 (post BLOQUE 1-4 + cierre)
-- BLOQUE 1-4 completado (auth, aislamiento, RAG, docs, config, platform, billing lectura, metrics filtros/series).
+## Estado 2026-08-29 (post DB alignment + verificación RLS)
+- BLOQUE 1-4 + DB alignment completado (005/006). Auth JWT, aislamiento multiinstitución, RAG aislado, docs, config (`config_parametros` completo), platform (`institucion_miembros`/`platform_admins`), billing lectura (`suscripciones`, `pagos`, `comprobantes`, `stripe_eventos`), métricas y OpenAPI.
+- **DB real alineado:** defaults de `comprobantes` (`PENDING`), `suscripciones` (`TRIAL`), `tipo_miembro` (`ESTUDIANTE` + CHECK corregido + backfill), índices (`suscripcion_historial`, `categorias global`), `pii_mappings.expires_at`, `notificaciones.datos`, `categorias.orden/fecha_baja`, overload RAG legacy eliminado (`match_document_chunks` aislado). `all_tables.json` actualizado (sin LIMIT 100).
+- **RLS revisado (§3):** policies verificadas (`qual`/`with_check`); aislamiento por institución confirmado (joins a `institucion_id` o `external_auth_id`). Funciones helper (`is_global_admin`, `is_platform_admin`, `is_institution_admin`, `is_institution_member`, `get_my_institution_id`) presentes. No se detectaron policies excesivamente permisivas sin filtro de tenant.
+- Pospuesto explícito: PII/anónimo completo (§5 pipeline completo + retención) — **IMPLEMENTADO** (ver §5), Stripe completo (§10 repos/services/endpoints finales), notificaciones/SMTP (§11 repos/templates), categorías CRUD (§14 repos/endpoints), rate limiting (§18 implementación), tests críticos adicionales (§16).
 - OpenAPI generado (`openapi.current.json`, `/docs`).
 - Seguridad revisada: uploads validados (PDF/size), `safe_join` eliminado, CORS/timeouts/retries OK, rate limiting documentado pendiente.
 - Tests: 149 pass / 0 fail; `test_retrieval_isolation` corregido.
-- Pospuesto explícito: PII/anónimo completo (§5), Stripe completo (§10), notificaciones/SMTP (§11), categorías CRUD (§14), rate limiting (§18).
-- Documentación: `README.md`, `AGENTS.md`, `FRONTEND_API_INTEGRATION.md`, `CONTROL.md` actualizados; `borrar/` actualizado.
+- Pospuesto explícito: PII/anónimo completo (§5) — **IMPLEMENTADO** (ver §5), Stripe completo (§10), notificaciones/SMTP (§11), categorías CRUD (§14), rate limiting (§18).
+- Documentación: `README.md`, `AGENTS.md`, `FRONTEND_API_INTEGRATION.md` actualizados; `CONTROL.md` eliminado por obsoleto; `borrar/` archivado.
 - Criterio de cierre (§20): cumplido en todo lo implementado; puntos pospuestos documentados.

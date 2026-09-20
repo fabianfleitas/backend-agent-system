@@ -15,6 +15,7 @@ from app.repositories.messages_repository import MessagesRepository
 from app.repositories.message_documents_repository import MessageDocumentsRepository
 from app.repositories.users_repository import UsersRepository
 from app.services.generation_service import GenerationService
+from app.services.pii_service import PiiService
 from app.services.retrieval_service import RetrievalService
 from app.utils.tokens import count_tokens
 
@@ -52,6 +53,7 @@ class ChatService:
         retrieval_service: Optional[RetrievalService] = None,
         message_documents_repository: Optional[MessageDocumentsRepository] = None,
         generation_service: Optional[GenerationService] = None,
+        pii_service: Optional[PiiService] = None,
     ) -> None:
         self.conversations_repository = conversations_repository or ConversationsRepository()
         self.messages_repository = messages_repository or MessagesRepository()
@@ -61,6 +63,7 @@ class ChatService:
         self.retrieval_service = retrieval_service or RetrievalService()
         self.message_documents_repository = message_documents_repository or MessageDocumentsRepository()
         self.generation_service = generation_service or GenerationService()
+        self.pii_service = pii_service or PiiService()
 
     def get_owned_conversation(self, conversation_id: int, external_auth_id: str, institucion_id: int = None) -> Optional[dict]:
         conversation = self.conversations_repository.get_conversation(conversation_id, institucion_id=institucion_id)
@@ -90,7 +93,7 @@ class ChatService:
         message: str,
         origin: str,
     ) -> Optional[ChatResult]:
-        self.users_repository.get_or_create_user(auth)
+        user = self.users_repository.get_or_create_user(auth)
         from fastapi import HTTPException
         if auth.institucion_id is None and not auth.is_platform_admin:
             raise HTTPException(status_code=403, detail="Institution membership required")
@@ -98,85 +101,126 @@ class ChatService:
         if not conversation:
             return None
 
+        config = ConfigService()
+        pii_enabled = config.get_bool(
+            "pii_anonymization_enabled",
+            auth.institucion_id,
+            settings.pii_anonymization_enabled,
+        )
+        query_text = message
+        contenido_anonimizado: Optional[str] = None
+        pending_mappings: List[dict] = []
+        pii_count = 0
+        pii_fail_closed = False
+        pii_result = None
+        if pii_enabled:
+            pii_result = self.pii_service.anonymize(
+                message,
+                user_profile={
+                    "full_name": (user or {}).get("full_name"),
+                    "email": (user or {}).get("email"),
+                },
+            )
+            if pii_result.available:
+                query_text = pii_result.text
+                contenido_anonimizado = pii_result.text
+                pending_mappings = pii_result.mappings
+                pii_count = pii_result.detected_count
+            else:
+                pii_fail_closed = True
+                logger.warning(
+                    "PII policy enabled but detector unavailable; external calls skipped conversation_id=%s",
+                    conversation_id,
+                )
+
         user_message = self.messages_repository.create_message(
             conversation_id=conversation_id,
             external_auth_id=auth.external_auth_id,
             role="USER",
             content=message,
+            contenido_anonimizado=contenido_anonimizado,
         )
 
         start = time.perf_counter()
-        retrieved = self.retrieval_service.retrieve(message, auth.institucion_id) if settings.embeddings_enabled else None
         embedding_model = None
         modelo_ia = "mock"
         tokens_input: Optional[int] = None
         tokens_output: Optional[int] = None
         sources: List[dict] = []
-        if retrieved is not None and not retrieved.ok:
-            logger.warning(
-                "Retrieval failed falling back to mock conversation_id=%s error=%s",
-                conversation_id,
-                retrieved.error,
-            )
-            answer = f"MOCK: Recibí tu consulta institucional: {message}"
-            observaciones = f"MOCK: sin evaluación automática [{origin}]"
-            tokens_input = len(message.split())
+        retrieved = None
+        if pii_fail_closed:
+            answer = LLM_UNAVAILABLE_MESSAGE
+            observaciones = f"PII_UNAVAILABLE: {pii_result.error} [{origin}]"
+            tokens_input = len(query_text.split())
             tokens_output = len(answer.split())
-        elif retrieved is not None and retrieved.ok and not retrieved.chunks:
-            answer = DOMAIN_GUARD_MESSAGE
-            observaciones = f"GUARD: sin contexto institucional recuperado [{origin}]"
-            tokens_input = len(message.split())
-            tokens_output = len(answer.split())
-        elif retrieved is not None and retrieved.ok:
-            embedding_model = settings.embedding_model
-            sources = [
-                {
-                    "document_id": chunk.document_id,
-                    "document": chunk.document_title,
-                    "page": chunk.page_number,
-                    "similarity_score": min(1.0, max(0.0, chunk.similarity)),
-                }
-                for chunk in retrieved.chunks
-            ]
-            config = ConfigService()
-            llm_enabled = config.get_bool("llm_enabled", auth.institucion_id, settings.llm_enabled)
-            if llm_enabled:
-                history = self._build_history(conversation_id, exclude_id=user_message["id"])
-                generation = self.generation_service.generate(
-                    message, retrieved.chunks, history=history
-                )
-                if generation.ok:
-                    answer = generation.text
-                    modelo_ia = generation.model
-                    tokens_input = generation.tokens_input
-                    tokens_output = generation.tokens_output
-                    observaciones = f"LLM: OpenRouter (contexto RAG) [{origin}]"
-                else:
-                    logger.error(
-                        "LLM generation failed conversation_id=%s model=%s error=%s",
-                        conversation_id,
-                        config.get_str("llm_model", auth.institucion_id, settings.llm_model),
-                        generation.error,
-                    )
-                    answer = LLM_UNAVAILABLE_MESSAGE
-                    modelo_ia = settings.llm_model
-                    observaciones = f"LLM_FAILED: {generation.error} [{origin}]"
-            else:
-                preview = retrieved.chunks[0].chunk_text[:200]
-                answer = (
-                    f"MOCK: Recuperé {retrieved.total} fragmentos relevantes. "
-                    f"Primer fragmento: {preview} "
-                    f"(respuesta real pendiente de OpenRouter)."
-                )
-                modelo_ia = "mock-retrieval"
-                observaciones = f"RETRIEVAL: contexto recuperado; respuesta pendiente de OpenRouter [{origin}]"
-                tokens_input = len(message.split())
-                tokens_output = len(answer.split())
         else:
-            answer = f"MOCK: Recibí tu consulta institucional: {message}"
-            observaciones = f"MOCK: sin evaluación automática [{origin}]"
-            tokens_input = len(message.split())
-            tokens_output = len(answer.split())
+            retrieved = self.retrieval_service.retrieve(query_text, auth.institucion_id) if settings.embeddings_enabled else None
+            if retrieved is not None and not retrieved.ok:
+                logger.warning(
+                    "Retrieval failed falling back to mock conversation_id=%s error=%s",
+                    conversation_id,
+                    retrieved.error,
+                )
+                answer = f"MOCK: Recibí tu consulta institucional: {message}"
+                observaciones = f"MOCK: sin evaluación automática [{origin}]"
+                tokens_input = len(query_text.split())
+                tokens_output = len(answer.split())
+            elif retrieved is not None and retrieved.ok and not retrieved.chunks:
+                answer = DOMAIN_GUARD_MESSAGE
+                observaciones = f"GUARD: sin contexto institucional recuperado [{origin}]"
+                tokens_input = len(query_text.split())
+                tokens_output = len(answer.split())
+            elif retrieved is not None and retrieved.ok:
+                embedding_model = settings.embedding_model
+                sources = [
+                    {
+                        "document_id": chunk.document_id,
+                        "document": chunk.document_title,
+                        "page": chunk.page_number,
+                        "similarity_score": min(1.0, max(0.0, chunk.similarity)),
+                    }
+                    for chunk in retrieved.chunks
+                ]
+                llm_enabled = config.get_bool("llm_enabled", auth.institucion_id, settings.llm_enabled)
+                if llm_enabled:
+                    history = self._build_history(conversation_id, exclude_id=user_message["id"])
+                    generation = self.generation_service.generate(
+                        query_text, retrieved.chunks, history=history
+                    )
+                    if generation.ok:
+                        answer = generation.text
+                        modelo_ia = generation.model
+                        tokens_input = generation.tokens_input
+                        tokens_output = generation.tokens_output
+                        observaciones = f"LLM: OpenRouter (contexto RAG) [{origin}]"
+                    else:
+                        logger.error(
+                            "LLM generation failed conversation_id=%s model=%s error=%s",
+                            conversation_id,
+                            config.get_str("llm_model", auth.institucion_id, settings.llm_model),
+                            generation.error,
+                        )
+                        answer = LLM_UNAVAILABLE_MESSAGE
+                        modelo_ia = settings.llm_model
+                        observaciones = f"LLM_FAILED: {generation.error} [{origin}]"
+                else:
+                    preview = retrieved.chunks[0].chunk_text[:200]
+                    answer = (
+                        f"MOCK: Recuperé {retrieved.total} fragmentos relevantes. "
+                        f"Primer fragmento: {preview} "
+                        f"(respuesta real pendiente de OpenRouter)."
+                    )
+                    modelo_ia = "mock-retrieval"
+                    observaciones = f"RETRIEVAL: contexto recuperado; respuesta pendiente de OpenRouter [{origin}]"
+                    tokens_input = len(query_text.split())
+                    tokens_output = len(answer.split())
+            else:
+                answer = f"MOCK: Recibí tu consulta institucional: {message}"
+                observaciones = f"MOCK: sin evaluación automática [{origin}]"
+                tokens_input = len(query_text.split())
+                tokens_output = len(answer.split())
+        if pii_enabled and not pii_fail_closed:
+            observaciones = f"{observaciones} | PII:{pii_count}"
         elapsed_ms = (time.perf_counter() - start) * 1000.0
 
         assistant_msg = self.messages_repository.create_message(
@@ -197,6 +241,7 @@ class ChatService:
             message_id=assistant_msg["id"],
             external_auth_id=auth.external_auth_id,
             pregunta_original=message,
+            pregunta_anonimizada=contenido_anonimizado,
             respuesta_texto=answer,
             proveedor_ia="OpenRouter",
             modelo_ia=assistant_msg.get("modelo_ia") or "mock",
@@ -211,6 +256,13 @@ class ChatService:
             self.messages_repository.update_message_audit_id(assistant_msg["id"], audit_log["id"])
             or assistant_msg
         )
+        if pending_mappings:
+            self.pii_service.persist_mappings(
+                pending_mappings,
+                audit_id=audit_log["id"],
+                external_auth_id=auth.external_auth_id,
+                institucion_id=auth.institucion_id,
+            )
         if sources:
             try:
                 traceability_rows = [
@@ -254,7 +306,7 @@ class ChatService:
         history: List[tuple[int, str, str]] = []
         for row in messages:
             role = row.get("rol_mensaje")
-            content = row.get("contenido_texto")
+            content = row.get("contenido_anonimizado") or row.get("contenido_texto")
             if role not in ("USER", "ASSISTANT") or not content:
                 continue
             if int(row["id"]) == exclude_id:

@@ -1,1367 +1,2046 @@
 [
   {
-    "table_name": "app_users",
-    "column_name": "id",
-    "data_type": "bigint"
+    "tabla": "app_users",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "app_users",
-    "column_name": "external_auth_id",
-    "data_type": "text"
+    "tabla": "app_users",
+    "columna": "external_auth_id",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "app_users",
-    "column_name": "email",
-    "data_type": "text"
+    "tabla": "app_users",
+    "columna": "email",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "app_users",
-    "column_name": "full_name",
-    "data_type": "text"
+    "tabla": "app_users",
+    "columna": "full_name",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "app_users",
-    "column_name": "role",
-    "data_type": "USER-DEFINED"
+    "tabla": "app_users",
+    "columna": "role",
+    "tipo_dato": "USER-DEFINED",
+    "permite_null": "NO",
+    "valor_por_defecto": "'STUDENT'::user_role"
   },
   {
-    "table_name": "app_users",
-    "column_name": "is_active",
-    "data_type": "boolean"
+    "tabla": "app_users",
+    "columna": "is_active",
+    "tipo_dato": "boolean",
+    "permite_null": "NO",
+    "valor_por_defecto": "true"
   },
   {
-    "table_name": "app_users",
-    "column_name": "created_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "app_users",
+    "columna": "created_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "app_users",
-    "column_name": "updated_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "app_users",
+    "columna": "updated_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "audio_interactions",
-    "column_name": "id",
-    "data_type": "bigint"
+    "tabla": "audio_interactions",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audio_interactions",
-    "column_name": "conversacion_id",
-    "data_type": "bigint"
+    "tabla": "audio_interactions",
+    "columna": "conversacion_id",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audio_interactions",
-    "column_name": "mensaje_id",
-    "data_type": "bigint"
+    "tabla": "audio_interactions",
+    "columna": "mensaje_id",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audio_interactions",
-    "column_name": "external_auth_id",
-    "data_type": "text"
+    "tabla": "audio_interactions",
+    "columna": "external_auth_id",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audio_interactions",
-    "column_name": "ruta_audio_original",
-    "data_type": "text"
+    "tabla": "audio_interactions",
+    "columna": "ruta_audio_original",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audio_interactions",
-    "column_name": "ruta_audio_respuesta",
-    "data_type": "text"
+    "tabla": "audio_interactions",
+    "columna": "ruta_audio_respuesta",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audio_interactions",
-    "column_name": "transcripcion",
-    "data_type": "text"
+    "tabla": "audio_interactions",
+    "columna": "transcripcion",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audio_interactions",
-    "column_name": "transcription_model",
-    "data_type": "text"
+    "tabla": "audio_interactions",
+    "columna": "transcription_model",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audio_interactions",
-    "column_name": "duracion_segundos",
-    "data_type": "numeric"
+    "tabla": "audio_interactions",
+    "columna": "duracion_segundos",
+    "tipo_dato": "numeric",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audio_interactions",
-    "column_name": "formato_audio",
-    "data_type": "text"
+    "tabla": "audio_interactions",
+    "columna": "formato_audio",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audio_interactions",
-    "column_name": "tamano_bytes",
-    "data_type": "bigint"
+    "tabla": "audio_interactions",
+    "columna": "tamano_bytes",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audio_interactions",
-    "column_name": "fecha_creacion",
-    "data_type": "timestamp with time zone"
+    "tabla": "audio_interactions",
+    "columna": "fecha_creacion",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "audio_interactions",
-    "column_name": "institucion_id",
-    "data_type": "bigint"
+    "tabla": "audio_interactions",
+    "columna": "institucion_id",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audit_logs",
-    "column_name": "id",
-    "data_type": "uuid"
+    "tabla": "audit_logs",
+    "columna": "id",
+    "tipo_dato": "uuid",
+    "permite_null": "NO",
+    "valor_por_defecto": "gen_random_uuid()"
   },
   {
-    "table_name": "audit_logs",
-    "column_name": "conversacion_id",
-    "data_type": "bigint"
+    "tabla": "audit_logs",
+    "columna": "conversacion_id",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audit_logs",
-    "column_name": "mensaje_id",
-    "data_type": "bigint"
+    "tabla": "audit_logs",
+    "columna": "mensaje_id",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audit_logs",
-    "column_name": "external_auth_id",
-    "data_type": "text"
+    "tabla": "audit_logs",
+    "columna": "external_auth_id",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audit_logs",
-    "column_name": "pregunta_original",
-    "data_type": "text"
+    "tabla": "audit_logs",
+    "columna": "pregunta_original",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audit_logs",
-    "column_name": "pregunta_anonimizada",
-    "data_type": "text"
+    "tabla": "audit_logs",
+    "columna": "pregunta_anonimizada",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audit_logs",
-    "column_name": "respuesta_texto",
-    "data_type": "text"
+    "tabla": "audit_logs",
+    "columna": "respuesta_texto",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audit_logs",
-    "column_name": "proveedor_ia",
-    "data_type": "text"
+    "tabla": "audit_logs",
+    "columna": "proveedor_ia",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audit_logs",
-    "column_name": "modelo_ia",
-    "data_type": "text"
+    "tabla": "audit_logs",
+    "columna": "modelo_ia",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audit_logs",
-    "column_name": "embedding_model",
-    "data_type": "text"
+    "tabla": "audit_logs",
+    "columna": "embedding_model",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audit_logs",
-    "column_name": "tokens_input",
-    "data_type": "integer"
+    "tabla": "audit_logs",
+    "columna": "tokens_input",
+    "tipo_dato": "integer",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audit_logs",
-    "column_name": "tokens_output",
-    "data_type": "integer"
+    "tabla": "audit_logs",
+    "columna": "tokens_output",
+    "tipo_dato": "integer",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audit_logs",
-    "column_name": "tiempo_respuesta_ms",
-    "data_type": "integer"
+    "tabla": "audit_logs",
+    "columna": "tiempo_respuesta_ms",
+    "tipo_dato": "integer",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audit_logs",
-    "column_name": "score_fidelidad",
-    "data_type": "numeric"
+    "tabla": "audit_logs",
+    "columna": "score_fidelidad",
+    "tipo_dato": "numeric",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audit_logs",
-    "column_name": "score_relevancia",
-    "data_type": "numeric"
+    "tabla": "audit_logs",
+    "columna": "score_relevancia",
+    "tipo_dato": "numeric",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audit_logs",
-    "column_name": "score_contexto",
-    "data_type": "numeric"
+    "tabla": "audit_logs",
+    "columna": "score_contexto",
+    "tipo_dato": "numeric",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audit_logs",
-    "column_name": "observaciones",
-    "data_type": "text"
+    "tabla": "audit_logs",
+    "columna": "observaciones",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "audit_logs",
-    "column_name": "fecha_evaluacion",
-    "data_type": "timestamp with time zone"
+    "tabla": "audit_logs",
+    "columna": "fecha_evaluacion",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "audit_logs",
-    "column_name": "institucion_id",
-    "data_type": "bigint"
+    "tabla": "audit_logs",
+    "columna": "institucion_id",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "categorias",
-    "column_name": "id",
-    "data_type": "bigint"
+    "tabla": "categorias",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "categorias",
-    "column_name": "nombre",
-    "data_type": "text"
+    "tabla": "categorias",
+    "columna": "nombre",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "categorias",
-    "column_name": "descripcion",
-    "data_type": "text"
+    "tabla": "categorias",
+    "columna": "descripcion",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "categorias",
-    "column_name": "activo",
-    "data_type": "boolean"
+    "tabla": "categorias",
+    "columna": "activo",
+    "tipo_dato": "boolean",
+    "permite_null": "NO",
+    "valor_por_defecto": "true"
   },
   {
-    "table_name": "categorias",
-    "column_name": "fecha_creacion",
-    "data_type": "timestamp with time zone"
+    "tabla": "categorias",
+    "columna": "fecha_creacion",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "categorias",
-    "column_name": "updated_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "categorias",
+    "columna": "updated_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "categorias",
-    "column_name": "institucion_id",
-    "data_type": "bigint"
+    "tabla": "categorias",
+    "columna": "institucion_id",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "comprobantes",
-    "column_name": "id",
-    "data_type": "bigint"
+    "tabla": "categorias",
+    "columna": "orden",
+    "tipo_dato": "integer",
+    "permite_null": "YES",
+    "valor_por_defecto": "0"
   },
   {
-    "table_name": "comprobantes",
-    "column_name": "institucion_id",
-    "data_type": "bigint"
+    "tabla": "categorias",
+    "columna": "fecha_baja",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "comprobantes",
-    "column_name": "pago_id",
-    "data_type": "bigint"
+    "tabla": "comprobantes",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "comprobantes",
-    "column_name": "tipo_comprobante",
-    "data_type": "text"
+    "tabla": "comprobantes",
+    "columna": "institucion_id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "comprobantes",
-    "column_name": "numero",
-    "data_type": "text"
+    "tabla": "comprobantes",
+    "columna": "pago_id",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "comprobantes",
-    "column_name": "estado",
-    "data_type": "text"
+    "tabla": "comprobantes",
+    "columna": "tipo_comprobante",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "comprobantes",
-    "column_name": "importe",
-    "data_type": "numeric"
+    "tabla": "comprobantes",
+    "columna": "numero",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "comprobantes",
-    "column_name": "moneda",
-    "data_type": "character"
+    "tabla": "comprobantes",
+    "columna": "estado",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": "'PENDING'::text"
   },
   {
-    "table_name": "comprobantes",
-    "column_name": "archivo_path",
-    "data_type": "text"
+    "tabla": "comprobantes",
+    "columna": "importe",
+    "tipo_dato": "numeric",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "comprobantes",
-    "column_name": "proveedor",
-    "data_type": "text"
+    "tabla": "comprobantes",
+    "columna": "moneda",
+    "tipo_dato": "character",
+    "permite_null": "YES",
+    "valor_por_defecto": "'USD'::bpchar"
   },
   {
-    "table_name": "comprobantes",
-    "column_name": "referencia_externa",
-    "data_type": "text"
+    "tabla": "comprobantes",
+    "columna": "archivo_path",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "comprobantes",
-    "column_name": "fecha_emision",
-    "data_type": "timestamp with time zone"
+    "tabla": "comprobantes",
+    "columna": "proveedor",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "comprobantes",
-    "column_name": "created_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "comprobantes",
+    "columna": "referencia_externa",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "configuracion_smtp",
-    "column_name": "id",
-    "data_type": "bigint"
+    "tabla": "comprobantes",
+    "columna": "fecha_emision",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "configuracion_smtp",
-    "column_name": "institucion_id",
-    "data_type": "bigint"
+    "tabla": "comprobantes",
+    "columna": "created_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "configuracion_smtp",
-    "column_name": "servidor",
-    "data_type": "text"
+    "tabla": "config_parametros",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "configuracion_smtp",
-    "column_name": "puerto",
-    "data_type": "integer"
+    "tabla": "config_parametros",
+    "columna": "institucion_id",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "configuracion_smtp",
-    "column_name": "cifrado",
-    "data_type": "text"
+    "tabla": "config_parametros",
+    "columna": "clave",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "configuracion_smtp",
-    "column_name": "usuario",
-    "data_type": "text"
+    "tabla": "config_parametros",
+    "columna": "valor",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "configuracion_smtp",
-    "column_name": "password_secret_ref",
-    "data_type": "text"
+    "tabla": "config_parametros",
+    "columna": "tipo",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": "'string'::text"
   },
   {
-    "table_name": "configuracion_smtp",
-    "column_name": "correo_remitente",
-    "data_type": "text"
+    "tabla": "config_parametros",
+    "columna": "descripcion",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "configuracion_smtp",
-    "column_name": "nombre_remitente",
-    "data_type": "text"
+    "tabla": "config_parametros",
+    "columna": "editable_desde_dashboard",
+    "tipo_dato": "boolean",
+    "permite_null": "NO",
+    "valor_por_defecto": "true"
   },
   {
-    "table_name": "configuracion_smtp",
-    "column_name": "timeout_segundos",
-    "data_type": "integer"
+    "tabla": "config_parametros",
+    "columna": "activo",
+    "tipo_dato": "boolean",
+    "permite_null": "NO",
+    "valor_por_defecto": "true"
   },
   {
-    "table_name": "configuracion_smtp",
-    "column_name": "activo",
-    "data_type": "boolean"
+    "tabla": "config_parametros",
+    "columna": "created_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "configuracion_smtp",
-    "column_name": "created_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "config_parametros",
+    "columna": "updated_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "configuracion_smtp",
-    "column_name": "updated_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "configuracion_smtp",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "conversaciones",
-    "column_name": "id",
-    "data_type": "bigint"
+    "tabla": "configuracion_smtp",
+    "columna": "institucion_id",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "conversaciones",
-    "column_name": "external_auth_id",
-    "data_type": "text"
+    "tabla": "configuracion_smtp",
+    "columna": "servidor",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "conversaciones",
-    "column_name": "title",
-    "data_type": "text"
+    "tabla": "configuracion_smtp",
+    "columna": "puerto",
+    "tipo_dato": "integer",
+    "permite_null": "NO",
+    "valor_por_defecto": "587"
   },
   {
-    "table_name": "conversaciones",
-    "column_name": "hidden",
-    "data_type": "boolean"
+    "tabla": "configuracion_smtp",
+    "columna": "cifrado",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": "'STARTTLS'::text"
   },
   {
-    "table_name": "conversaciones",
-    "column_name": "last_interaction",
-    "data_type": "timestamp with time zone"
+    "tabla": "configuracion_smtp",
+    "columna": "usuario",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "conversaciones",
-    "column_name": "fecha_creacion",
-    "data_type": "timestamp with time zone"
+    "tabla": "configuracion_smtp",
+    "columna": "password_secret_ref",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "conversaciones",
-    "column_name": "updated_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "configuracion_smtp",
+    "columna": "correo_remitente",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "conversaciones",
-    "column_name": "institucion_id",
-    "data_type": "bigint"
+    "tabla": "configuracion_smtp",
+    "columna": "nombre_remitente",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "document_chunks",
-    "column_name": "id",
-    "data_type": "bigint"
+    "tabla": "configuracion_smtp",
+    "columna": "timeout_segundos",
+    "tipo_dato": "integer",
+    "permite_null": "NO",
+    "valor_por_defecto": "30"
   },
   {
-    "table_name": "document_chunks",
-    "column_name": "documento_version_id",
-    "data_type": "bigint"
+    "tabla": "configuracion_smtp",
+    "columna": "activo",
+    "tipo_dato": "boolean",
+    "permite_null": "NO",
+    "valor_por_defecto": "true"
   },
   {
-    "table_name": "document_chunks",
-    "column_name": "chunk_index",
-    "data_type": "integer"
+    "tabla": "configuracion_smtp",
+    "columna": "created_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "document_chunks",
-    "column_name": "page_number",
-    "data_type": "integer"
+    "tabla": "configuracion_smtp",
+    "columna": "updated_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "document_chunks",
-    "column_name": "chunk_text",
-    "data_type": "text"
+    "tabla": "conversaciones",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "document_chunks",
-    "column_name": "token_count",
-    "data_type": "integer"
+    "tabla": "conversaciones",
+    "columna": "external_auth_id",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "document_chunks",
-    "column_name": "created_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "conversaciones",
+    "columna": "title",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "document_embeddings",
-    "column_name": "id",
-    "data_type": "bigint"
+    "tabla": "conversaciones",
+    "columna": "hidden",
+    "tipo_dato": "boolean",
+    "permite_null": "NO",
+    "valor_por_defecto": "false"
   },
   {
-    "table_name": "document_embeddings",
-    "column_name": "chunk_id",
-    "data_type": "bigint"
+    "tabla": "conversaciones",
+    "columna": "last_interaction",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "document_embeddings",
-    "column_name": "embedding",
-    "data_type": "USER-DEFINED"
+    "tabla": "conversaciones",
+    "columna": "fecha_creacion",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "document_embeddings",
-    "column_name": "embedding_model",
-    "data_type": "text"
+    "tabla": "conversaciones",
+    "columna": "updated_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "document_embeddings",
-    "column_name": "created_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "conversaciones",
+    "columna": "institucion_id",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "documento_versiones",
-    "column_name": "id",
-    "data_type": "bigint"
+    "tabla": "document_chunks",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "documento_versiones",
-    "column_name": "documento_id",
-    "data_type": "bigint"
+    "tabla": "document_chunks",
+    "columna": "documento_version_id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "documento_versiones",
-    "column_name": "numero_version",
-    "data_type": "integer"
+    "tabla": "document_chunks",
+    "columna": "chunk_index",
+    "tipo_dato": "integer",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "documento_versiones",
-    "column_name": "ruta_archivo",
-    "data_type": "text"
+    "tabla": "document_chunks",
+    "columna": "page_number",
+    "tipo_dato": "integer",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "documento_versiones",
-    "column_name": "storage_bucket",
-    "data_type": "text"
+    "tabla": "document_chunks",
+    "columna": "chunk_text",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "documento_versiones",
-    "column_name": "original_filename",
-    "data_type": "text"
+    "tabla": "document_chunks",
+    "columna": "token_count",
+    "tipo_dato": "integer",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "documento_versiones",
-    "column_name": "mime_type",
-    "data_type": "text"
+    "tabla": "document_chunks",
+    "columna": "created_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "documento_versiones",
-    "column_name": "file_size_bytes",
-    "data_type": "bigint"
+    "tabla": "document_embeddings",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "documento_versiones",
-    "column_name": "status",
-    "data_type": "USER-DEFINED"
+    "tabla": "document_embeddings",
+    "columna": "chunk_id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "documento_versiones",
-    "column_name": "es_version_activa",
-    "data_type": "boolean"
+    "tabla": "document_embeddings",
+    "columna": "embedding",
+    "tipo_dato": "USER-DEFINED",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "documento_versiones",
-    "column_name": "texto_extraido",
-    "data_type": "text"
+    "tabla": "document_embeddings",
+    "columna": "embedding_model",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "documento_versiones",
-    "column_name": "total_chunks",
-    "data_type": "integer"
+    "tabla": "document_embeddings",
+    "columna": "created_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "documento_versiones",
-    "column_name": "embedding_model",
-    "data_type": "text"
+    "tabla": "documento_versiones",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "documento_versiones",
-    "column_name": "indexed_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "documento_versiones",
+    "columna": "documento_id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "documento_versiones",
-    "column_name": "error_message",
-    "data_type": "text"
+    "tabla": "documento_versiones",
+    "columna": "numero_version",
+    "tipo_dato": "integer",
+    "permite_null": "NO",
+    "valor_por_defecto": "1"
   },
   {
-    "table_name": "documento_versiones",
-    "column_name": "fecha_carga",
-    "data_type": "timestamp with time zone"
+    "tabla": "documento_versiones",
+    "columna": "ruta_archivo",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "documento_versiones",
-    "column_name": "cargado_por_external_auth_id",
-    "data_type": "text"
+    "tabla": "documento_versiones",
+    "columna": "storage_bucket",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": "'documents'::text"
   },
   {
-    "table_name": "documento_versiones",
-    "column_name": "updated_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "documento_versiones",
+    "columna": "original_filename",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "documentos",
-    "column_name": "id",
-    "data_type": "bigint"
+    "tabla": "documento_versiones",
+    "columna": "mime_type",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": "'application/pdf'::text"
   },
   {
-    "table_name": "documentos",
-    "column_name": "categoria_id",
-    "data_type": "bigint"
+    "tabla": "documento_versiones",
+    "columna": "file_size_bytes",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "documentos",
-    "column_name": "codigo_documento",
-    "data_type": "text"
+    "tabla": "documento_versiones",
+    "columna": "status",
+    "tipo_dato": "USER-DEFINED",
+    "permite_null": "NO",
+    "valor_por_defecto": "'PENDING'::document_status"
   },
   {
-    "table_name": "documentos",
-    "column_name": "titulo",
-    "data_type": "text"
+    "tabla": "documento_versiones",
+    "columna": "es_version_activa",
+    "tipo_dato": "boolean",
+    "permite_null": "NO",
+    "valor_por_defecto": "true"
   },
   {
-    "table_name": "documentos",
-    "column_name": "descripcion",
-    "data_type": "text"
+    "tabla": "documento_versiones",
+    "columna": "texto_extraido",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "documentos",
-    "column_name": "activo",
-    "data_type": "boolean"
+    "tabla": "documento_versiones",
+    "columna": "total_chunks",
+    "tipo_dato": "integer",
+    "permite_null": "NO",
+    "valor_por_defecto": "0"
   },
   {
-    "table_name": "documentos",
-    "column_name": "fecha_creacion",
-    "data_type": "timestamp with time zone"
+    "tabla": "documento_versiones",
+    "columna": "embedding_model",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "documentos",
-    "column_name": "updated_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "documento_versiones",
+    "columna": "indexed_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "documentos",
-    "column_name": "institucion_id",
-    "data_type": "bigint"
+    "tabla": "documento_versiones",
+    "columna": "error_message",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "feedback",
-    "column_name": "id",
-    "data_type": "bigint"
+    "tabla": "documento_versiones",
+    "columna": "fecha_carga",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "feedback",
-    "column_name": "message_id",
-    "data_type": "bigint"
+    "tabla": "documento_versiones",
+    "columna": "cargado_por_external_auth_id",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "feedback",
-    "column_name": "audit_id",
-    "data_type": "uuid"
+    "tabla": "documento_versiones",
+    "columna": "updated_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "feedback",
-    "column_name": "external_auth_id",
-    "data_type": "text"
+    "tabla": "documentos",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "feedback",
-    "column_name": "rating",
-    "data_type": "integer"
+    "tabla": "documentos",
+    "columna": "categoria_id",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "feedback",
-    "column_name": "comment",
-    "data_type": "text"
+    "tabla": "documentos",
+    "columna": "codigo_documento",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "feedback",
-    "column_name": "created_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "documentos",
+    "columna": "titulo",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "feedback",
-    "column_name": "institucion_id",
-    "data_type": "bigint"
+    "tabla": "documentos",
+    "columna": "descripcion",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "institucion_miembros",
-    "column_name": "id",
-    "data_type": "bigint"
+    "tabla": "documentos",
+    "columna": "activo",
+    "tipo_dato": "boolean",
+    "permite_null": "NO",
+    "valor_por_defecto": "true"
   },
   {
-    "table_name": "institucion_miembros",
-    "column_name": "institucion_id",
-    "data_type": "bigint"
+    "tabla": "documentos",
+    "columna": "fecha_creacion",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "institucion_miembros",
-    "column_name": "external_auth_id",
-    "data_type": "text"
+    "tabla": "documentos",
+    "columna": "updated_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "institucion_miembros",
-    "column_name": "tipo_miembro",
-    "data_type": "text"
+    "tabla": "documentos",
+    "columna": "institucion_id",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "institucion_miembros",
-    "column_name": "activo",
-    "data_type": "boolean"
+    "tabla": "feedback",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "institucion_miembros",
-    "column_name": "fecha_ingreso",
-    "data_type": "timestamp with time zone"
+    "tabla": "feedback",
+    "columna": "message_id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "institucion_miembros",
-    "column_name": "fecha_salida",
-    "data_type": "timestamp with time zone"
+    "tabla": "feedback",
+    "columna": "audit_id",
+    "tipo_dato": "uuid",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "institucion_miembros",
-    "column_name": "created_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "feedback",
+    "columna": "external_auth_id",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "institucion_miembros",
-    "column_name": "updated_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "feedback",
+    "columna": "rating",
+    "tipo_dato": "integer",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "instituciones",
-    "column_name": "id",
-    "data_type": "bigint"
+    "tabla": "feedback",
+    "columna": "comment",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "instituciones",
-    "column_name": "nombre",
-    "data_type": "text"
+    "tabla": "feedback",
+    "columna": "created_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "instituciones",
-    "column_name": "nombre_comercial",
-    "data_type": "text"
+    "tabla": "feedback",
+    "columna": "institucion_id",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "instituciones",
-    "column_name": "codigo",
-    "data_type": "text"
+    "tabla": "institucion_miembros",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "instituciones",
-    "column_name": "email_contacto",
-    "data_type": "text"
+    "tabla": "institucion_miembros",
+    "columna": "institucion_id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "instituciones",
-    "column_name": "telefono_contacto",
-    "data_type": "text"
+    "tabla": "institucion_miembros",
+    "columna": "external_auth_id",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "instituciones",
-    "column_name": "direccion",
-    "data_type": "text"
+    "tabla": "institucion_miembros",
+    "columna": "tipo_miembro",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": "'ESTUDIANTE'::text"
   },
   {
-    "table_name": "instituciones",
-    "column_name": "ciudad",
-    "data_type": "text"
+    "tabla": "institucion_miembros",
+    "columna": "activo",
+    "tipo_dato": "boolean",
+    "permite_null": "NO",
+    "valor_por_defecto": "true"
   },
   {
-    "table_name": "instituciones",
-    "column_name": "pais",
-    "data_type": "text"
+    "tabla": "institucion_miembros",
+    "columna": "fecha_ingreso",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "instituciones",
-    "column_name": "activo",
-    "data_type": "boolean"
+    "tabla": "institucion_miembros",
+    "columna": "fecha_salida",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "instituciones",
-    "column_name": "stripe_customer_id",
-    "data_type": "text"
+    "tabla": "institucion_miembros",
+    "columna": "created_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "instituciones",
-    "column_name": "created_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "institucion_miembros",
+    "columna": "updated_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "instituciones",
-    "column_name": "updated_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "instituciones",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "mensajes",
-    "column_name": "id",
-    "data_type": "bigint"
+    "tabla": "instituciones",
+    "columna": "nombre",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "mensajes",
-    "column_name": "conversacion_id",
-    "data_type": "bigint"
+    "tabla": "instituciones",
+    "columna": "nombre_comercial",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "mensajes",
-    "column_name": "external_auth_id",
-    "data_type": "text"
+    "tabla": "instituciones",
+    "columna": "codigo",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "mensajes",
-    "column_name": "rol_mensaje",
-    "data_type": "USER-DEFINED"
+    "tabla": "instituciones",
+    "columna": "email_contacto",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "mensajes",
-    "column_name": "contenido_texto",
-    "data_type": "text"
+    "tabla": "instituciones",
+    "columna": "telefono_contacto",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "mensajes",
-    "column_name": "proveedor_ia",
-    "data_type": "text"
+    "tabla": "instituciones",
+    "columna": "direccion",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "mensajes",
-    "column_name": "modelo_ia",
-    "data_type": "text"
+    "tabla": "instituciones",
+    "columna": "ciudad",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "mensajes",
-    "column_name": "temperatura",
-    "data_type": "numeric"
+    "tabla": "instituciones",
+    "columna": "pais",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": "'Paraguay'::text"
   },
   {
-    "table_name": "mensajes",
-    "column_name": "tokens_input",
-    "data_type": "integer"
+    "tabla": "instituciones",
+    "columna": "activo",
+    "tipo_dato": "boolean",
+    "permite_null": "NO",
+    "valor_por_defecto": "true"
   },
   {
-    "table_name": "mensajes",
-    "column_name": "tokens_output",
-    "data_type": "integer"
+    "tabla": "instituciones",
+    "columna": "stripe_customer_id",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "mensajes",
-    "column_name": "tiempo_respuesta_ms",
-    "data_type": "integer"
+    "tabla": "instituciones",
+    "columna": "created_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "mensajes",
-    "column_name": "audit_id",
-    "data_type": "uuid"
+    "tabla": "instituciones",
+    "columna": "updated_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "mensajes",
-    "column_name": "fecha_envio",
-    "data_type": "timestamp with time zone"
+    "tabla": "mensajes",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "message_documents",
-    "column_name": "id",
-    "data_type": "bigint"
+    "tabla": "mensajes",
+    "columna": "conversacion_id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "message_documents",
-    "column_name": "mensaje_id",
-    "data_type": "bigint"
+    "tabla": "mensajes",
+    "columna": "external_auth_id",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "message_documents",
-    "column_name": "audit_id",
-    "data_type": "uuid"
+    "tabla": "mensajes",
+    "columna": "rol_mensaje",
+    "tipo_dato": "USER-DEFINED",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "message_documents",
-    "column_name": "documento_id",
-    "data_type": "bigint"
+    "tabla": "mensajes",
+    "columna": "contenido_texto",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "message_documents",
-    "column_name": "documento_version_id",
-    "data_type": "bigint"
+    "tabla": "mensajes",
+    "columna": "proveedor_ia",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "message_documents",
-    "column_name": "chunk_id",
-    "data_type": "bigint"
+    "tabla": "mensajes",
+    "columna": "modelo_ia",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "message_documents",
-    "column_name": "similarity_score",
-    "data_type": "double precision"
+    "tabla": "mensajes",
+    "columna": "temperatura",
+    "tipo_dato": "numeric",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "message_documents",
-    "column_name": "page_number",
-    "data_type": "integer"
+    "tabla": "mensajes",
+    "columna": "tokens_input",
+    "tipo_dato": "integer",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "message_documents",
-    "column_name": "fecha_creacion",
-    "data_type": "timestamp with time zone"
+    "tabla": "mensajes",
+    "columna": "tokens_output",
+    "tipo_dato": "integer",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "notificaciones",
-    "column_name": "id",
-    "data_type": "bigint"
+    "tabla": "mensajes",
+    "columna": "tiempo_respuesta_ms",
+    "tipo_dato": "integer",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "notificaciones",
-    "column_name": "institucion_id",
-    "data_type": "bigint"
+    "tabla": "mensajes",
+    "columna": "audit_id",
+    "tipo_dato": "uuid",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "notificaciones",
-    "column_name": "suscripcion_id",
-    "data_type": "bigint"
+    "tabla": "mensajes",
+    "columna": "fecha_envio",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "notificaciones",
-    "column_name": "tipo",
-    "data_type": "text"
+    "tabla": "mensajes",
+    "columna": "contenido_anonimizado",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "notificaciones",
-    "column_name": "canal",
-    "data_type": "text"
+    "tabla": "message_documents",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "notificaciones",
-    "column_name": "destinatario",
-    "data_type": "text"
+    "tabla": "message_documents",
+    "columna": "mensaje_id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "notificaciones",
-    "column_name": "asunto",
-    "data_type": "text"
+    "tabla": "message_documents",
+    "columna": "audit_id",
+    "tipo_dato": "uuid",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "notificaciones",
-    "column_name": "contenido",
-    "data_type": "text"
+    "tabla": "message_documents",
+    "columna": "documento_id",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "notificaciones",
-    "column_name": "estado",
-    "data_type": "text"
+    "tabla": "message_documents",
+    "columna": "documento_version_id",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "notificaciones",
-    "column_name": "fecha_programada",
-    "data_type": "timestamp with time zone"
+    "tabla": "message_documents",
+    "columna": "chunk_id",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "notificaciones",
-    "column_name": "fecha_envio",
-    "data_type": "timestamp with time zone"
+    "tabla": "message_documents",
+    "columna": "similarity_score",
+    "tipo_dato": "double precision",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "notificaciones",
-    "column_name": "error",
-    "data_type": "text"
+    "tabla": "message_documents",
+    "columna": "page_number",
+    "tipo_dato": "integer",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "notificaciones",
-    "column_name": "clave_idempotencia",
-    "data_type": "text"
+    "tabla": "message_documents",
+    "columna": "fecha_creacion",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "notificaciones",
-    "column_name": "created_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "notificaciones",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "pagos",
-    "column_name": "id",
-    "data_type": "bigint"
+    "tabla": "notificaciones",
+    "columna": "institucion_id",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "pagos",
-    "column_name": "institucion_id",
-    "data_type": "bigint"
+    "tabla": "notificaciones",
+    "columna": "suscripcion_id",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "pagos",
-    "column_name": "suscripcion_id",
-    "data_type": "bigint"
+    "tabla": "notificaciones",
+    "columna": "tipo",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "pagos",
-    "column_name": "importe",
-    "data_type": "numeric"
+    "tabla": "notificaciones",
+    "columna": "canal",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "pagos",
-    "column_name": "moneda",
-    "data_type": "character"
+    "tabla": "notificaciones",
+    "columna": "destinatario",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "pagos",
-    "column_name": "estado",
-    "data_type": "text"
+    "tabla": "notificaciones",
+    "columna": "asunto",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "pagos",
-    "column_name": "proveedor",
-    "data_type": "text"
+    "tabla": "notificaciones",
+    "columna": "contenido",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "pagos",
-    "column_name": "stripe_payment_intent_id",
-    "data_type": "text"
+    "tabla": "notificaciones",
+    "columna": "estado",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": "'PENDING'::text"
   },
   {
-    "table_name": "pagos",
-    "column_name": "stripe_checkout_session_id",
-    "data_type": "text"
+    "tabla": "notificaciones",
+    "columna": "fecha_programada",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "pagos",
-    "column_name": "stripe_charge_id",
-    "data_type": "text"
+    "tabla": "notificaciones",
+    "columna": "fecha_envio",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "pagos",
-    "column_name": "idempotency_key",
-    "data_type": "text"
+    "tabla": "notificaciones",
+    "columna": "error",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "pagos",
-    "column_name": "descripcion",
-    "data_type": "text"
+    "tabla": "notificaciones",
+    "columna": "clave_idempotencia",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "pagos",
-    "column_name": "fecha_pago",
-    "data_type": "timestamp with time zone"
+    "tabla": "notificaciones",
+    "columna": "created_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "pagos",
-    "column_name": "created_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "notificaciones",
+    "columna": "datos",
+    "tipo_dato": "jsonb",
+    "permite_null": "YES",
+    "valor_por_defecto": "'{}'::jsonb"
   },
   {
-    "table_name": "pagos",
-    "column_name": "updated_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "pagos",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "pii_mappings",
-    "column_name": "id",
-    "data_type": "bigint"
+    "tabla": "pagos",
+    "columna": "institucion_id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "pii_mappings",
-    "column_name": "audit_id",
-    "data_type": "uuid"
+    "tabla": "pagos",
+    "columna": "suscripcion_id",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "pii_mappings",
-    "column_name": "external_auth_id",
-    "data_type": "text"
+    "tabla": "pagos",
+    "columna": "importe",
+    "tipo_dato": "numeric",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "pii_mappings",
-    "column_name": "token",
-    "data_type": "text"
+    "tabla": "pagos",
+    "columna": "moneda",
+    "tipo_dato": "character",
+    "permite_null": "NO",
+    "valor_por_defecto": "'USD'::bpchar"
   },
   {
-    "table_name": "pii_mappings",
-    "column_name": "pii_type",
-    "data_type": "text"
+    "tabla": "pagos",
+    "columna": "estado",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": "'PENDING'::text"
   },
   {
-    "table_name": "pii_mappings",
-    "column_name": "original_value",
-    "data_type": "text"
+    "tabla": "pagos",
+    "columna": "proveedor",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": "'STRIPE'::text"
   },
   {
-    "table_name": "pii_mappings",
-    "column_name": "created_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "pagos",
+    "columna": "stripe_payment_intent_id",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "pii_mappings",
-    "column_name": "institucion_id",
-    "data_type": "bigint"
+    "tabla": "pagos",
+    "columna": "stripe_checkout_session_id",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "planes",
-    "column_name": "id",
-    "data_type": "bigint"
+    "tabla": "pagos",
+    "columna": "stripe_charge_id",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "planes",
-    "column_name": "codigo",
-    "data_type": "text"
+    "tabla": "pagos",
+    "columna": "idempotency_key",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "planes",
-    "column_name": "nombre",
-    "data_type": "text"
+    "tabla": "pagos",
+    "columna": "descripcion",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "planes",
-    "column_name": "descripcion",
-    "data_type": "text"
+    "tabla": "pagos",
+    "columna": "fecha_pago",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "planes",
-    "column_name": "precio",
-    "data_type": "numeric"
+    "tabla": "pagos",
+    "columna": "created_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "planes",
-    "column_name": "moneda",
-    "data_type": "character"
+    "tabla": "pagos",
+    "columna": "updated_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "planes",
-    "column_name": "intervalo",
-    "data_type": "text"
+    "tabla": "pagos",
+    "columna": "stripe_invoice_id",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "planes",
-    "column_name": "max_documentos",
-    "data_type": "integer"
+    "tabla": "pii_mappings",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "planes",
-    "column_name": "max_usuarios",
-    "data_type": "integer"
+    "tabla": "pii_mappings",
+    "columna": "audit_id",
+    "tipo_dato": "uuid",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "planes",
-    "column_name": "max_estudiantes",
-    "data_type": "integer"
+    "tabla": "pii_mappings",
+    "columna": "external_auth_id",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "planes",
-    "column_name": "features",
-    "data_type": "jsonb"
+    "tabla": "pii_mappings",
+    "columna": "token",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "planes",
-    "column_name": "stripe_product_id",
-    "data_type": "text"
+    "tabla": "pii_mappings",
+    "columna": "pii_type",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "planes",
-    "column_name": "stripe_price_id",
-    "data_type": "text"
+    "tabla": "pii_mappings",
+    "columna": "original_value",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "planes",
-    "column_name": "activo",
-    "data_type": "boolean"
+    "tabla": "pii_mappings",
+    "columna": "created_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "planes",
-    "column_name": "created_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "pii_mappings",
+    "columna": "institucion_id",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "planes",
-    "column_name": "updated_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "pii_mappings",
+    "columna": "expires_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "plantillas_email",
-    "column_name": "id",
-    "data_type": "bigint"
+    "tabla": "planes",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "plantillas_email",
-    "column_name": "institucion_id",
-    "data_type": "bigint"
+    "tabla": "planes",
+    "columna": "codigo",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "plantillas_email",
-    "column_name": "codigo",
-    "data_type": "text"
+    "tabla": "planes",
+    "columna": "nombre",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "plantillas_email",
-    "column_name": "nombre",
-    "data_type": "text"
+    "tabla": "planes",
+    "columna": "descripcion",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "plantillas_email",
-    "column_name": "asunto",
-    "data_type": "text"
+    "tabla": "planes",
+    "columna": "precio",
+    "tipo_dato": "numeric",
+    "permite_null": "NO",
+    "valor_por_defecto": "0"
   },
   {
-    "table_name": "plantillas_email",
-    "column_name": "contenido_html",
-    "data_type": "text"
+    "tabla": "planes",
+    "columna": "moneda",
+    "tipo_dato": "character",
+    "permite_null": "NO",
+    "valor_por_defecto": "'USD'::bpchar"
   },
   {
-    "table_name": "plantillas_email",
-    "column_name": "contenido_texto",
-    "data_type": "text"
+    "tabla": "planes",
+    "columna": "intervalo",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": "'MONTH'::text"
   },
   {
-    "table_name": "plantillas_email",
-    "column_name": "activo",
-    "data_type": "boolean"
+    "tabla": "planes",
+    "columna": "max_documentos",
+    "tipo_dato": "integer",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "plantillas_email",
-    "column_name": "created_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "planes",
+    "columna": "max_usuarios",
+    "tipo_dato": "integer",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "plantillas_email",
-    "column_name": "updated_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "planes",
+    "columna": "max_estudiantes",
+    "tipo_dato": "integer",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "platform_admins",
-    "column_name": "id",
-    "data_type": "bigint"
+    "tabla": "planes",
+    "columna": "features",
+    "tipo_dato": "jsonb",
+    "permite_null": "NO",
+    "valor_por_defecto": "'{}'::jsonb"
   },
   {
-    "table_name": "platform_admins",
-    "column_name": "external_auth_id",
-    "data_type": "text"
+    "tabla": "planes",
+    "columna": "stripe_product_id",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "platform_admins",
-    "column_name": "is_active",
-    "data_type": "boolean"
+    "tabla": "planes",
+    "columna": "stripe_price_id",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "platform_admins",
-    "column_name": "created_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "planes",
+    "columna": "activo",
+    "tipo_dato": "boolean",
+    "permite_null": "NO",
+    "valor_por_defecto": "true"
   },
   {
-    "table_name": "platform_admins",
-    "column_name": "updated_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "planes",
+    "columna": "created_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "stripe_eventos",
-    "column_name": "id",
-    "data_type": "bigint"
+    "tabla": "planes",
+    "columna": "updated_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "stripe_eventos",
-    "column_name": "stripe_event_id",
-    "data_type": "text"
+    "tabla": "plantillas_email",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "stripe_eventos",
-    "column_name": "tipo_evento",
-    "data_type": "text"
+    "tabla": "plantillas_email",
+    "columna": "institucion_id",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "stripe_eventos",
-    "column_name": "payload",
-    "data_type": "jsonb"
+    "tabla": "plantillas_email",
+    "columna": "codigo",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "stripe_eventos",
-    "column_name": "procesado",
-    "data_type": "boolean"
+    "tabla": "plantillas_email",
+    "columna": "nombre",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "stripe_eventos",
-    "column_name": "procesado_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "plantillas_email",
+    "columna": "asunto",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "stripe_eventos",
-    "column_name": "error",
-    "data_type": "text"
+    "tabla": "plantillas_email",
+    "columna": "contenido_html",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "stripe_eventos",
-    "column_name": "created_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "plantillas_email",
+    "columna": "contenido_texto",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "suscripcion_historial",
-    "column_name": "id",
-    "data_type": "bigint"
+    "tabla": "plantillas_email",
+    "columna": "activo",
+    "tipo_dato": "boolean",
+    "permite_null": "NO",
+    "valor_por_defecto": "true"
   },
   {
-    "table_name": "suscripcion_historial",
-    "column_name": "suscripcion_id",
-    "data_type": "bigint"
+    "tabla": "plantillas_email",
+    "columna": "created_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "suscripcion_historial",
-    "column_name": "tipo_evento",
-    "data_type": "text"
+    "tabla": "plantillas_email",
+    "columna": "updated_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "suscripcion_historial",
-    "column_name": "plan_anterior_id",
-    "data_type": "bigint"
+    "tabla": "platform_admins",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "suscripcion_historial",
-    "column_name": "plan_nuevo_id",
-    "data_type": "bigint"
+    "tabla": "platform_admins",
+    "columna": "external_auth_id",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "suscripcion_historial",
-    "column_name": "estado_anterior",
-    "data_type": "text"
+    "tabla": "platform_admins",
+    "columna": "is_active",
+    "tipo_dato": "boolean",
+    "permite_null": "NO",
+    "valor_por_defecto": "true"
   },
   {
-    "table_name": "suscripcion_historial",
-    "column_name": "estado_nuevo",
-    "data_type": "text"
+    "tabla": "platform_admins",
+    "columna": "created_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "suscripcion_historial",
-    "column_name": "descripcion",
-    "data_type": "text"
+    "tabla": "platform_admins",
+    "columna": "updated_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "suscripcion_historial",
-    "column_name": "external_auth_id",
-    "data_type": "text"
+    "tabla": "stripe_eventos",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "suscripcion_historial",
-    "column_name": "created_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "stripe_eventos",
+    "columna": "stripe_event_id",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "suscripciones",
-    "column_name": "id",
-    "data_type": "bigint"
+    "tabla": "stripe_eventos",
+    "columna": "tipo_evento",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "suscripciones",
-    "column_name": "institucion_id",
-    "data_type": "bigint"
+    "tabla": "stripe_eventos",
+    "columna": "payload",
+    "tipo_dato": "jsonb",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "suscripciones",
-    "column_name": "plan_id",
-    "data_type": "bigint"
+    "tabla": "stripe_eventos",
+    "columna": "procesado",
+    "tipo_dato": "boolean",
+    "permite_null": "NO",
+    "valor_por_defecto": "false"
   },
   {
-    "table_name": "suscripciones",
-    "column_name": "estado",
-    "data_type": "text"
+    "tabla": "stripe_eventos",
+    "columna": "procesado_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "suscripciones",
-    "column_name": "fecha_inicio",
-    "data_type": "timestamp with time zone"
+    "tabla": "stripe_eventos",
+    "columna": "error",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "suscripciones",
-    "column_name": "fecha_vencimiento",
-    "data_type": "timestamp with time zone"
+    "tabla": "stripe_eventos",
+    "columna": "created_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   },
   {
-    "table_name": "suscripciones",
-    "column_name": "fecha_cancelacion",
-    "data_type": "timestamp with time zone"
+    "tabla": "suscripcion_historial",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "suscripciones",
-    "column_name": "cancelacion_programada",
-    "data_type": "boolean"
+    "tabla": "suscripcion_historial",
+    "columna": "suscripcion_id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "suscripciones",
-    "column_name": "stripe_subscription_id",
-    "data_type": "text"
+    "tabla": "suscripcion_historial",
+    "columna": "tipo_evento",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "suscripciones",
-    "column_name": "stripe_customer_id",
-    "data_type": "text"
+    "tabla": "suscripcion_historial",
+    "columna": "plan_anterior_id",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "suscripciones",
-    "column_name": "auto_renovacion",
-    "data_type": "boolean"
+    "tabla": "suscripcion_historial",
+    "columna": "plan_nuevo_id",
+    "tipo_dato": "bigint",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "suscripciones",
-    "column_name": "periodo_prueba_inicio",
-    "data_type": "timestamp with time zone"
+    "tabla": "suscripcion_historial",
+    "columna": "estado_anterior",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "suscripciones",
-    "column_name": "periodo_prueba_fin",
-    "data_type": "timestamp with time zone"
+    "tabla": "suscripcion_historial",
+    "columna": "estado_nuevo",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "suscripciones",
-    "column_name": "created_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "suscripcion_historial",
+    "columna": "descripcion",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   },
   {
-    "table_name": "suscripciones",
-    "column_name": "updated_at",
-    "data_type": "timestamp with time zone"
+    "tabla": "suscripcion_historial",
+    "columna": "external_auth_id",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
+  },
+  {
+    "tabla": "suscripcion_historial",
+    "columna": "created_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
+  },
+  {
+    "tabla": "suscripciones",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
+  },
+  {
+    "tabla": "suscripciones",
+    "columna": "institucion_id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
+  },
+  {
+    "tabla": "suscripciones",
+    "columna": "plan_id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
+  },
+  {
+    "tabla": "suscripciones",
+    "columna": "estado",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": "'TRIAL'::text"
+  },
+  {
+    "tabla": "suscripciones",
+    "columna": "fecha_inicio",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "YES",
+    "valor_por_defecto": null
+  },
+  {
+    "tabla": "suscripciones",
+    "columna": "fecha_vencimiento",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "YES",
+    "valor_por_defecto": null
+  },
+  {
+    "tabla": "suscripciones",
+    "columna": "fecha_cancelacion",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "YES",
+    "valor_por_defecto": null
+  },
+  {
+    "tabla": "suscripciones",
+    "columna": "cancelacion_programada",
+    "tipo_dato": "boolean",
+    "permite_null": "NO",
+    "valor_por_defecto": "false"
+  },
+  {
+    "tabla": "suscripciones",
+    "columna": "stripe_subscription_id",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
+  },
+  {
+    "tabla": "suscripciones",
+    "columna": "stripe_customer_id",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
+  },
+  {
+    "tabla": "suscripciones",
+    "columna": "auto_renovacion",
+    "tipo_dato": "boolean",
+    "permite_null": "NO",
+    "valor_por_defecto": "true"
+  },
+  {
+    "tabla": "suscripciones",
+    "columna": "periodo_prueba_inicio",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "YES",
+    "valor_por_defecto": null
+  },
+  {
+    "tabla": "suscripciones",
+    "columna": "periodo_prueba_fin",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "YES",
+    "valor_por_defecto": null
+  },
+  {
+    "tabla": "suscripciones",
+    "columna": "created_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
+  },
+  {
+    "tabla": "suscripciones",
+    "columna": "updated_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
+  },
+  {
+    "tabla": "suscripciones",
+    "columna": "stripe_price_id",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
+  },
+  {
+    "tabla": "suscripciones",
+    "columna": "periodo_actual_inicio",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "YES",
+    "valor_por_defecto": null
+  },
+  {
+    "tabla": "suscripciones",
+    "columna": "periodo_actual_fin",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "YES",
+    "valor_por_defecto": null
   }
 ]

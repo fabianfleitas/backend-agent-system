@@ -27,8 +27,8 @@ No asumir que los mocks actuales satisfacen los requisitos funcionales.
 - **Storage real (Supabase Storage):** archivos subidos guardados en `SUPABASE_STORAGE_BUCKET_DOCUMENTS` y `SUPABASE_STORAGE_BUCKET_AUDIO` con prefijo institucional (`{institucion_id}/documents/`, `{institucion_id}/audio/`), no solo `storage/` local. Metadatos y trazabilidad en Supabase.
 - **Billing / Stripe:** endpoints administrativos (`/api/admin/stripe/*`) y webhook (`/api/billing/stripe/webhook`) implementados con integración real a Stripe; persistencia real en Supabase (`suscripciones`, `pagos`, `comprobantes`, `stripe_eventos`); `subscription_data` con metadata institucional; alignment de checks DB (`003_billing_estado_checks.sql`).
 - **Gestión documental:** carga de PDFs, versionado y reindexacion con extraccion/indexacion local o embeddings reales segun `EMBEDDINGS_ENABLED`; categorías aisladas por institución (`categorias.institucion_id`); validación de categoría al crear documento.
-- **FASE A-H implementadas:** B (Auth Supabase + RBAC), A (aislamiento multi-institución), D (RAG aislado por institución), E (conversaciones/voz), C (documental con categorías), F (audit/PII) parcial, G (billing/Stripe: checkout, suscripción, webhook, persistencia real) completada; H (dashboard) pendiente.
-- **Modelo SQL objetivo:** `migrations/001_multi_institution.sql`; esquema completo en `all_tables.json` (no `tables.sql` que no existe).
+- **FASE A-H implementadas:** B (Auth Supabase + RBAC), A (aislamiento multi-institución), D (RAG aislado por institución), E (conversaciones/voz), C (documental con categorías), F (audit/PII) implementada (ver PII/anonimización más abajo), G (billing/Stripe: checkout, suscripción, webhook, persistencia real) completada; H (dashboard) pendiente.
+- **Modelo SQL objetivo:** `migrations/001_multi_institution.sql`; esquema completo en `all_tables.json` (documentos antiguos `requisitos.md`, `modelo_inicial_datos.md` archivados o descartados; `tables.sql` no existe en esta versión).
 - **RAG parcial real:** recuperacion de contexto real en `chat/query` (retrieval de chunks + trazabilidad en `message_documents`); generacion de respuesta real via OpenRouter cuando `LLM_ENABLED=true`; `chat/voice` transcribe real via STT cuando `STT_ENABLED=true` y alimenta esa transcripcion al mismo pipeline RAG+OpenRouter (tag `[voice]` en audit); sintetiza respuesta a audio real via TTS (`/audio/speech`, OpenRouter) cuando `TTS_ENABLED=true` con degradacion graceful si falla; si STT esta off, voz es mock
 - **Gestion documental real parcial:** carga de PDFs, versionado y reindexacion con extraccion/indexacion local o embeddings reales segun `EMBEDDINGS_ENABLED`
 - **Procesamiento asincrono:** no implementado; `Celery`/`Redis` aun no existen en el codigo
@@ -36,7 +36,7 @@ No asumir que los mocks actuales satisfacen los requisitos funcionales.
 
 ## Arquitectura objetivo
 
-Segun `requisitos.md`, `modelo_inicial_datos.md` y `tables.sql`, el sistema debe evolucionar hacia:
+Segun `migrations/001_multi_institution.sql` y `all_tables.json`, el sistema debe evolucionar hacia:
 
 - **RAG desde el inicio:** indexacion documental, embeddings, recuperacion de contexto y prompts contextualizados
 - **Persistencia real:** historial permanente, audios, documentos, auditoria, feedback y embeddings
@@ -142,11 +142,12 @@ Notas:
 - `chat/voice` transcribe real el audio via STT cuando `STT_ENABLED=true` (cliente compatible OpenAI apuntando a `OPENROUTER_BASE_URL` con `OPENROUTER_API_KEY`; endpoint `POST /audio/transcriptions`; modelo default `stt_model=x-ai/grok-stt-1.0`, `stt_response_format=verbose_json` configurable). Si `STT_ENABLED=false` la transcripcion es mock. Con `STT_ENABLED=true` la transcripcion se alimenta al mismo pipeline RAG+OpenRouter de `chat/query` (respuesta real, guard de dominio o fallback; tag `[voice]` en `observaciones`); con `STT_ENABLED=false` la respuesta queda mock. Con `TTS_ENABLED=true` la respuesta se sintetiza a audio via `/audio/speech` de OpenRouter (modelo `tts_model` default `hexgrad/kokoro-82m`, voz `tts_voice` default `ef_dora`, formato `tts_response_format`) guardado en `ruta_audio_respuesta`; si TTS falla, degradacion graceful con nota `TTS_FAILED` en `observaciones`.
 - `admin/documents` persiste archivos en disco y metadatos en Supabase; si `EMBEDDINGS_ENABLED=false` extrae texto localmente y si esta activo indexa chunks y embeddings.
 - `admin/reindex` reindexa versiones activas con `IndexingService`; no es solo un cambio de estado mock.
-- `GET /admin/config`, `PUT /admin/config/{clave}` (configuración operativa institucional + global; `editable_desde_dashboard`; precedencia institucional > global)
-- `GET /admin/subscription`, `GET /admin/plan`, `GET /admin/pagos`, `GET /admin/comprobantes` (billing lectura, aislamiento por institución)
+- `GET /api/admin/config`, `PUT /api/admin/config/{clave}` (configuración operativa institucional + global; `editable_desde_dashboard`; precedencia institucional > global)
+- `GET /api/admin/subscription`, `GET /api/admin/plan`, `GET /api/admin/pagos`, `GET /api/admin/comprobantes` (billing lectura, aislamiento por institución)
 - `GET /platform/institutions`, `POST /platform/institutions/{id}/members`, `DELETE /platform/institutions/{id}/members/{member_id}`, `GET /platform/users`, `GET /platform/metrics`, `GET /platform/audit`, `GET /platform/plans`, `GET /platform/subscriptions`, `GET /platform/pagos`, `GET /platform/comprobantes` (administración global)
 - `admin/users` lista usuarios de Supabase mediante `UsersRepository` (ahora con `institucion_id`, `tipo_membro`, `is_platform_admin`, `nombre_institucion`).
 - `admin/metrics` expone metricas IA agregadas desde `audit_logs` y `message_documents` (outcomes LLM/GUARD/LLM_FAILED, rates, tokens por modelo, avg similarity de retrieval, split voice/text).
+- **PII/anonimización:** con `PII_ANONYMIZATION_ENABLED=true` (o `config_parametros.pii_anonymization_enabled`, precedencia institucional > global), `chat/query` y `chat/voice` anonimizan la pregunta antes de retrieval/LLM (Presidio NER `pii_nlp_model` default `es_core_news_md` + formatos locales cédula/teléfono + self-PII del perfil; tokens `[PII_TIPO_N]`; mappings en `pii_mappings` con `audit_id` y `expires_at` TTL). El texto anonimizado llega al proveedor; el original queda en `contenido_anonimizado`/`pregunta_anonimizada` y en `pii_mappings`. Si el detector no esta disponible y la politica esta ON, el flujo falla cerrado (`LLM_UNAVAILABLE_MESSAGE`, observaciones `PII_UNAVAILABLE`, sin llamadas externas). Config: `PII_MAPPING_RETENTION_DAYS` (default 90), `PII_NLP_MODEL`, `PII_LANGUAGE`; purga TTL con `scripts/purge_pii_mappings.py`. Ver §5 en `TODO_BACKEND_CIERRE_MULTIINSTITUCION.md`.
 - El contrato para frontend esta documentado en `FRONTEND_API_INTEGRATION.md`.
 
 ## Persistencia actual vs objetivo
@@ -176,7 +177,7 @@ El modelo esperado incluye al menos estas entidades conceptuales:
 - log_auditoria
 - pii_mapping
 
-Usar `migrations/001_multi_institution.sql` y `all_tables.json` como guia funcional (documentos antiguos `requisitos.md`, `modelo_inicial_datos.md` movidos a `borrar/`).
+Usar `migrations/001_multi_institution.sql` y `all_tables.json` como guia funcional (documentos antiguos `requisitos.md`, `modelo_inicial_datos.md` archivados; `borrar/` no existe).
 
 ## Estructura relevante
 
@@ -194,7 +195,6 @@ Usar `migrations/001_multi_institution.sql` y `all_tables.json` como guia funcio
 - `app/services/system_service.py`: readiness de sistema
 - `app/utils/files.py`: helpers seguros para escritura y rutas
 - `FRONTEND_API_INTEGRATION.md`: guia para consumo desde frontend
-- `tables.sql`: esquema objetivo Supabase/PostgreSQL/pgvector
 
 ## Convenciones
 
@@ -218,6 +218,7 @@ Usar `migrations/001_multi_institution.sql` y `all_tables.json` como guia funcio
 - `pydantic-settings`
 - `supabase`
 - `openai` (embeddings, STT, TTS y cliente OpenRouter)
+- `presidio-analyzer` (detección NER PII) — requiere modelo spaCy: `python -m spacy download es_core_news_md`
 
 ### Objetivo futuro
 

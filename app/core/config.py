@@ -77,8 +77,18 @@ class Settings(BaseSettings):
 
     indexing_insert_batch_size: int = 100
 
+    rate_limit_enabled: bool = True
+    rate_limit_default_limit: int = 300
+    rate_limit_default_window_seconds: int = 60
+    rate_limit_rules: str = "/api/chat/query:20:60,/api/chat/voice:10:60,/api/chat/feedback:30:60,/api/admin/documents:30:60,/api/admin/reindex:10:60,/api/admin/stripe:10:60"
+
     retrieval_similarity_threshold: float = 0.30
     retrieval_match_count: int = 5
+
+    pii_anonymization_enabled: bool = False
+    pii_mapping_retention_days: int = 90
+    pii_nlp_model: str = "es_core_news_md"
+    pii_language: str = "es"
 
     @property
     def supabase_project_url(self) -> Optional[str]:

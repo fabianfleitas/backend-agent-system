@@ -1,0 +1,369 @@
+app_users
+-
+id bigint PK
+external_auth_id varchar UQ
+email varchar
+full_name varchar
+role varchar
+is_active boolean
+created_at timestamp
+updated_at timestamp
+
+instituciones
+-
+id bigint PK
+nombre varchar
+nombre_comercial varchar
+codigo varchar UQ
+email_contacto varchar
+telefono_contacto varchar
+direccion varchar
+ciudad varchar
+pais varchar
+activo boolean
+stripe_customer_id varchar UQ
+created_at timestamp
+updated_at timestamp
+
+categorias
+-
+id bigint PK
+nombre varchar UQ
+descripcion text
+activo boolean
+fecha_creacion timestamp
+updated_at timestamp
+institucion_id bigint FK >- instituciones.id
+orden int
+fecha_baja timestamp
+
+documentos
+-
+id bigint PK
+categoria_id bigint FK >- categorias.id
+codigo_documento varchar UQ
+titulo varchar
+descripcion text
+activo boolean
+fecha_creacion timestamp
+updated_at timestamp
+institucion_id bigint FK >- instituciones.id
+
+documento_versiones
+-
+id bigint PK
+documento_id bigint FK >- documentos.id
+numero_version int
+ruta_archivo varchar
+storage_bucket varchar
+original_filename varchar
+mime_type varchar
+file_size_bytes bigint
+status varchar
+es_version_activa boolean
+texto_extraido text
+total_chunks int
+embedding_model varchar
+indexed_at timestamp
+error_message text
+fecha_carga timestamp
+cargado_por_external_auth_id varchar FK >- app_users.external_auth_id
+updated_at timestamp
+
+document_chunks
+-
+id bigint PK
+documento_version_id bigint FK >- documento_versiones.id
+chunk_index int
+page_number int
+chunk_text text
+token_count int
+created_at timestamp
+
+document_embeddings
+-
+id bigint PK
+chunk_id bigint FK >- document_chunks.id
+embedding text
+embedding_model varchar
+created_at timestamp
+
+institucion_miembros
+-
+id bigint PK
+institucion_id bigint FK >- instituciones.id
+external_auth_id varchar FK >- app_users.external_auth_id
+tipo_miembro varchar
+activo boolean
+fecha_ingreso timestamp
+fecha_salida timestamp
+created_at timestamp
+updated_at timestamp
+
+conversaciones
+-
+id bigint PK
+external_auth_id varchar FK >- app_users.external_auth_id
+title varchar
+hidden boolean
+last_interaction timestamp
+fecha_creacion timestamp
+updated_at timestamp
+institucion_id bigint FK >- instituciones.id
+
+mensajes
+-
+id bigint PK
+conversacion_id bigint FK >- conversaciones.id
+external_auth_id varchar FK >- app_users.external_auth_id
+rol_mensaje varchar
+contenido_texto text
+proveedor_ia varchar
+modelo_ia varchar
+temperatura decimal
+tokens_input int
+tokens_output int
+tiempo_respuesta_ms int
+audit_id uuid FK >- audit_logs.id
+fecha_envio timestamp
+contenido_anonimizado text
+
+audit_logs
+-
+id uuid PK
+conversacion_id bigint FK >- conversaciones.id
+mensaje_id bigint FK >- mensajes.id
+external_auth_id varchar FK >- app_users.external_auth_id
+pregunta_original text
+pregunta_anonimizada text
+respuesta_texto text
+proveedor_ia varchar
+modelo_ia varchar
+embedding_model varchar
+tokens_input int
+tokens_output int
+tiempo_respuesta_ms int
+score_fidelidad decimal
+score_relevancia decimal
+score_contexto decimal
+observaciones text
+fecha_evaluacion timestamp
+institucion_id bigint FK >- instituciones.id
+
+message_documents
+-
+id bigint PK
+mensaje_id bigint FK >- mensajes.id
+audit_id uuid FK >- audit_logs.id
+documento_id bigint FK >- documentos.id
+documento_version_id bigint FK >- documento_versiones.id
+chunk_id bigint FK >- document_chunks.id
+similarity_score decimal
+page_number int
+fecha_creacion timestamp
+
+feedback
+-
+id bigint PK
+message_id bigint FK >- mensajes.id
+audit_id uuid FK >- audit_logs.id
+external_auth_id varchar FK >- app_users.external_auth_id
+rating int
+comment text
+created_at timestamp
+institucion_id bigint FK >- instituciones.id
+
+audio_interactions
+-
+id bigint PK
+conversacion_id bigint FK >- conversaciones.id
+mensaje_id bigint FK >- mensajes.id
+external_auth_id varchar FK >- app_users.external_auth_id
+ruta_audio_original varchar
+ruta_audio_respuesta varchar
+transcripcion text
+transcription_model varchar
+duracion_segundos decimal
+formato_audio varchar
+tamano_bytes bigint
+fecha_creacion timestamp
+institucion_id bigint FK >- instituciones.id
+
+pii_mappings
+-
+id bigint PK
+audit_id uuid FK >- audit_logs.id
+external_auth_id varchar FK >- app_users.external_auth_id
+token varchar
+pii_type varchar
+original_value text
+created_at timestamp
+institucion_id bigint FK >- instituciones.id
+expires_at timestamp
+
+planes
+-
+id bigint PK
+codigo varchar UQ
+nombre varchar
+descripcion text
+precio decimal
+moneda varchar
+intervalo varchar
+max_documentos int
+max_usuarios int
+max_estudiantes int
+features text
+stripe_product_id varchar UQ
+stripe_price_id varchar UQ
+activo boolean
+created_at timestamp
+updated_at timestamp
+
+suscripciones
+-
+id bigint PK
+institucion_id bigint FK >- instituciones.id
+plan_id bigint FK >- planes.id
+estado varchar
+fecha_inicio timestamp
+fecha_vencimiento timestamp
+fecha_cancelacion timestamp
+cancelacion_programada boolean
+stripe_subscription_id varchar UQ
+stripe_customer_id varchar
+auto_renovacion boolean
+periodo_prueba_inicio timestamp
+periodo_prueba_fin timestamp
+created_at timestamp
+updated_at timestamp
+stripe_price_id varchar
+periodo_actual_inicio timestamp
+periodo_actual_fin timestamp
+
+suscripcion_historial
+-
+id bigint PK
+suscripcion_id bigint FK >- suscripciones.id
+tipo_evento varchar
+plan_anterior_id bigint FK >- planes.id
+plan_nuevo_id bigint FK >- planes.id
+estado_anterior varchar
+estado_nuevo varchar
+descripcion text
+external_auth_id varchar FK >- app_users.external_auth_id
+created_at timestamp
+
+pagos
+-
+id bigint PK
+institucion_id bigint FK >- instituciones.id
+suscripcion_id bigint FK >- suscripciones.id
+importe decimal
+moneda varchar
+estado varchar
+proveedor varchar
+stripe_payment_intent_id varchar UQ
+stripe_checkout_session_id varchar UQ
+stripe_charge_id varchar
+idempotency_key varchar UQ
+descripcion text
+fecha_pago timestamp
+created_at timestamp
+updated_at timestamp
+stripe_invoice_id varchar
+
+stripe_eventos
+-
+id bigint PK
+stripe_event_id varchar UQ
+tipo_evento varchar
+payload text
+procesado boolean
+procesado_at timestamp
+error text
+created_at timestamp
+
+comprobantes
+-
+id bigint PK
+institucion_id bigint FK >- instituciones.id
+pago_id bigint FK >- pagos.id
+tipo_comprobante varchar
+numero varchar
+estado varchar
+importe decimal
+moneda varchar
+archivo_path varchar
+proveedor varchar
+referencia_externa varchar
+fecha_emision timestamp
+created_at timestamp
+
+notificaciones
+-
+id bigint PK
+institucion_id bigint FK >- instituciones.id
+suscripcion_id bigint FK >- suscripciones.id
+tipo varchar
+canal varchar
+destinatario varchar
+asunto varchar
+contenido text
+estado varchar
+fecha_programada timestamp
+fecha_envio timestamp
+error text
+clave_idempotencia varchar UQ
+created_at timestamp
+datos text
+
+configuracion_smtp
+-
+id bigint PK
+institucion_id bigint FK >- instituciones.id
+servidor varchar
+puerto int
+cifrado varchar
+usuario varchar
+password_secret_ref varchar
+correo_remitente varchar
+nombre_remitente varchar
+timeout_segundos int
+activo boolean
+created_at timestamp
+updated_at timestamp
+
+plantillas_email
+-
+id bigint PK
+institucion_id bigint FK >- instituciones.id
+codigo varchar
+nombre varchar
+asunto varchar
+contenido_html text
+contenido_texto text
+activo boolean
+created_at timestamp
+updated_at timestamp
+
+platform_admins
+-
+id bigint PK
+external_auth_id varchar FK >- app_users.external_auth_id
+is_active boolean
+created_at timestamp
+updated_at timestamp
+
+config_parametros
+-
+id bigint PK
+institucion_id bigint FK >- instituciones.id
+clave varchar
+valor varchar
+tipo varchar
+descripcion text
+editable_desde_dashboard boolean
+activo boolean
+created_at timestamp
+updated_at timestamp

@@ -28,3 +28,9 @@ def make_auth(
 
 def override_auth(app: FastAPI, auth: AuthContext) -> None:
     app.dependency_overrides[get_auth_context] = lambda: auth
+
+
+def pytest_configure(config):
+    from app.core.config import settings
+    # Desactivar rate limit por defecto en suite; los tests específicos lo activan
+    settings.rate_limit_enabled = False

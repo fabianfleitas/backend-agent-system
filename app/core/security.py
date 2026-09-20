@@ -144,6 +144,10 @@ def get_admin_auth(auth: AuthContext = Depends(get_auth_context)) -> AuthContext
     return require_institution_admin(auth)
 
 
+def get_platform_admin_auth(auth: AuthContext = Depends(get_auth_context)) -> AuthContext:
+    return require_platform_admin(auth)
+
+
 def require_platform_admin(auth: AuthContext) -> AuthContext:
     if not auth.is_platform_admin:
         raise HTTPException(

@@ -22,6 +22,7 @@ class MessagesRepository:
         tokens_output: Optional[int] = None,
         tiempo_respuesta_ms: Optional[float] = None,
         audit_id: Optional[str] = None,
+        contenido_anonimizado: Optional[str] = None,
     ) -> dict:
         response = (
             self.client.table("mensajes")
@@ -31,6 +32,7 @@ class MessagesRepository:
                     "external_auth_id": external_auth_id,
                     "rol_mensaje": role,
                     "contenido_texto": content,
+                    "contenido_anonimizado": contenido_anonimizado,
                     "proveedor_ia": proveedor_ia,
                     "modelo_ia": modelo_ia,
                     "temperatura": temperatura,

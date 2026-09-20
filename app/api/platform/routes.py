@@ -5,7 +5,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.api.admin.routes import _audit_out, get_admin_auth
-from app.core.security import AuthContext, get_auth_context, require_platform_admin
+from app.core.security import AuthContext, get_auth_context, get_platform_admin_auth, require_platform_admin
 from app.repositories.audit_repository import AuditRepository
 from app.schemas.admin import InstitutionOut, MemberIn, MemberOut, PlanOut, SubscriptionOut, PagoOut, ComprobanteOut
 from app.schemas.common import AuditLogOut, PaginatedResponse, PaginationMeta, UserOut
@@ -19,6 +19,25 @@ router = APIRouter()
 
 def _get_plat_service() -> PlatformService:
     return PlatformService()
+
+
+def _plan_out(p: dict) -> PlanOut:
+    return PlanOut(
+        id=p.get("id"),
+        codigo=p.get("codigo"),
+        nombre=p.get("nombre") or "",
+        descripcion=p.get("descripcion"),
+        precio=p.get("precio"),
+        moneda=p.get("moneda"),
+        intervalo=p.get("intervalo"),
+        max_documentos=p.get("max_documentos"),
+        max_usuarios=p.get("max_usuarios"),
+        max_estudiantes=p.get("max_estudiantes"),
+        features=p.get("features") if isinstance(p.get("features"), dict) else None,
+        activo=p.get("activo", True),
+        created_at=str(p.get("created_at")) if p.get("created_at") else None,
+        updated_at=str(p.get("updated_at")) if p.get("updated_at") else None,
+    )
 
 
 def _institution_out(i: dict) -> InstitutionOut:
@@ -41,7 +60,7 @@ def _institution_out(i: dict) -> InstitutionOut:
 
 @router.get("/institutions", response_model=list[InstitutionOut])
 def list_institutions(
-    auth: AuthContext = Depends(require_platform_admin),
+    auth: AuthContext = Depends(get_platform_admin_auth),
     activo: bool = Query(default=True),
     service: PlatformService = Depends(_get_plat_service),
 ) -> list[InstitutionOut]:
@@ -52,7 +71,7 @@ def list_institutions(
 @router.get("/institutions/{institucion_id}", response_model=InstitutionOut)
 def get_institution(
     institucion_id: int,
-    auth: AuthContext = Depends(require_platform_admin),
+    auth: AuthContext = Depends(get_platform_admin_auth),
     service: PlatformService = Depends(_get_plat_service),
 ) -> InstitutionOut:
     row = service.get_institution(institucion_id)
@@ -64,7 +83,7 @@ def get_institution(
 @router.get("/institutions/{institucion_id}/members", response_model=list[MemberOut])
 def list_members(
     institucion_id: int,
-    auth: AuthContext = Depends(require_platform_admin),
+    auth: AuthContext = Depends(get_platform_admin_auth),
     service: PlatformService = Depends(_get_plat_service),
 ) -> list[MemberOut]:
     rows = service.list_members(institucion_id)
@@ -86,7 +105,7 @@ def list_members(
 def add_member(
     institucion_id: int,
     payload: MemberIn,
-    auth: AuthContext = Depends(require_platform_admin),
+    auth: AuthContext = Depends(get_platform_admin_auth),
     service: PlatformService = Depends(_get_plat_service),
 ) -> MemberOut:
     try:
@@ -106,7 +125,7 @@ def add_member(
 def deactivate_member(
     institucion_id: int,
     member_id: int,
-    auth: AuthContext = Depends(require_platform_admin),
+    auth: AuthContext = Depends(get_platform_admin_auth),
     service: PlatformService = Depends(_get_plat_service),
 ) -> None:
     service.deactivate_member(member_id)
@@ -114,7 +133,7 @@ def deactivate_member(
 
 @router.get("/users", response_model=PaginatedResponse[UserOut])
 def list_users(
-    auth: AuthContext = Depends(require_platform_admin),
+    auth: AuthContext = Depends(get_platform_admin_auth),
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     service: PlatformService = Depends(_get_plat_service),
@@ -130,7 +149,7 @@ def list_users(
 
 @router.get("/metrics", response_model=MetricsOut)
 def get_metrics(
-    auth: AuthContext = Depends(require_platform_admin),
+    auth: AuthContext = Depends(get_platform_admin_auth),
     desde: Optional[str] = Query(default=None),
     hasta: Optional[str] = Query(default=None),
     categoria_id: Optional[int] = Query(default=None),
@@ -144,7 +163,7 @@ def get_metrics(
 
 @router.get("/audit", response_model=PaginatedResponse[AuditLogOut])
 def get_audit(
-    auth: AuthContext = Depends(require_platform_admin),
+    auth: AuthContext = Depends(get_platform_admin_auth),
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     desde: Optional[str] = Query(default=None),
@@ -164,7 +183,7 @@ def get_audit(
 # --- Billing lectura global (platform) ---
 @router.get("/plans", response_model=list[PlanOut])
 def list_plans(
-    auth: AuthContext = Depends(require_platform_admin),
+    auth: AuthContext = Depends(get_platform_admin_auth),
     service: PlatformService = Depends(_get_plat_service),
 ) -> list[PlanOut]:
     from app.repositories.billing_repository import BillingRepository
@@ -191,7 +210,7 @@ def list_plans(
 
 @router.get("/subscriptions", response_model=PaginatedResponse[SubscriptionOut])
 def list_subscriptions_platform(
-    auth: AuthContext = Depends(require_platform_admin),
+    auth: AuthContext = Depends(get_platform_admin_auth),
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     service: PlatformService = Depends(_get_plat_service),
@@ -216,7 +235,7 @@ def list_subscriptions_platform(
                 periodo_prueba_fin=str(r.get("periodo_prueba_fin")) if r.get("periodo_prueba_fin") else None,
                 stripe_subscription_id=r.get("stripe_subscription_id"),
                 stripe_customer_id=r.get("stripe_customer_id"),
-                plan=None,
+                plan=_plan_out(r.get("planes")) if isinstance(r.get("planes"), dict) else None,
                 created_at=str(r.get("created_at")) if r.get("created_at") else None,
                 updated_at=str(r.get("updated_at")) if r.get("updated_at") else None,
             ) for r in page
@@ -227,7 +246,7 @@ def list_subscriptions_platform(
 
 @router.get("/pagos", response_model=PaginatedResponse[PagoOut])
 def list_pagos_platform(
-    auth: AuthContext = Depends(require_platform_admin),
+    auth: AuthContext = Depends(get_platform_admin_auth),
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     service: PlatformService = Depends(_get_plat_service),
@@ -257,7 +276,7 @@ def list_pagos_platform(
 
 @router.get("/comprobantes", response_model=PaginatedResponse[ComprobanteOut])
 def list_comprobantes_platform(
-    auth: AuthContext = Depends(require_platform_admin),
+    auth: AuthContext = Depends(get_platform_admin_auth),
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     service: PlatformService = Depends(_get_plat_service),
