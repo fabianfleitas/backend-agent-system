@@ -46,6 +46,9 @@ class ConversationsService:
     def list_conversations(self, external_auth_id: str, include_hidden: bool, institucion_id: int) -> list[dict]:
         return self.conversations_repository.list_conversations(external_auth_id, include_hidden, institucion_id)
 
+    def list_institution_conversations(self, institucion_id: int, include_hidden: bool = False) -> list[dict]:
+        return self.conversations_repository.list_by_institution(institucion_id, include_hidden)
+
     def hide_conversation(self, external_auth_id: str, conversation_id: int, institucion_id: int) -> Optional[dict]:
         return self.conversations_repository.hide_conversation(external_auth_id, conversation_id, institucion_id)
 

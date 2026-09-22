@@ -1,6 +1,40 @@
 {
   "components": {
     "schemas": {
+      "AdminConversationOut": {
+        "properties": {
+          "external_auth_id": {
+            "title": "External Auth Id",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "last_interaction": {
+            "format": "date-time",
+            "title": "Last Interaction",
+            "type": "string"
+          },
+          "message_count": {
+            "title": "Message Count",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "last_interaction",
+          "message_count",
+          "external_auth_id"
+        ],
+        "title": "AdminConversationOut",
+        "type": "object"
+      },
       "AdminFeedbackOut": {
         "properties": {
           "audit_id": {
@@ -2272,6 +2306,26 @@
         "title": "NotificationOut",
         "type": "object"
       },
+      "PaginatedResponse_AdminConversationOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AdminConversationOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ],
+        "title": "PaginatedResponse[AdminConversationOut]",
+        "type": "object"
+      },
       "PaginatedResponse_AdminFeedbackOut_": {
         "properties": {
           "items": {
@@ -2905,6 +2959,70 @@
           "nombre"
         ],
         "title": "PlanOut",
+        "type": "object"
+      },
+      "PlatformAdminIn": {
+        "properties": {
+          "external_auth_id": {
+            "title": "External Auth Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "external_auth_id"
+        ],
+        "title": "PlatformAdminIn",
+        "type": "object"
+      },
+      "PlatformAdminOut": {
+        "properties": {
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "external_auth_id": {
+            "title": "External Auth Id",
+            "type": "string"
+          },
+          "full_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Name"
+          },
+          "is_active": {
+            "default": true,
+            "title": "Is Active",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "external_auth_id"
+        ],
+        "title": "PlatformAdminOut",
         "type": "object"
       },
       "ReadyOut": {
@@ -3786,6 +3904,51 @@
         "title": "SubscriptionOut",
         "type": "object"
       },
+      "UserCreateIn": {
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "external_auth_id": {
+            "title": "External Auth Id",
+            "type": "string"
+          },
+          "full_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Name"
+          },
+          "institucion_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Institucion Id"
+          },
+          "tipo_miembro": {
+            "default": "ESTUDIANTE",
+            "title": "Tipo Miembro",
+            "type": "string"
+          }
+        },
+        "required": [
+          "external_auth_id",
+          "email"
+        ],
+        "title": "UserCreateIn",
+        "type": "object"
+      },
       "UserOut": {
         "properties": {
           "created_at": {
@@ -4566,6 +4729,88 @@
         ]
       }
     },
+    "/api/admin/conversations": {
+      "get": {
+        "operationId": "list_admin_conversations_api_admin_conversations_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "include_hidden",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Hidden",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse_AdminConversationOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Admin Conversations",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/api/admin/documents": {
       "get": {
         "operationId": "list_documents_api_admin_documents_get",
@@ -4804,6 +5049,62 @@
           }
         },
         "summary": "Get Document",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/admin/documents/{documento_id}/download": {
+      "get": {
+        "operationId": "download_document_api_admin_documents__documento_id__download_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "documento_id",
+            "required": true,
+            "schema": {
+              "title": "Documento Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Download Document",
         "tags": [
           "admin"
         ]
@@ -5221,6 +5522,57 @@
           }
         },
         "summary": "List Feedback",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/admin/feedback/{feedback_id}": {
+      "delete": {
+        "operationId": "deactivate_feedback_api_admin_feedback__feedback_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "feedback_id",
+            "required": true,
+            "schema": {
+              "title": "Feedback Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Deactivate Feedback",
         "tags": [
           "admin"
         ]
@@ -7126,6 +7478,167 @@
         ]
       }
     },
+    "/api/platform/admins": {
+      "get": {
+        "operationId": "list_platform_admins_api_platform_admins_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PlatformAdminOut"
+                  },
+                  "title": "Response List Platform Admins Api Platform Admins Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Platform Admins",
+        "tags": [
+          "platform"
+        ]
+      },
+      "post": {
+        "operationId": "grant_platform_admin_api_platform_admins_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformAdminIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformAdminOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Grant Platform Admin",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/api/platform/admins/{external_auth_id}": {
+      "delete": {
+        "operationId": "revoke_platform_admin_api_platform_admins__external_auth_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "external_auth_id",
+            "required": true,
+            "schema": {
+              "title": "External Auth Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke Platform Admin",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
     "/api/platform/audit": {
       "get": {
         "operationId": "get_audit_api_platform_audit_get",
@@ -8524,6 +9037,114 @@
           }
         },
         "summary": "List Users",
+        "tags": [
+          "platform"
+        ]
+      },
+      "post": {
+        "operationId": "create_user_api_platform_users_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create User",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/api/platform/users/{external_auth_id}": {
+      "delete": {
+        "operationId": "deactivate_user_api_platform_users__external_auth_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "external_auth_id",
+            "required": true,
+            "schema": {
+              "title": "External Auth Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Deactivate User",
         "tags": [
           "platform"
         ]

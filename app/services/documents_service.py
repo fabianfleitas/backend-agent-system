@@ -100,6 +100,32 @@ class DocumentsService:
         versions = document.get("documento_versiones") or []
         return document, versions
 
+    def download_original(self, documento_id: int, auth: AuthContext) -> Optional[tuple[bytes, str, str, str]]:
+        """Descarga el PDF original de la versión activa del documento (aislado por institución).
+
+        Returns: (bytes, original_filename, mime_type, ruta_archivo) o None si el documento
+        no pertenece a la institución o no tiene versión activa.
+        """
+        document = self.documents_repository.get_document_by_id(documento_id, institucion_id=auth.institucion_id)
+        if not document:
+            return None
+        version = _active_version(document.get("documento_versiones") or [])
+        if not version:
+            return None
+        try:
+            content = self.storage_repository.download_document(version["ruta_archivo"])
+        except Exception:
+            logger.warning(
+                "Download failed documento_id=%s version_id=%s path=%s",
+                documento_id,
+                version.get("id"),
+                version.get("ruta_archivo"),
+            )
+            return None
+        filename = version.get("original_filename") or f"documento_{documento_id}.pdf"
+        mime_type = version.get("mime_type") or "application/pdf"
+        return content, filename, mime_type, version["ruta_archivo"]
+
     def deactivate_document(self, documento_id: int, auth: AuthContext) -> Optional[tuple[dict, Optional[dict]]]:
         doc = self.documents_repository.deactivate_document(documento_id, institucion_id=auth.institucion_id)
         if not doc:

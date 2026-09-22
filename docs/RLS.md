@@ -6,7 +6,7 @@ Fecha de revisión: 2026-09-20
 
 - Las policies de RLS **viven en la base real de Supabase**, no están materializadas en
   migraciones de este repo (verificado: no hay `CREATE POLICY`/`ROW LEVEL SECURITY` en
-  `migrations/`, `tables.sql` ni `stripe_seed.sql`).
+  `migrations/` ni `tables.sql`).
 - El backend usa **`service_role`** (clave de servicio), que **bypassa RLS** por diseño
   (`force_rls = false`). El aislamiento principal se implementa en la capa de aplicación:
   los repositorios filtran por `institucion_id`/`external_auth_id` y los servicios devuelven

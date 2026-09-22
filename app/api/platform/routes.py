@@ -14,9 +14,12 @@ from app.schemas.admin import (
     MemberOut,
     PlanIn,
     PlanOut,
+    PlatformAdminIn,
+    PlatformAdminOut,
     SubscriptionOut,
     PagoOut,
     ComprobanteOut,
+    UserCreateIn,
 )
 from app.schemas.common import AuditLogOut, PaginatedResponse, PaginationMeta, UserOut
 from app.schemas.common import PaginatedResponse, PaginationMeta
@@ -190,6 +193,76 @@ def list_users(
         items=page,
         pagination=PaginationMeta(total=total, limit=limit, offset=offset),
     )
+
+
+@router.post("/users", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+def create_user(
+    payload: UserCreateIn,
+    auth: AuthContext = Depends(get_platform_admin_auth),
+    service: PlatformService = Depends(_get_plat_service),
+) -> UserOut:
+    try:
+        return service.create_user(**payload.model_dump())
+    except ValueError as exc:
+        if "not found" in str(exc).lower():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+
+
+@router.delete("/users/{external_auth_id}", status_code=status.HTTP_204_NO_CONTENT)
+def deactivate_user(
+    external_auth_id: str,
+    auth: AuthContext = Depends(get_platform_admin_auth),
+    service: PlatformService = Depends(_get_plat_service),
+) -> None:
+    if not service.deactivate_user(external_auth_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+
+@router.get("/admins", response_model=list[PlatformAdminOut])
+def list_platform_admins(
+    auth: AuthContext = Depends(get_platform_admin_auth),
+    service: PlatformService = Depends(_get_plat_service),
+) -> list[PlatformAdminOut]:
+    rows = service.list_platform_admins()
+    return [
+        PlatformAdminOut(
+            external_auth_id=r.get("external_auth_id"),
+            email=(r.get("app_users") or {}).get("email") if isinstance(r.get("app_users"), dict) else r.get("email"),
+            full_name=(r.get("app_users") or {}).get("full_name") if isinstance(r.get("app_users"), dict) else r.get("full_name"),
+            is_active=r.get("is_active", True),
+            created_at=str(r.get("created_at")) if r.get("created_at") else None,
+        )
+        for r in rows
+    ]
+
+
+@router.post("/admins", response_model=PlatformAdminOut, status_code=status.HTTP_201_CREATED)
+def grant_platform_admin(
+    payload: PlatformAdminIn,
+    auth: AuthContext = Depends(get_platform_admin_auth),
+    service: PlatformService = Depends(_get_plat_service),
+) -> PlatformAdminOut:
+    try:
+        row = service.grant_platform_admin(payload.external_auth_id)
+    except ValueError as exc:
+        if "not found" in str(exc).lower():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    return PlatformAdminOut(
+        external_auth_id=row.get("external_auth_id"),
+        is_active=row.get("is_active", True),
+    )
+
+
+@router.delete("/admins/{external_auth_id}", status_code=status.HTTP_204_NO_CONTENT)
+def revoke_platform_admin(
+    external_auth_id: str,
+    auth: AuthContext = Depends(get_platform_admin_auth),
+    service: PlatformService = Depends(_get_plat_service),
+) -> None:
+    if not service.revoke_platform_admin(external_auth_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Platform admin not found")
 
 
 @router.get("/metrics", response_model=MetricsOut)

@@ -32,12 +32,12 @@ class UsersRepository:
                     "institucion_id": row.get("institucion_id"),
                     "tipo_miembro": row.get("tipo_miembro"),
                 }
-        # Platform admins
+        # Platform admins (soft-delete: columna real es is_active)
         resp_plat = (
             self.client.table("platform_admins")
-            .select("external_auth_id, is_platform_admin")
+            .select("external_auth_id, is_active")
             .in_("external_auth_id", external_auth_ids)
-            .eq("is_platform_admin", True)
+            .eq("is_active", True)
             .execute()
         )
         for row in (resp_plat.data or []):
@@ -112,6 +112,62 @@ class UsersRepository:
             .execute()
         )
         return response.data[0] if response.data else None
+
+    def remove_user(self, external_auth_id: str) -> bool:
+        """Eliminación lógica (soft delete) del usuario: desactiva app_users,
+        membresía institucional activa y rol de platform admin (cascada)."""
+        user_updated = (
+            self.client.table("app_users")
+            .update({"is_active": False})
+            .eq("external_auth_id", external_auth_id)
+            .execute()
+        )
+        if not user_updated.data:
+            return False
+        # Cascada: desactivar membresía activa en instituciones
+        try:
+            self.client.table("institucion_miembros").update({"activo": False, "fecha_salida": "now()"}).eq(
+                "external_auth_id", external_auth_id
+            ).eq("activo", True).execute()
+        except Exception:
+            pass
+        # Cascada: revocar platform admin (soft)
+        try:
+            self.client.table("platform_admins").update({"is_active": False}).eq(
+                "external_auth_id", external_auth_id
+            ).execute()
+        except Exception:
+            pass
+        return True
+
+    def list_platform_admins(self) -> list[dict]:
+        response = (
+            self.client.table("platform_admins")
+            .select("*, app_users(email, full_name)")
+            .order("created_at", desc=True)
+            .execute()
+        )
+        return list(response.data or [])
+
+    def grant_platform_admin(self, external_auth_id: str) -> dict:
+        response = (
+            self.client.table("platform_admins")
+            .upsert(
+                {"external_auth_id": external_auth_id, "is_active": True},
+                on_conflict="external_auth_id",
+            )
+            .execute()
+        )
+        return response.data[0] if response.data else {}
+
+    def revoke_platform_admin(self, external_auth_id: str) -> bool:
+        response = (
+            self.client.table("platform_admins")
+            .update({"is_active": False})
+            .eq("external_auth_id", external_auth_id)
+            .execute()
+        )
+        return bool(response.data)
 
     def list_users(self, institucion_id: Optional[int] = None) -> list[dict]:
         query = self.client.table("app_users").select("*")

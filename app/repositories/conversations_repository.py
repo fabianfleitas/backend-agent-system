@@ -38,6 +38,13 @@ class ConversationsRepository:
         response = query.order("last_interaction", desc=True).execute()
         return list(response.data or [])
 
+    def list_by_institution(self, institucion_id: int, include_hidden: bool = False) -> list[dict]:
+        query = self.client.table("conversaciones").select("*").eq("institucion_id", institucion_id)
+        if not include_hidden:
+            query = query.eq("hidden", False)
+        response = query.order("last_interaction", desc=True).execute()
+        return list(response.data or [])
+
     def hide_conversation(self, external_auth_id: str, conversation_id: int, institucion_id: int) -> Optional[dict]:
         now = _utc_now_iso()
         response = (

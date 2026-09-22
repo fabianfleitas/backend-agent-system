@@ -58,12 +58,15 @@ class FeedbackRepository:
         conversacion_id: Optional[int] = None,
         message_id: Optional[int] = None,
         rating: Optional[int] = None,
+        include_inactive: bool = False,
     ) -> list[dict]:
         query = (
             self.client.table("feedback")
             .select("*, mensajes!inner(conversacion_id, contenido_texto)")
             .eq("institucion_id", institucion_id)
         )
+        if not include_inactive:
+            query = query.eq("is_active", True)
         if message_id is not None:
             query = query.eq("message_id", message_id)
         if rating is not None:
@@ -76,3 +79,13 @@ class FeedbackRepository:
             query = query.in_("message_id", ids)
         response = query.order("created_at", desc=True).execute()
         return list(response.data or [])
+
+    def deactivate_feedback(self, feedback_id: int, institucion_id: int) -> Optional[dict]:
+        response = (
+            self.client.table("feedback")
+            .update({"is_active": False})
+            .eq("id", feedback_id)
+            .eq("institucion_id", institucion_id)
+            .execute()
+        )
+        return response.data[0] if response.data else None

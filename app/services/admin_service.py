@@ -43,6 +43,11 @@ class AdminService:
             rating=rating,
         )
 
+    def deactivate_feedback(self, auth: Optional[AuthContext] = None, feedback_id: Optional[int] = None) -> bool:
+        if auth is None or auth.is_platform_admin or not auth.institucion_id:
+            return False
+        return bool(self.feedback_repository.deactivate_feedback(feedback_id, auth.institucion_id))
+
     def list_users(self, auth: Optional[AuthContext] = None) -> list[UserOut]:
         institution_id = None
         if auth is not None and not auth.is_platform_admin:

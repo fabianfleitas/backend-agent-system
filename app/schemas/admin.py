@@ -12,6 +12,26 @@ class MemberIn(BaseModel):
     external_auth_id: str
     tipo_miembro: str = "ESTUDIANTE"
 
+
+class UserCreateIn(BaseModel):
+    external_auth_id: str
+    email: str
+    full_name: Optional[str] = None
+    institucion_id: Optional[int] = None
+    tipo_miembro: str = "ESTUDIANTE"
+
+
+class PlatformAdminIn(BaseModel):
+    external_auth_id: str
+
+
+class PlatformAdminOut(BaseModel):
+    external_auth_id: str
+    email: Optional[str] = None
+    full_name: Optional[str] = None
+    is_active: bool = True
+    created_at: Optional[str] = None
+
 class InstitutionIn(BaseModel):
     codigo: Optional[str] = None
     nombre: str

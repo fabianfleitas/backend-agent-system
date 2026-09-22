@@ -31,14 +31,15 @@ class CategoriesService:
             return None
         institution_id = auth.institucion_id if not auth.is_platform_admin else None
         if institution_id is not None:
-            return self.repository.get_by_id(categoria_id, institution_id)
+            return self.repository.get_by_id_with_global(categoria_id, institution_id)
         # Platform admin: direct lookup by id (repo filter activo=True applies)
         return self.repository.get_by_id_any(categoria_id)
 
     def list_by_institution(self, auth: AuthContext) -> list[dict]:
         if auth.institucion_id is None and not auth.is_platform_admin:
             return []
-        institution_id = None if auth.is_platform_admin else auth.institucion_id
-        if institution_id is None:
-            return []
-        return self.repository.list_by_institution(institution_id)
+        # Platform admin: gestiona las categorías globales.
+        if auth.is_platform_admin:
+            return self.repository.list_global()
+        # Admin institucional: fusiona globales + institucionales, institucional prevalece.
+        return self.repository.list_by_institution_and_global(auth.institucion_id)

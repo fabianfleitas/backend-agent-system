@@ -45,6 +45,14 @@ class ConversationSummaryOut(BaseModel):
     message_count: int
 
 
+class AdminConversationOut(BaseModel):
+    id: int
+    title: str
+    last_interaction: datetime
+    message_count: int
+    external_auth_id: str
+
+
 class ConversationDetailOut(BaseModel):
     id: int
     title: str

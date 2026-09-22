@@ -36,6 +36,7 @@ from app.schemas.admin import (
     SubscriptionOut,
 )
 from app.schemas.common import (
+    AdminConversationOut,
     AuditLogOut,
     DocumentOut,
     DocumentStatus,
@@ -49,6 +50,7 @@ from app.schemas.system import MetricsOut
 from app.utils.csv_export import csv_response, metrics_to_csv, to_csv
 from app.services.admin_service import AdminService
 from app.services.audit_service import AuditService
+from app.services.conversations_service import ConversationsService
 from app.services.documents_service import DocumentsService
 from app.services.billing_service import BillingService
 from app.services.stripe_agent_service import get_stripe_agent_service
@@ -186,6 +188,26 @@ def get_document(
     )
 
 
+@router.get("/documents/{documento_id}/download")
+def download_document(
+    documento_id: int,
+    auth: AuthContext = Depends(get_admin_auth),
+) -> Response:
+    result = DocumentsService().download_original(documento_id, auth)
+    if not result:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
+    content, filename, mime_type, _ruta_archivo = result
+    safe_filename = filename or f"documento_{documento_id}.pdf"
+    return Response(
+        content=content,
+        media_type=mime_type or "application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{safe_filename}"',
+            "Content-Length": str(len(content)),
+        },
+    )
+
+
 @router.delete("/documents/{documento_id}", response_model=DocumentOut)
 def deactivate_document(
     documento_id: int,
@@ -320,6 +342,42 @@ def list_feedback(
                 created_at=str(r.get("created_at")) if r.get("created_at") else None,
             )
             for r in page
+        ],
+        pagination=PaginationMeta(total=total, limit=limit, offset=offset),
+    )
+
+
+@router.delete("/feedback/{feedback_id}", status_code=status.HTTP_204_NO_CONTENT)
+def deactivate_feedback(
+    feedback_id: int,
+    auth: AuthContext = Depends(get_admin_auth),
+) -> None:
+    ok = AdminService().deactivate_feedback(auth=auth, feedback_id=feedback_id)
+    if not ok:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Feedback not found or already inactive")
+
+
+@router.get("/conversations", response_model=PaginatedResponse[AdminConversationOut])
+def list_admin_conversations(
+    include_hidden: bool = Query(default=False),
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    auth: AuthContext = Depends(get_admin_auth),
+) -> PaginatedResponse[AdminConversationOut]:
+    service = ConversationsService()
+    convs = service.list_institution_conversations(auth.institucion_id, include_hidden)
+    total = len(convs)
+    page = convs[offset : offset + limit]
+    return PaginatedResponse[AdminConversationOut](
+        items=[
+            AdminConversationOut(
+                id=c["id"],
+                title=c["title"],
+                last_interaction=c.get("last_interaction"),
+                message_count=service.count_messages(c["id"]),
+                external_auth_id=c.get("external_auth_id", ""),
+            )
+            for c in page
         ],
         pagination=PaginationMeta(total=total, limit=limit, offset=offset),
     )

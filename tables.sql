@@ -167,6 +167,7 @@ CREATE TABLE public.feedback (
   external_auth_id text,
   rating integer NOT NULL CHECK (rating >= 1 AND rating <= 5),
   comment text,
+  is_active boolean NOT NULL DEFAULT true,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   institucion_id bigint,
   CONSTRAINT feedback_pkey PRIMARY KEY (id),

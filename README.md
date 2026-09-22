@@ -180,8 +180,9 @@ POST   /api/chat/feedback
 POST   /api/admin/documents
 GET    /api/admin/documents
 GET    /api/admin/documents/{documento_id}
-DELETE /api/admin/documents/{documento_id}
+GET    /api/admin/documents/{documento_id}/download
 POST   /api/admin/documents/{documento_id}/versions
+DELETE /api/admin/documents/{documento_id}
 POST   /api/admin/reindex
 GET    /api/admin/audit
 GET    /api/admin/audit/export
@@ -351,7 +352,7 @@ Objetivo:
 
 - Token bucket **in-memory por proceso** (`app/core/rate_limit.py`), configurable con
   `RATE_LIMIT_*`. Exento: `/health`, `/ready`, webhook Stripe. No es un límite global
-  distribuido (Redis queda como mejora futura).
+  distribuido; Redis queda como mejora futura (**fuera de alcance MVP**, decisión 2026-09-20m).
 
 ## Prioridades tecnicas
 
@@ -360,7 +361,7 @@ Objetivo:
 3. Pipeline RAG real con chunking, embeddings y recuperacion.
 4. Integracion estable con OpenRouter y otros proveedores IA configurables.
 5. STT/TTS real para consultas por voz.
-6. Workers asincronos para tareas pesadas.
+6. Workers asincronos para tareas pesadas (**fuera de alcance MVP**, decisión 2026-09-20m).
 7. Tests automatizados, observabilidad y metricas ampliadas.
 
 ## Advertencias de desarrollo

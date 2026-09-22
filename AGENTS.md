@@ -19,19 +19,19 @@ No asumir que los mocks actuales satisfacen los requisitos funcionales.
 - **Framework:** FastAPI (Python 3.10+)
 - **Entrypoint:** `app/main.py:create_app()`
 - **Configuracion:** `pydantic-settings`, lee `.env` desde la raiz del proyecto
-- **Auth:** implementado con JWT de Supabase Auth (`PLAN_MULTI_INSTITUCION_DECISIONES.md`); `get_auth_context()` valida JWT de Supabase (`external_auth_id` = `auth.users.id`), luego `is_active` en `app_users`, luego `institucion_miembros` (`tipo_miembro`, `institucion_id`) y `platform_admins` (`is_platform_admin`); `app_users.role` deprecado; headers delegados (`X-*`) obsoletos; cliente debe enviar `Authorization: Bearer <jwt>`.
+- **Auth:** implementado con JWT de Supabase Auth; `get_auth_context()` valida JWT de Supabase (`external_auth_id` = `auth.users.id`), luego `is_active` en `app_users`, luego `institucion_miembros` (`tipo_miembro`, `institucion_id`) y `platform_admins` (`is_platform_admin`); `app_users.role` deprecado; headers delegados (`X-*`) obsoletos; cliente debe enviar `Authorization: Bearer <jwt>`.
 - **Persistencia parcial real:** `/me` usa Supabase mediante `UsersService` y `UsersRepository`; tras transición, `get_auth_context()` valida JWT de Supabase (`external_auth_id` = `auth.users.id`) y resuelve membresía institucional.
 - **Protección de cruzado:** acceso a recurso de otra institución devuelve 404; `app_users.role` no determina acceso institucional.
 - **Readiness parcial real:** `/ready` consulta Supabase mediante `SystemService` y `SystemRepository`
 - **Persistencia real:** conversaciones, mensajes, documentos, versiones, audio metadata, auditoria, `message_documents` y feedback persisten en Supabase mediante repositories
 - **Storage real (Supabase Storage):** archivos subidos guardados en `SUPABASE_STORAGE_BUCKET_DOCUMENTS` y `SUPABASE_STORAGE_BUCKET_AUDIO` con prefijo institucional (`{institucion_id}/documents/`, `{institucion_id}/audio/`), no solo `storage/` local. Metadatos y trazabilidad en Supabase.
 - **Billing / Stripe:** endpoints administrativos (`/api/admin/stripe/*`) y webhook (`/api/billing/stripe/webhook`) implementados con integración real a Stripe; persistencia real en Supabase (`suscripciones`, `pagos`, `comprobantes`, `stripe_eventos`); `subscription_data` con metadata institucional; alignment de checks DB (`003_billing_estado_checks.sql`).
-- **Gestión documental:** carga de PDFs, versionado y reindexacion con extraccion/indexacion local o embeddings reales segun `EMBEDDINGS_ENABLED`; categorías aisladas por institución (`categorias.institucion_id`); validación de categoría al crear documento.
-- **FASE A-H implementadas:** B (Auth Supabase + RBAC), A (aislamiento multi-institución), D (RAG aislado por institución), E (conversaciones/voz), C (documental con categorías), F (audit/PII) implementada (ver PII/anonimización más abajo), G (billing/Stripe: checkout, suscripción, webhook, persistencia real) completada; H (dashboard) productiva: el Admin Dashboard SPA opera sobre el contrato real; pendiente solo de endpoints institucionales agregados (`/api/admin/conversations`, dashboard agregado), sin marcado de fase.
+- **Gestión documental:** carga de PDFs, versionado, descarga del PDF original y reindexacion con extraccion/indexacion local o embeddings reales segun `EMBEDDINGS_ENABLED`; categorías con precedencia global/institucional (`categorias.institucion_id` NULL = global; merge para admin institucional, precedencia institucional por nombre case-insensitive; platform admin gestiona solo globales); validación de categoría al crear documento.
+- **FASE A-H implementadas:** B (Auth Supabase + RBAC), A (aislamiento multi-institución), D (RAG aislado por institución), E (conversaciones/voz), C (documental con categorías), F (audit/PII) implementada (ver PII/anonimización más abajo), G (billing/Stripe: checkout, suscripción, webhook, persistencia real) completada; H (dashboard) productiva: el Admin Dashboard SPA opera sobre el contrato real; además de los agregados institucionales (`/api/admin/conversations`, 2026-09-20), sin marcado de fase.
 - **Modelo SQL objetivo:** `migrations/001_multi_institution.sql`; esquema completo en `all_tables.json`; `tables.sql` (esquema de referencia en la raíz).
 - **RAG parcial real:** recuperacion de contexto real en `chat/query` (retrieval de chunks + trazabilidad en `message_documents`); generacion de respuesta real via OpenRouter cuando `LLM_ENABLED=true`; `chat/voice` transcribe real via STT cuando `STT_ENABLED=true` y alimenta esa transcripcion al mismo pipeline RAG+OpenRouter (tag `[voice]` en audit); sintetiza respuesta a audio real via TTS (`/audio/speech`, OpenRouter) cuando `TTS_ENABLED=true` con degradacion graceful si falla; si STT esta off, voz es mock
 - **Gestion documental real parcial:** carga de PDFs, versionado y reindexacion con extraccion/indexacion local o embeddings reales segun `EMBEDDINGS_ENABLED`
-- **Procesamiento asincrono:** no implementado; `Celery`/`Redis` aun no existen en el codigo
+- **Procesamiento asincrono:** no implementado; `Celery`/`Redis` aun no existen en el codigo (**fuera de alcance MVP**, decision 2026-09-20m; indexacion/reindex y scripts manuales cubren el flujo)
 - **Testing:** existe `tests/` con cobertura en desarrollo para servicios e integraciones criticas
 
 ## Arquitectura objetivo
@@ -43,7 +43,7 @@ Segun `migrations/001_multi_institution.sql` y `all_tables.json`, el sistema deb
 - **Voz real:** almacenamiento de audio, transcripcion STT y respuesta sintetizada TTS
 - **Gestion documental:** carga de PDFs, versionado, documento activo y reindexacion
 - **IA externa:** integracion con OpenRouter con capacidad de cambiar modelo/proveedor
-- **Procesamiento asincrono:** tareas pesadas desacopladas para indexacion, embeddings y voz
+- **Procesamiento asincrono:** tareas pesadas desacopladas para indexacion, embeddings y voz (**fuera de alcance MVP**, decision 2026-09-20m)
 - **Preparacion futura:** evolucion a tiempo real mediante WebSockets/WebRTC
 
 ## Invariantes funcionales
@@ -70,7 +70,7 @@ uvicorn app.main:app --reload
 
 ## Auth (plan multi-institución)
 
-Estado objetivo: autenticación con JWT de Supabase Auth. Ver `PLAN_MULTI_INSTITUCION_DECISIONES.md`.
+Estado objetivo: autenticación con JWT de Supabase Auth.
 
 - `get_auth_context()` resuelve `external_auth_id` desde `auth.users.id` (campo `sub` del JWT de Supabase), luego valida `is_active` en `app_users`, luego resuelve membresía activa en `institucion_miembros` (`tipo_miembro`, `institucion_id`) y `platform_admins` (`is_platform_admin`).
 - `app_users.role` está deprecado como fuente de autorización; no se consulta para permisos institucionales.
@@ -133,6 +133,7 @@ POST   /api/chat/feedback
 POST   /api/admin/documents
 GET    /api/admin/documents
 GET    /api/admin/documents/{documento_id}
+GET    /api/admin/documents/{documento_id}/download
 POST   /api/admin/documents/{documento_id}/versions
 DELETE /api/admin/documents/{documento_id}
 POST   /api/admin/reindex
@@ -140,8 +141,10 @@ GET    /api/admin/audit
 GET    /api/admin/audit/export
 GET    /api/admin/users
 GET    /api/admin/feedback
+DELETE /api/admin/feedback/{feedback_id}
 GET    /api/admin/metrics
 GET    /api/admin/metrics/export
+GET    /api/admin/conversations
 
 GET    /api/admin/categories
 POST   /api/admin/categories
@@ -186,6 +189,11 @@ GET    /api/platform/institutions/{institucion_id}/members
 POST   /api/platform/institutions/{institucion_id}/members
 DELETE /api/platform/institutions/{institucion_id}/members/{member_id}
 GET    /api/platform/users
+POST   /api/platform/users
+DELETE /api/platform/users/{external_auth_id}
+GET    /api/platform/admins
+POST   /api/platform/admins
+DELETE /api/platform/admins/{external_auth_id}
 GET    /api/platform/metrics
 GET    /api/platform/metrics/export
 GET    /api/platform/audit
@@ -212,9 +220,12 @@ Notas:
 - `GET /api/admin/subscription`, `GET /api/admin/plan`, `GET /api/admin/pagos`, `GET /api/admin/comprobantes` (billing lectura, aislamiento por institución)
 - `GET /api/platform/institutions`, `GET /api/platform/institutions/{id}`, `GET/POST /api/platform/institutions/{id}/members`, `DELETE /api/platform/institutions/{id}/members/{member_id}`, `GET /api/platform/users`, `GET /api/platform/metrics`, `GET /api/platform/audit`, `GET /api/platform/plans`, `GET /api/platform/subscriptions`, `GET /api/platform/pagos`, `GET /api/platform/comprobantes` (administración global con `require_platform_admin()`)
 - `POST/PUT/DELETE /api/platform/institutions[/{id}]` y `POST/PUT/DELETE /api/platform/plans[/{id}]` (CRUD platform admin; delete = soft-deactivate `activo=false`; planes sincronizados con Stripe vía `sync-plan`)
+- **Gestión de usuarios y platform admins (`/api/platform`):** `POST /api/platform/users` crea `app_users` (409 si ya existe) con membresía institucional opcional en un solo call (`institucion_id`/`tipo_miembro`); `DELETE /api/platform/users/{external_auth_id}` = desactivación en cascada (soft): `app_users.is_active=false` + membresía activa + `platform_admins`. `GET/POST /api/platform/admins` lista y concede admins de plataforma (upsert soft en `platform_admins`); `DELETE /api/platform/admins/{external_auth_id}` revoca (soft, `is_active=false`). Todos protegidos con `get_platform_admin_auth()`. *Decisión a revisar en el futuro: la creación de usuario incluye la membresía en el mismo call.*
+- **Moderación de feedback:** `DELETE /api/admin/feedback/{feedback_id}` oculta (soft) un feedback de la institución del admin (`feedback.is_active=false`, no borrado físico; 404 si no existe o no pertenece a la institución). El listado `GET /api/admin/feedback` excluye inactivos salvo `include_inactive=true` (repo). Migración `migrations/008_feedback_is_active.sql`.
 - `admin/users` lista usuarios de Supabase mediante `UsersRepository` (ahora con `institucion_id`, `tipo_miembro`, `is_platform_admin`, `nombre_institucion`).
 - `admin/metrics` expone metricas IA agregadas desde `audit_logs` y `message_documents` (outcomes LLM/GUARD/LLM_FAILED, rates, tokens por modelo, avg similarity de retrieval, split voice/text).
-- **PII/anonimización:** con `PII_ANONYMIZATION_ENABLED=true` (o `config_parametros.pii_anonymization_enabled`, precedencia institucional > global), `chat/query` y `chat/voice` anonimizan la pregunta antes de retrieval/LLM (Presidio NER `pii_nlp_model` default `es_core_news_md` + formatos locales cédula/teléfono + self-PII del perfil; tokens `[PII_TIPO_N]`; mappings en `pii_mappings` con `audit_id` y `expires_at` TTL). El texto anonimizado llega al proveedor; el original queda en `contenido_anonimizado`/`pregunta_anonimizada` y en `pii_mappings`. Si el detector no esta disponible y la politica esta ON, el flujo falla cerrado (`LLM_UNAVAILABLE_MESSAGE`, observaciones `PII_UNAVAILABLE`, sin llamadas externas). Config: `PII_MAPPING_RETENTION_DAYS` (default 90), `PII_NLP_MODEL`, `PII_LANGUAGE`; purga TTL con `scripts/purge_pii_mappings.py`. Ver §5 en `TODO_BACKEND_CIERRE_MULTIINSTITUCION.md`.
+- `admin/conversations` lista todas las conversaciones de la institución del admin (CU-22, agregado institucional) con paginación (`limit`/`offset`), filtro `include_hidden` y `message_count`/`external_auth_id` por conversación; protegido con `get_admin_auth` (aislamiento por `institucion_id`).
+- **PII/anonimización:** con `PII_ANONYMIZATION_ENABLED=true` (o `config_parametros.pii_anonymization_enabled`, precedencia institucional > global), `chat/query` y `chat/voice` anonimizan la pregunta antes de retrieval/LLM (Presidio NER `pii_nlp_model` default `es_core_news_md` + formatos locales cédula/teléfono + self-PII del perfil; tokens `[PII_TIPO_N]`; mappings en `pii_mappings` con `audit_id` y `expires_at` TTL). El texto anonimizado llega al proveedor; el original queda en `contenido_anonimizado`/`pregunta_anonimizada` y en `pii_mappings`. Si el detector no esta disponible y la politica esta ON, el flujo falla cerrado (`LLM_UNAVAILABLE_MESSAGE`, observaciones `PII_UNAVAILABLE`, sin llamadas externas). Config: `PII_MAPPING_RETENTION_DAYS` (default 90), `PII_NLP_MODEL`, `PII_LANGUAGE`; purga TTL con `scripts/purge_pii_mappings.py`.
 - **Rate limiting:** token bucket in-memory (`app/core/rate_limit.py`, middleware en `main.py`), exentos `/health` `/ready` y el webhook de Stripe. Configurable vía `RATE_LIMIT_ENABLED`, `RATE_LIMIT_DEFAULT_LIMIT`, `RATE_LIMIT_DEFAULT_WINDOW_SECONDS`, `RATE_LIMIT_RULES` (ver `.env.example`). **Nota:** el bucket es por proceso; con múltiples workers no es un límite global distribuido.
 - El contrato para frontend esta documentado en `FRONTEND_API_INTEGRATION.md`.
 
@@ -292,7 +303,7 @@ Usar `migrations/001_multi_institution.sql` y `all_tables.json` como guia funcio
 
 Agregar dependencias solo cuando se implemente realmente la capacidad asociada:
 
-- Celery / Redis
+- Celery / Redis (**fuera de alcance MVP**, decision 2026-09-20m)
 - observabilidad y metricas ampliadas
 - otras librerias de embeddings (hoy `openai` cubre el modelo configurado)
 
@@ -305,7 +316,7 @@ Si vas a extender el sistema, prioriza en este orden:
 3. Pipeline RAG real con trazabilidad por documentos/chunks usados
 4. Integracion real con OpenRouter
 5. STT/TTS real para consultas de voz
-6. Workers asincronos para tareas pesadas
+6. Workers asincronos para tareas pesadas (**fuera de alcance MVP**, decision 2026-09-20m)
 7. Observabilidad, metricas y pruebas automatizadas
 
 ## Notas para agentes

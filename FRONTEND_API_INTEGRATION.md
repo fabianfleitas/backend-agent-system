@@ -92,6 +92,7 @@ Endpoints paginados:
 
 ```text
 GET /api/conversations
+GET /api/admin/conversations
 GET /api/admin/documents
 GET /api/admin/audit
 GET /api/admin/users
@@ -149,6 +150,40 @@ Respuesta:
   }
 }
 ```
+
+### Listar conversaciones institucionales (admin)
+
+```http
+GET /api/admin/conversations?limit=20&offset=0&include_hidden=false
+```
+
+Agrega todas las conversaciones de la institucion del admin autenticado (`tipo_miembro`
+`ADMIN`/`SECRETARIA` o `is_platform_admin=true` con membresia). Cada item incluye
+`external_auth_id` del dueño de la conversacion.
+
+Respuesta:
+
+```json
+{
+  "items": [
+    {
+      "id": 2,
+      "title": "Consultas de admisiones",
+      "last_interaction": "2026-09-20T15:00:00.000000Z",
+      "message_count": 5,
+      "external_auth_id": "user-abc123"
+    }
+  ],
+  "pagination": {
+    "total": 1,
+    "limit": 20,
+    "offset": 0
+  }
+}
+```
+
+Nota: `GET /api/conversations` lista solo las del usuario autenticado; el agregado
+institucional usa `GET /api/admin/conversations` (CU-22).
 
 ### Obtener detalle
 
@@ -701,6 +736,20 @@ FAILED
 
 Hoy la subida deja la version en `PENDING`.
 
+### Descargar PDF original
+
+```http
+GET /api/admin/documents/{documento_id}/download
+```
+
+Devuelve el binario del PDF de la **version activa** (sin exponer `ruta_archivo`), aislado por institución (404 si el documento no pertenece a la institución o no tiene version activa). Headers:
+
+- `Content-Type`: `application/pdf` (o el MIME de la version)
+- `Content-Disposition`: `attachment; filename="<original_filename>.pdf"`
+- `Content-Length`
+
+Consumo desde el frontend con `responseType: 'blob'` (ver `src/lib/download.ts` y `exportCsv`).
+
 ### Listar documentos
 
 ```http
@@ -992,6 +1041,19 @@ Respuesta paginada (`AdminFeedbackOut`):
 
 Solo visibles los feedback de la propia institución (aislamiento por `institucion_id`).
 
+#### Moderación (ocultar feedback)
+
+```http
+DELETE /api/admin/feedback/{feedback_id}
+```
+
+- Marca el feedback como `is_active=false` (oculto, **no** borra físicamente el registro).
+- `204 No Content` si se ocultó; `404` si el feedback no existe o no pertenece a la institución del admin.
+- El listado `GET /api/admin/feedback` excluye los feedback ocultos.
+- Requiere `get_admin_auth` (ADMIN/SECRETARIA de la institución; 403 si es ESTUDIANTE o platform admin sin membresía).
+
+**UI (admin-dashboard):** botón "Eliminar" (`Trash2`) por fila con modal de confirmación; al confirmar llama a `DELETE /api/admin/feedback/{id}` y refresca el listado.
+
 ### Usuarios
 
 ```http
@@ -1017,6 +1079,21 @@ Respuesta paginada con usuarios:
     "limit": 20,
     "offset": 0
   }
+}
+```
+
+### Categorías — precedencia global/institucional
+
+- `GET /api/admin/categories` para un **admin institucional** devuelve la fusión de categorías **globales + institucionales**: primero las institucionales (ordenadas por `nombre`), luego las globales que no colisionan (dedupe por `nombre` case-insensitive; si existe una categoría institucional con el mismo nombre que una global, se descarta la global). No se pueden crear/editar/eliminar entidades ajenas (404 cross-tenant).
+- Para **platform admin** (`/api/platform/*` y miembros que accedan a categorías) la gestión es sobre categorías **globales** (`categorias.institucion_id` NULL).
+
+```json
+{
+  "items": [
+    { "id": 1, "nombre": "Matriculacion", "descripcion": null, "activo": true, "institucion_id": 1, "fecha_creacion": "2026-01-01T00:00:00Z" },
+    { "id": 99, "nombre": "Normativa General", "descripcion": "Global", "activo": true, "institucion_id": null, "fecha_creacion": "2026-01-01T00:00:00Z" }
+  ],
+  "pagination": { "total": 2, "limit": 20, "offset": 0 }
 }
 ```
 
@@ -1106,6 +1183,11 @@ GET /api/platform/institutions/{id}/members
 POST /api/platform/institutions/{id}/members
 DELETE /api/platform/institutions/{id}/members/{member_id}
 GET /api/platform/users
+POST /api/platform/users
+DELETE /api/platform/users/{external_auth_id}
+GET /api/platform/admins
+POST /api/platform/admins
+DELETE /api/platform/admins/{external_auth_id}
 GET /api/platform/metrics
 GET /api/platform/audit
 GET /api/platform/plans
@@ -1114,10 +1196,33 @@ PUT /api/platform/plans/{plan_id}
 DELETE /api/platform/plans/{plan_id}
 ```
 
-Contratos: `InstitutionOut`, `InstitutionIn`, `MemberOut`, `MemberIn`, `PlanOut`, `PlanIn`, `UserOut`, `MetricsOut`, `AuditLogOut` con paginación.
+Contratos: `InstitutionOut`, `InstitutionIn`, `MemberOut`, `MemberIn`, `PlanOut`, `PlanIn`, `UserOut`, `MetricsOut`, `AuditLogOut`, `UserCreateIn`, `PlatformAdminIn`, `PlatformAdminOut` con paginación.
 
 - CRUD de instituciones: `POST /api/platform/institutions` (body `InstitutionIn`), `PUT .../{id}`, `DELETE .../{id}` (soft-deactivate `activo=false`; no borra miembros/documentos).
 - CRUD de planes: `POST /api/platform/plans` (body `PlanIn`), `PUT .../{plan_id}`, `DELETE .../{plan_id}` (soft-deactivate; para activar en checkout/change-plan, sincronizar con Stripe vía `POST /api/admin/stripe/sync-plan`).
+
+#### Gestión de usuarios (platform)
+
+```http
+POST   /api/platform/users           → 201 UserOut
+DELETE /api/platform/users/{external_auth_id}  → 204 | 404
+```
+
+- `POST /api/platform/users`: body `UserCreateIn { external_auth_id, email, full_name?, institucion_id?, tipo_miembro? }`. Crea `app_users` y, si se indica `institucion_id`, agrega la membresía en el mismo call (`tipo_miembro` default `ESTUDIANTE`). `409` si el usuario ya existe; `404` si la institución indicada no existe.
+- `DELETE .../users/{external_auth_id}`: desactivación **en cascada** (soft): `app_users.is_active=false`, membresía institucional activa desactivada y rol de platform admin revocado. `404` si no existe.
+
+*Nota: decisión de diseño — la creación de usuario incluye membresía opcional en el mismo call; revisable a futuro.*
+
+#### Gestión de platform admins
+
+```http
+GET    /api/platform/admins                  → 200 [PlatformAdminOut]
+POST   /api/platform/admins                  → 201 PlatformAdminOut | 409 | 404
+DELETE /api/platform/admins/{external_auth_id} → 204 | 404
+```
+
+- `POST /api/platform/admins`: body `PlatformAdminIn { external_auth_id }`. Concede (o re-activa) admin de plataforma (`is_active=true`). `409` si ya es admin activo; `404` si el usuario no existe.
+- `DELETE .../admins/{external_auth_id}`: revoca (soft, `is_active=false`). `404` si no existe.
 
 ## Billing lectura (institucional)
 ```http
@@ -1275,6 +1380,8 @@ Casos principales:
 - En admin, subir documentos con `multipart/form-data` y mostrar estado de version activa (`PENDING`, `PROCESSING`, `READY`, `FAILED`).
 - En admin, usar `GET /api/admin/documents/{id}` para ver el detalle y todas las versiones de un documento.
 - En admin, usar `DELETE /api/admin/documents/{id}` para desactivar (soft-delete) un documento.
+- En admin, moderar feedback con `DELETE /api/admin/feedback/{id}` (ocultar; no borra físicamente).
+- En platform admin, gestionar usuarios con `POST/DELETE /api/platform/users` y platform admins con `GET/POST/DELETE /api/platform/admins`.
 - Usar `/health`, no `/api/health`.
 
 ## Contratos TypeScript sugeridos
@@ -1392,5 +1499,37 @@ type DocumentDetail = {
 type UploadVersionResponse = {
   document: DocumentOut;
   version: DocumentVersion;
+};
+
+type AdminFeedbackOut = {
+  id: number;
+  message_id: number;
+  conversacion_id: number | null;
+  rating: number;
+  comment: string | null;
+  external_auth_id: string | null;
+  contenido_texto: string | null;
+  audit_id: string | null;
+  created_at: string | null;
+};
+
+type UserCreateIn = {
+  external_auth_id: string;
+  email: string;
+  full_name?: string | null;
+  institucion_id?: number | null;
+  tipo_miembro?: string;
+};
+
+type PlatformAdminIn = {
+  external_auth_id: string;
+};
+
+type PlatformAdminOut = {
+  external_auth_id: string;
+  email: string | null;
+  full_name: string | null;
+  is_active: boolean;
+  created_at: string | null;
 };
 ```
