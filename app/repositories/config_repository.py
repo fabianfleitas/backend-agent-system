@@ -10,29 +10,22 @@ class ConfigParametersRepository:
         self.client = client or get_supabase_client()
 
     def get_param(self, clave: str, institucion_id: Optional[int] = None) -> Optional[dict]:
-        # Resolucion: primero institucional, luego global (NULL primero en orden DESC)
-        # Usamos .order con DESC por institucion_id (NULLs primero por defecto en DESC)
+        # Precedencia: institucional exacto y, si no, global (institucion_id NULL).
+        # No usar LIMIT 1: el orden de PostgREST puede devolver primero el global
+        # y ocultar el override institucional.
         query = (
             self.client.table("config_parametros")
             .select("*")
             .eq("clave", clave)
             .eq("activo", True)
-            .order("institucion_id", desc=True)
-            .limit(1)
         )
-        # Si institucion_id es None, queremos el global primero -> DESC pone NULL primero
-        # Si institucion_id es X, queremos X primero, luego NULL -> DESC funciona
         response = query.execute()
-        data = response.data or []
-        for row in data:
-            if row.get("institucion_id") == institucion_id or (institucion_id is not None and row.get("institucion_id") is not None):
+        rows = response.data or []
+        if institucion_id is not None:
+            for row in rows:
                 if row.get("institucion_id") == institucion_id:
                     return row
-        # Fallback manual si el orden DESC no funciono como esperado
-        for row in data:
-            if row.get("institucion_id") == institucion_id:
-                return row
-        for row in data:
+        for row in rows:
             if row.get("institucion_id") is None:
                 return row
         return None
@@ -54,8 +47,25 @@ class ConfigParametersRepository:
             "editable_desde_dashboard": True,
             "activo": True,
         }
-        # Upsert por (institucion_id, clave)
-        response = self.client.table("config_parametros").upsert(payload, on_conflict="(institucion_id, clave)").execute()
+        # PostgREST espera `on_conflict=col1,col2` (sin paréntesis).
+        # Para filas globales (institucion_id NULL) el UNIQUE no aplica
+        # (NULLs distintos), por lo que se actualiza por id si ya existe.
+        if institucion_id is None:
+            existing = self.get_param(clave, None)
+            if existing is not None and existing.get("institucion_id") is None:
+                response = (
+                    self.client.table("config_parametros")
+                    .update(payload)
+                    .eq("id", existing["id"])
+                    .execute()
+                )
+            else:
+                response = self.client.table("config_parametros").insert(payload).execute()
+            return response.data[0] if response.data else None
+
+        response = self.client.table("config_parametros").upsert(
+            payload, on_conflict="institucion_id,clave"
+        ).execute()
         return response.data[0] if response.data else None
 
     def list_params(self, institucion_id: Optional[int] = None) -> List[dict]:

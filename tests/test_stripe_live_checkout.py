@@ -7,7 +7,7 @@ Requiere: (a) plan en Supabase, (b) institución con id dado por INST_ID.
 from fastapi.testclient import TestClient
 from app.main import create_app
 from app.api.admin.routes import router as admin_router
-from app.core.security import AuthContext, get_admin_auth
+from app.core.security import AuthContext, get_institution_admin_only_auth
 from app.core.supabase import get_supabase_client
 
 # Ajustar según el ID devuelto por el seed (o usar 1 si ya existe institución)
@@ -27,7 +27,7 @@ def _fake_admin():
 
 
 app = create_app()
-app.dependency_overrides[get_admin_auth] = _fake_admin
+app.dependency_overrides[get_institution_admin_only_auth] = _fake_admin
 
 client = TestClient(app)
 

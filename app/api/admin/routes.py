@@ -5,7 +5,12 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Response, UploadFile, status
 
-from app.core.security import AuthContext, get_admin_auth, require_institution_admin
+from app.core.security import (
+    AuthContext,
+    get_admin_auth,
+    get_institution_admin_only_auth,
+    require_institution_admin,
+)
 from app.schemas.admin import (
     AdminFeedbackOut,
     AdminReindexIn,
@@ -16,6 +21,7 @@ from app.schemas.admin import (
     ConfigParamIn,
     ConfigParamOut,
     DocumentDetailOut,
+    EscalamientoOut,
     PagoOut,
     PlanOut,
     SubscriptionCreateIn,
@@ -121,7 +127,7 @@ def _audit_out(a) -> AuditLogOut:
     if isinstance(a, dict):
         return AuditLogOut(
             id=uuid.UUID(a["id"]),
-            mensaje_id=a["mensaje_id"],
+            mensaje_id=a.get("mensaje_id"),
             score_fidelidad=float(a["score_fidelidad"]) if a.get("score_fidelidad") is not None else None,
             score_relevancia=float(a["score_relevancia"]) if a.get("score_relevancia") is not None else None,
             score_contexto=float(a["score_contexto"]) if a.get("score_contexto") is not None else None,
@@ -300,7 +306,7 @@ def get_audit(
 def list_users(
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
-    auth: AuthContext = Depends(get_admin_auth),
+    auth: AuthContext = Depends(get_institution_admin_only_auth),
 ) -> PaginatedResponse[UserOut]:
     users = AdminService().list_users(auth)
     total = len(users)
@@ -318,7 +324,7 @@ def list_feedback(
     rating: Optional[int] = Query(default=None, ge=1, le=5),
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
-    auth: AuthContext = Depends(get_admin_auth),
+    auth: AuthContext = Depends(get_institution_admin_only_auth),
 ) -> PaginatedResponse[AdminFeedbackOut]:
     rows = AdminService().list_feedback(
         auth,
@@ -350,7 +356,7 @@ def list_feedback(
 @router.delete("/feedback/{feedback_id}", status_code=status.HTTP_204_NO_CONTENT)
 def deactivate_feedback(
     feedback_id: int,
-    auth: AuthContext = Depends(get_admin_auth),
+    auth: AuthContext = Depends(get_institution_admin_only_auth),
 ) -> None:
     ok = AdminService().deactivate_feedback(auth=auth, feedback_id=feedback_id)
     if not ok:
@@ -394,7 +400,7 @@ def export_audit(auth: AuthContext = Depends(get_admin_auth)) -> Response:
 
 
 @router.get("/comprobantes/export")
-def export_comprobantes(auth: AuthContext = Depends(get_admin_auth)) -> Response:
+def export_comprobantes(auth: AuthContext = Depends(get_institution_admin_only_auth)) -> Response:
     rows = BillingService().list_comprobantes(auth)
     csv_text = to_csv(
         rows,
@@ -431,7 +437,7 @@ def get_metrics(
 
 
 @router.get("/config", response_model=List[ConfigParamOut])
-def list_config(auth: AuthContext = Depends(get_admin_auth)) -> List[ConfigParamOut]:
+def list_config(auth: AuthContext = Depends(get_institution_admin_only_auth)) -> List[ConfigParamOut]:
     from app.repositories.config_repository import ConfigParametersRepository
     repo = ConfigParametersRepository()
     inst_id = auth.institucion_id if not auth.is_platform_admin else None
@@ -458,20 +464,19 @@ def list_config(auth: AuthContext = Depends(get_admin_auth)) -> List[ConfigParam
 def update_config(
     clave: str,
     payload: ConfigParamIn,
-    auth: AuthContext = Depends(get_admin_auth),
+    auth: AuthContext = Depends(get_institution_admin_only_auth),
 ) -> ConfigParamOut:
     # Institucional no puede editar globales (institucion_id NULL); plataforma sí puede editar globales
     from app.repositories.config_repository import ConfigParametersRepository
     repo = ConfigParametersRepository()
     # Check existing row
     existing = repo.get_param(clave, auth.institucion_id if not auth.is_platform_admin else None)
-    # If institutional admin tries to modify a global (institucion_id NULL), block
     # If row is not editable_desde_dashboard, block
     if existing and existing.get("editable_desde_dashboard") is False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not editable from dashboard")
-    if not auth.is_platform_admin and existing and existing.get("institucion_id") is None:
-        # Institutional admin cannot modify global defaults
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Global params can only be edited at platform level")
+    # Si un admin institucional edita una clave que solo existe como global,
+    # `set_param` crea/actualiza una fila institucional (override). La fila
+    # global no se modifica; eso queda reservado al platform admin.
     result = repo.set_param(
         clave=clave,
         valor=str(payload.valor),
@@ -517,7 +522,7 @@ def update_config(
 # --- Billing lectura institucional ---
 @router.get("/subscription/history", response_model=PaginatedResponse[SubscriptionHistoryOut])
 def get_subscription_history(
-    auth: AuthContext = Depends(get_admin_auth),
+    auth: AuthContext = Depends(get_institution_admin_only_auth),
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
 ) -> PaginatedResponse[SubscriptionHistoryOut]:
@@ -532,7 +537,7 @@ def get_subscription_history(
 
 @router.get("/subscription", response_model=SubscriptionOut)
 def get_subscription(
-    auth: AuthContext = Depends(get_admin_auth),
+    auth: AuthContext = Depends(get_institution_admin_only_auth),
 ) -> SubscriptionOut:
     from app.services.billing_service import BillingService
     sub = BillingService().get_subscription(auth)
@@ -576,7 +581,7 @@ def get_subscription(
 
 @router.get("/plan", response_model=PlanOut)
 def get_plan(
-    auth: AuthContext = Depends(get_admin_auth),
+    auth: AuthContext = Depends(get_institution_admin_only_auth),
 ) -> PlanOut:
     from app.services.billing_service import BillingService
     plan = BillingService().get_plan_for_subscription(auth)
@@ -604,7 +609,7 @@ def get_plan(
 
 @router.get("/plans", response_model=list[PlanOut])
 def list_plans(
-    auth: AuthContext = Depends(get_admin_auth),
+    auth: AuthContext = Depends(get_institution_admin_only_auth),
 ) -> list[PlanOut]:
     plans = BillingService().list_plans_for_admin()
     return [
@@ -632,7 +637,7 @@ def list_plans(
 
 @router.get("/pagos", response_model=PaginatedResponse[PagoOut])
 def list_pagos(
-    auth: AuthContext = Depends(get_admin_auth),
+    auth: AuthContext = Depends(get_institution_admin_only_auth),
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
 ) -> PaginatedResponse[PagoOut]:
@@ -662,7 +667,7 @@ def list_pagos(
 @router.post("/stripe/sync-plan", response_model=StripePlanSyncOut)
 def sync_plan_with_stripe(
     payload: StripePlanSyncIn,
-    auth: AuthContext = Depends(get_admin_auth),
+    auth: AuthContext = Depends(get_institution_admin_only_auth),
 ) -> StripePlanSyncOut:
     service = get_stripe_agent_service()
     if not service.configured:
@@ -704,6 +709,17 @@ def sync_plan_with_stripe(
         price_created = True
 
     updated = repo.update_plan_stripe_refs(payload.plan_id, stripe_product_id=product["id"], stripe_price_id=price["id"])
+    try:
+        from app.repositories.audit_repository import AuditRepository
+
+        AuditRepository().log_action(
+            "BILLING_SYNC_PLAN",
+            external_auth_id=auth.external_auth_id,
+            institucion_id=auth.institucion_id,
+            detalle=f"plan_id={payload.plan_id}",
+        )
+    except Exception:  # noqa: BLE001
+        pass
     return StripePlanSyncOut(
         plan_id=payload.plan_id,
         stripe_product_id=updated.get("stripe_product_id") if updated else product["id"],
@@ -716,7 +732,7 @@ def sync_plan_with_stripe(
 @router.post("/stripe/create-subscription", response_model=SubscriptionCreateOut)
 def create_subscription_with_stripe(
     payload: SubscriptionCreateIn,
-    auth: AuthContext = Depends(get_admin_auth),
+    auth: AuthContext = Depends(get_institution_admin_only_auth),
 ) -> SubscriptionCreateOut:
     try:
         subscription = BillingService().create_subscription_for_institution(auth, payload.plan_id)
@@ -742,7 +758,7 @@ def create_subscription_with_stripe(
 @router.post("/stripe/cancel-subscription", response_model=SubscriptionActionOut)
 def cancel_subscription_with_stripe(
     payload: SubscriptionCancelIn,
-    auth: AuthContext = Depends(get_admin_auth),
+    auth: AuthContext = Depends(get_institution_admin_only_auth),
 ) -> SubscriptionActionOut:
     try:
         updated = BillingService().cancel_subscription_for_institution(auth, cancel_at_period_end=payload.cancel_at_period_end)
@@ -765,7 +781,7 @@ def cancel_subscription_with_stripe(
 @router.post("/stripe/checkout", response_model=CheckoutSessionOut)
 def create_checkout_session(
     payload: CheckoutSessionIn,
-    auth: AuthContext = Depends(get_admin_auth),
+    auth: AuthContext = Depends(get_institution_admin_only_auth),
 ) -> CheckoutSessionOut:
     session = BillingService().create_checkout_session_for_institution(
         auth, payload.plan_id, payload.success_url, payload.cancel_url
@@ -775,9 +791,19 @@ def create_checkout_session(
 
 @router.get("/stripe/subscription", response_model=StripeSubscriptionOut)
 def get_stripe_subscription(
-    auth: AuthContext = Depends(get_admin_auth),
+    auth: AuthContext = Depends(get_institution_admin_only_auth),
 ) -> StripeSubscriptionOut:
-    result = BillingService().get_stripe_subscription(auth)
+    try:
+        result = BillingService().get_stripe_subscription(auth)
+    except PermissionError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc))
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc))
+    except Exception as exc:  # noqa: BLE001 - Stripe SDK errors must not bypass CORS
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"Stripe request failed: {exc}")
+
     latest_invoice = result.get("latest_invoice") or {}
     payment_intent = latest_invoice.get("payment_intent") or {}
     return StripeSubscriptionOut(
@@ -794,7 +820,7 @@ def get_stripe_subscription(
 
 @router.post("/stripe/reactivate-subscription", response_model=SubscriptionActionOut)
 def reactivate_subscription_with_stripe(
-    auth: AuthContext = Depends(get_admin_auth),
+    auth: AuthContext = Depends(get_institution_admin_only_auth),
 ) -> SubscriptionActionOut:
     try:
         updated = BillingService().reactivate_subscription_for_institution(auth)
@@ -817,7 +843,7 @@ def reactivate_subscription_with_stripe(
 @router.post("/stripe/portal-session", response_model=StripePortalSessionOut)
 def create_portal_session(
     payload: StripePortalSessionIn,
-    auth: AuthContext = Depends(get_admin_auth),
+    auth: AuthContext = Depends(get_institution_admin_only_auth),
 ) -> StripePortalSessionOut:
     result = BillingService().create_billing_portal_session(auth, return_url=payload.return_url)
     return StripePortalSessionOut(
@@ -830,7 +856,7 @@ def create_portal_session(
 @router.post("/stripe/change-plan", response_model=SubscriptionChangePlanOut)
 def change_plan_with_stripe(
     payload: SubscriptionChangePlanIn,
-    auth: AuthContext = Depends(get_admin_auth),
+    auth: AuthContext = Depends(get_institution_admin_only_auth),
 ) -> SubscriptionChangePlanOut:
     updated = BillingService().change_subscription_plan(auth, payload.plan_id)
     latest_invoice = updated.get("latest_invoice") or {}
@@ -846,7 +872,7 @@ def change_plan_with_stripe(
 
 @router.get("/comprobantes", response_model=PaginatedResponse[ComprobanteOut])
 def list_comprobantes(
-    auth: AuthContext = Depends(get_admin_auth),
+    auth: AuthContext = Depends(get_institution_admin_only_auth),
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
 ) -> PaginatedResponse[ComprobanteOut]:
@@ -873,4 +899,69 @@ def list_comprobantes(
             ) for r in page
         ],
         pagination=PaginationMeta(total=total, limit=limit, offset=offset),
+    )
+
+
+@router.get("/escalamientos", response_model=PaginatedResponse[EscalamientoOut])
+def list_escalamientos(
+    auth: AuthContext = Depends(get_admin_auth),
+    estado: Optional[str] = Query(default=None),
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+) -> PaginatedResponse[EscalamientoOut]:
+    from app.services.handoff_service import HandoffService
+    rows = HandoffService().list_escalamientos(
+        institucion_id=auth.institucion_id,
+        workflow_estado=estado,
+        limit=limit,
+        offset=offset,
+    )
+    total = len(rows)
+    return PaginatedResponse[EscalamientoOut](
+        items=[
+            EscalamientoOut(
+                id=r.get("id"),
+                institucion_id=r.get("institucion_id"),
+                motivo=r.get("datos", {}).get("motivo"),
+                resumen=r.get("datos", {}).get("resumen"),
+                conversacion_id=r.get("datos", {}).get("conversacion_id"),
+                mensaje_id=r.get("datos", {}).get("mensaje_id"),
+                audit_id=r.get("datos", {}).get("audit_id"),
+                external_auth_id=r.get("datos", {}).get("external_auth_id"),
+                workflow_estado=r.get("datos", {}).get("workflow_estado", "PENDING"),
+                resolved_by=r.get("datos", {}).get("resolved_by"),
+                resolved_at=r.get("datos", {}).get("resolved_at"),
+                created_at=str(r.get("created_at")) if r.get("created_at") else None,
+            ) for r in rows
+        ],
+        pagination=PaginationMeta(total=total, limit=limit, offset=offset),
+    )
+
+
+@router.post("/escalamientos/{notification_id}/resolve", response_model=EscalamientoOut)
+def resolve_escalamiento(
+    notification_id: int,
+    auth: AuthContext = Depends(get_admin_auth),
+) -> EscalamientoOut:
+    from app.services.handoff_service import HandoffService
+    updated = HandoffService().resolve_escalation(
+        notification_id=notification_id,
+        resolved_by=auth.external_auth_id,
+    )
+    if not updated:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Escalamiento not found")
+    datos = updated.get("datos") or {}
+    return EscalamientoOut(
+        id=updated.get("id"),
+        institucion_id=updated.get("institucion_id"),
+        motivo=datos.get("motivo"),
+        resumen=datos.get("resumen"),
+        conversacion_id=datos.get("conversacion_id"),
+        mensaje_id=datos.get("mensaje_id"),
+        audit_id=datos.get("audit_id"),
+        external_auth_id=datos.get("external_auth_id"),
+        workflow_estado=datos.get("workflow_estado", "PENDING"),
+        resolved_by=datos.get("resolved_by"),
+        resolved_at=datos.get("resolved_at"),
+        created_at=str(updated.get("created_at")) if updated.get("created_at") else None,
     )

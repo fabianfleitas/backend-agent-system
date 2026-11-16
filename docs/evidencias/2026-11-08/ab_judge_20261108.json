@@ -1,0 +1,80 @@
+{
+  "fecha": "2026-11-08T18:00:00-03:00",
+  "tipo": "ab_juez_on_off_local_sintetico_proveedores_reales",
+  "entorno": "macOS local; Supabase local; 25 preguntas Gold; aislamiento por conversacion",
+  "modelos": {
+    "llm": "openai/gpt-4o-mini",
+    "judge": "openai/gpt-4o-mini",
+    "embeddings": "text-embedding-3-small",
+    "stt": "x-ai/grok-stt-1.0"
+  },
+  "off": {
+    "requests": 25,
+    "ok": 25,
+    "p50_ms": 2176.2,
+    "p95_ms": 3935.7,
+    "max_ms": 5394.7,
+    "min_ms": 1851.0,
+    "http_status_counts": {
+      "200": 25
+    },
+    "source_hits": 25,
+    "source_hit_rate": 1.0,
+    "audit_rows": 25,
+    "tokens_input": 18956,
+    "tokens_output": 1589,
+    "judge_scores": {
+      "fidelidad_avg": null,
+      "relevancia_avg": null,
+      "contexto_avg": null,
+      "evaluadas_con_scores": 0,
+      "estado_observado": {
+        "no_score_or_disabled": 25
+      }
+    }
+  },
+  "on": {
+    "requests": 25,
+    "ok": 25,
+    "p50_ms": 4188.8,
+    "p95_ms": 7090.0,
+    "max_ms": 7237.6,
+    "min_ms": 3328.2,
+    "http_status_counts": {
+      "200": 25
+    },
+    "source_hits": 25,
+    "source_hit_rate": 1.0,
+    "audit_rows": 25,
+    "tokens_input": 18956,
+    "tokens_output": 1579,
+    "judge_scores": {
+      "fidelidad_avg": 0.996,
+      "relevancia_avg": 1.0,
+      "contexto_avg": 1.0,
+      "evaluadas_con_scores": 25,
+      "estado_observado": {
+        "ok": 25
+      }
+    }
+  },
+  "paired_latency_delta_ms": {
+    "count": 25,
+    "median": 1842.9,
+    "mean": 1922.3,
+    "min": 738.5,
+    "max": 3893.8
+  },
+  "reportes": {
+    "off": "eval/reports/eval_20261108_175752_280723.json",
+    "on": "eval/reports/eval_20261108_175956_080905.json"
+  },
+  "wer": {
+    "estado": "bloqueado",
+    "audios": 6,
+    "proveedor": "OpenRouter",
+    "error": "HTTP 402: créditos insuficientes",
+    "intentos_de_audio": 1
+  },
+  "advertencia": "Muestra pequeña (25 por condición); el juez es automático, no revisión humana. No es una prueba de concurrencia ni de producción."
+}

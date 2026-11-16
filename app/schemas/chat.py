@@ -13,6 +13,18 @@ class ChatQueryIn(BaseModel):
     message: str = Field(min_length=1)
 
 
+class ChatRegenerateIn(BaseModel):
+    conversation_id: int
+
+
+class ChatRegenerateOut(BaseModel):
+    response: str
+    sources: List[SourceOut] = []
+    audit_id: UUID
+    conversation_id: int
+    assistant_message: MessageOut
+
+
 class ChatQueryOut(BaseModel):
     response: str
     sources: List[SourceOut] = []

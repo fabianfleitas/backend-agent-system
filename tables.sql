@@ -424,3 +424,20 @@ CREATE TABLE public.config_parametros (
   CONSTRAINT config_parametros_pkey PRIMARY KEY (id),
   CONSTRAINT config_parametros_institucion_id_fkey FOREIGN KEY (institucion_id) REFERENCES public.instituciones(id)
 );
+CREATE TABLE public.solicitudes_acceso (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  institucion_nombre text NOT NULL,
+  persona_contacto text NOT NULL,
+  email text NOT NULL,
+  telefono text,
+  cantidad_usuarios_estimada integer,
+  perfil_solicitado text,
+  mensaje text,
+  estado text NOT NULL DEFAULT 'PENDIENTE'::text,
+  origen text NOT NULL DEFAULT 'landing'::text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT solicitudes_acceso_pkey PRIMARY KEY (id),
+  CONSTRAINT solicitudes_acceso_estado_check CHECK (estado = ANY (ARRAY['PENDIENTE'::text, 'CONTACTADA'::text, 'APROBADA'::text, 'RECHAZADA'::text])),
+  CONSTRAINT solicitudes_acceso_cantidad_usuarios_check CHECK (cantidad_usuarios_estimada IS NULL OR cantidad_usuarios_estimada > 0)
+);

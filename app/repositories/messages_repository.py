@@ -84,6 +84,15 @@ class MessagesRepository:
         )
         return response.data[0] if response.data else None
 
+    def update_message(self, message_id: int, **fields) -> Optional[dict]:
+        response = (
+            self.client.table("mensajes")
+            .update(fields)
+            .eq("id", message_id)
+            .execute()
+        )
+        return response.data[0] if response.data else None
+
 
 def _milliseconds_as_int(value: Optional[float]) -> Optional[int]:
     if value is None:

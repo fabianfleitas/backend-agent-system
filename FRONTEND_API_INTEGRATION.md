@@ -405,6 +405,22 @@ previos de la conversacion (usuario y asistente) para entender referencias de se
 - Los mensajes de fallo controlado ("No fue posible generar la respuesta...") no entran en el historial.
 - El contexto institucional recuperado (RAG) sigue siendo la fuente de verdad; el historial solo se usa para entender el seguimiento.
 
+#### Regenerar respuesta (S11)
+
+Reemplaza la última respuesta del asistente **in-place** (no agrega un turno). Requiere un turno previo.
+
+```http
+POST /api/chat/regenerate
+Content-Type: application/json
+```
+
+Body: `{ "conversation_id": 1 }`
+
+Respuesta: `{ "response", "sources", "audit_id", "conversation_id", "assistant_message" }` (el `assistant_message` actualizado; el frontend debe **reemplazar** el último mensaje del asistente en el estado local).
+
+- `404` si no existe la conversación o no hay turno previo (USUARIO + ASISTENTE).
+- Con `judge_enabled=true` se generan nuevos `score_*` en el `audit_log` correspondiente.
+
 ## Chat por voz
 
 ```http
@@ -416,7 +432,10 @@ Form data:
 
 ```text
 audio: File
+consent_external_processing: true
 ```
+
+El frontend debe solicitar consentimiento explícito antes de grabar/enviar voz. Este consentimiento cubre tanto el envío del audio al proveedor STT como el envío del texto de respuesta al proveedor TTS. Si falta o es `false`, el endpoint responde `400` sin invocar proveedores. La aceptación se registra en `audit_logs` como `VOICE_EXTERNAL_PROCESSING_CONSENT`; si no se puede registrar, la solicitud falla cerrada y no se invocan proveedores.
 
 Respuesta:
 
@@ -649,6 +668,50 @@ Request: `{ "full_name": "Nuevo nombre" }` (`UserUpdateIn`).
 
 - Solo `full_name` es editable; `email`/`role`/membresía no se modifican por este endpoint.
 - Respuesta: `UserOut` actualizado.
+
+## Solicitud pública de acceso (sin autenticación)
+
+Único endpoint de negocio que **no** requiere `Authorization`. Se usa desde el formulario público `/solicitar-acceso` del dashboard, cuando el solicitante todavía no tiene cuenta.
+
+```http
+POST /api/public/solicitudes-acceso
+Content-Type: application/json
+```
+
+Request (`SolicitudAccesoIn`):
+
+```json
+{
+  "institucion_nombre": "Universidad Ejemplo",
+  "persona_contacto": "Ana Pérez",
+  "email": "ana@ejemplo.edu.py",
+  "telefono": "+595981000000",
+  "cantidad_usuarios_estimada": 1200,
+  "perfil_solicitado": "ADMINISTRACION",
+  "mensaje": "Necesitamos habilitar el panel para secretaría.",
+  "consentimiento": true,
+  "empresa": ""
+}
+```
+
+Campos:
+
+- Obligatorios: `institucion_nombre` (2–160), `persona_contacto` (2–120), `email` (formato válido), `consentimiento` (debe ser `true`).
+- Opcionales: `telefono` (≤40), `cantidad_usuarios_estimada` (1–1.000.000), `perfil_solicitado` (`ADMINISTRACION` | `SECRETARIA` | `ESTUDIANTE` | `A_CONFIRMAR`), `mensaje` (≤2000).
+- `empresa` es un **campo trampa** (honeypot): debe enviarse siempre vacío. Si llega con contenido, el backend responde `201` igual pero **no persiste nada**, para no dar pistas al bot.
+
+Respuesta `201` (`SolicitudAccesoOut`): `{ "id": 3, "estado": "PENDIENTE", "created_at": "..." }`. No devuelve datos personales.
+
+Errores:
+
+- `422`: validación (falta consentimiento, correo inválido, campos fuera de rango, perfil desconocido).
+- `429`: rate limit (5 solicitudes por minuto por IP). Respeta `Retry-After`.
+
+Notas de integración:
+
+- El cliente **no debe enviar** `Authorization`; es el único endpoint del contrato sin JWT.
+- No usar el cliente HTTP autenticado del dashboard (falla si no hay sesión). Usar un cliente público sin credenciales y sin cierre de sesión ante `401`.
+- La solicitud queda en `solicitudes_acceso` con `estado='PENDIENTE'` y se avisa por correo a `SOLICITUDES_EMAIL` si está configurado. El fallo de correo no afecta la respuesta.
 
 ## Administracion
 
@@ -1053,6 +1116,38 @@ DELETE /api/admin/feedback/{feedback_id}
 - Requiere `get_admin_auth` (ADMIN/SECRETARIA de la institución; 403 si es ESTUDIANTE o platform admin sin membresía).
 
 **UI (admin-dashboard):** botón "Eliminar" (`Trash2`) por fila con modal de confirmación; al confirmar llama a `DELETE /api/admin/feedback/{id}` y refresca el listado.
+
+### Escalamientos (derivación a operador)
+
+Cuando `HANDOFF_ENABLED=true` y una consulta queda fuera de dominio (guard), el LLM falla o se detecta frustración, el backend crea un escalamiento (notificación `tipo='SYSTEM'`, workflow en `datos`).
+
+```http
+GET  /api/admin/escalamientos?estado=PENDING&limit=20&offset=0
+POST /api/admin/escalamientos/{notification_id}/resolve
+```
+
+- `GET /api/admin/escalamientos` devuelve `PaginatedResponse<EscalamientoOut>` (filtro opcional `estado` = `PENDING`/`RESOLVED`/`CANCELLED`).
+- `POST .../resolve` marca `datos.workflow_estado=RESOLVED` con `resolved_by`/`resolved_at`; `404` si no existe.
+- Requiere `get_admin_auth` (ADMIN/SECRETARIA de la institución); aislado por `institucion_id`.
+
+```json
+{
+  "id": 12,
+  "institucion_id": 1,
+  "motivo": "DOMAIN_OUT_OF_SCOPE",
+  "resumen": "¿cuál es la capital de Francia?",
+  "conversacion_id": 5,
+  "mensaje_id": 9,
+  "audit_id": "uuid",
+  "external_auth_id": "student-1",
+  "workflow_estado": "PENDING",
+  "resolved_by": null,
+  "resolved_at": null,
+  "created_at": "2026-09-20T..."
+}
+```
+
+**UI (admin-dashboard):** ruta `/escalamientos` (guard `staff`) con listado, filtro por estado, enlace a la conversación y botón "Resolver".
 
 ### Usuarios
 

@@ -1,0 +1,14 @@
+{
+  "fecha": "2026-11-08T18:03:00-03:00",
+  "tipo": "intento_wer_local",
+  "audio_dir": "eval/audios",
+  "audios_disponibles": 6,
+  "modelo_stt": "x-ai/grok-stt-1.0",
+  "proveedor": "OpenRouter",
+  "estado": "bloqueado",
+  "error": "HTTP 402: This request's maximum cost exceeds your available credits",
+  "transcripciones_obtenidas": 0,
+  "wer": null,
+  "reintentos": 0,
+  "nota": "No se obtuvo WER nuevo. No se cambió de proveedor ni se reintentó la llamada."
+}

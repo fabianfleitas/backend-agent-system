@@ -2,3 +2,7 @@
 __pycache__/
 *.py[cod]
 storage/
+backups/
+eval/reports/
+eval/audios/
+.pytest_cache/

@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.api.admin.routes import router as admin_router
-from app.core.security import AuthContext, get_admin_auth
+from app.core.security import AuthContext, get_institution_admin_only_auth
 
 
 class _FakeBillingService:
@@ -27,7 +27,7 @@ class _FakeBillingService:
 def test_create_subscription_with_stripe(monkeypatch) -> None:
     app = FastAPI()
     app.include_router(admin_router, prefix="/api/admin")
-    app.dependency_overrides[get_admin_auth] = lambda: AuthContext(
+    app.dependency_overrides[get_institution_admin_only_auth] = lambda: AuthContext(
         external_auth_id="admin-1",
         institucion_id=1,
         tipo_miembro="ADMIN",

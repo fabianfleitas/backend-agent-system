@@ -1,0 +1,406 @@
+{
+  "version": "1.0",
+  "descripcion": "Gold Dataset best-effort de 50 consultas frecuentes para evaluar el asistente academico institucional (RAG + LLM-as-a-Judge). Los campos 'respuesta_esperada' y 'fuente_esperada' son pre-cargados de forma orientativa y deben validarse/completarse contra la documentacion institucional real cargada en la Knowledge Base.",
+  "items": [
+    {
+      "id": "G001",
+      "categoria": "matriculacion",
+      "pregunta": "¿Cuáles son los requisitos y documentos para la matrícula de ingresantes?",
+      "respuesta_esperada": "Los ingresantes deben presentar documento de identidad, certificado de estudios o constancia, y completar la ficha de inscripción en la Secretaría.",
+      "fuente_esperada": "Reglamento de Matriculación",
+      "palabras_clave": ["requisitos", "ingresantes", "matrícula", "documentos"]
+    },
+    {
+      "id": "G002",
+      "categoria": "matriculacion",
+      "pregunta": "¿Hasta qué fecha puedo inscribirme en el periodo de matriculación?",
+      "respuesta_esperada": "El periodo de matriculación cierra según el calendario académico vigente; fuera de plazo se evalúa como inscripción tardía.",
+      "fuente_esperada": "Calendario Académico",
+      "palabras_clave": ["fecha", "inscripción", "matriculación", "plazo"]
+    },
+    {
+      "id": "G003",
+      "categoria": "matriculacion",
+      "pregunta": "¿Cómo me matriculo si soy estudiante de reingreso?",
+      "respuesta_esperada": "El estudiante de reingreso debe regularizar su situación académica y matricularse dentro del periodo establecido.",
+      "fuente_esperada": "Reglamento de Matriculación",
+      "palabras_clave": ["reingreso", "matrícula", "regularización"]
+    },
+    {
+      "id": "G004",
+      "categoria": "matriculacion",
+      "pregunta": "¿Qué pasa si no me matriculo en la fecha establecida?",
+      "respuesta_esperada": "Quien no se matricula dentro del plazo pierde la regularidad y debe gestionar su reinscripción.",
+      "fuente_esperada": "Reglamento Académico",
+      "palabras_clave": ["no me matriculo", "plazo", "regularidad"]
+    },
+    {
+      "id": "G005",
+      "categoria": "matriculacion",
+      "pregunta": "¿Puedo matricularme en asignaturas de un semestre superior?",
+      "respuesta_esperada": "La inscripción en asignaturas de semestre superior está condicionada al régimen de correlatividades.",
+      "fuente_esperada": "Régimen de Correlatividades",
+      "palabras_clave": ["semestre superior", "correlatividades", "inscripción"]
+    },
+    {
+      "id": "G006",
+      "categoria": "matriculacion",
+      "pregunta": "¿Cuál es el proceso para la matrícula de estudiantes extranjeros?",
+      "respuesta_esperada": "Los estudiantes extranjeros deben presentar documentación migratoria y convalidaciones según las normas vigentes.",
+      "fuente_esperada": "Reglamento de Matriculación",
+      "palabras_clave": ["extranjeros", "matrícula", "documentación"]
+    },
+    {
+      "id": "G007",
+      "categoria": "matriculacion",
+      "pregunta": "¿Necesito firmar algún documento en la Secretaría para completar la matrícula?",
+      "respuesta_esperada": "Sí, la matrícula se completa con la firma de la ficha correspondiente en la Secretaría Académica.",
+      "fuente_esperada": "Reglamento de Matriculación",
+      "palabras_clave": ["firmar", "Secretaría", "matrícula"]
+    },
+    {
+      "id": "G008",
+      "categoria": "matriculacion",
+      "pregunta": "¿Dónde consulto el estado de mi matrícula?",
+      "respuesta_esperada": "El estado de la matrícula se consulta en el campus virtual o en la Secretaría Académica.",
+      "fuente_esperada": "Manual de Campus Virtual",
+      "palabras_clave": ["estado", "matrícula", "campus"]
+    },
+    {
+      "id": "G009",
+      "categoria": "aranceles",
+      "pregunta": "¿Cuánto cuesta la matrícula y las cuotas mensuales?",
+      "respuesta_esperada": "El costo de la matrícula y las cuotas depende del plan de estudios vigente; se detalla en el arancel oficial.",
+      "fuente_esperada": "Arancel Oficial",
+      "palabras_clave": ["costo", "matrícula", "cuotas", "arancel"]
+    },
+    {
+      "id": "G010",
+      "categoria": "aranceles",
+      "pregunta": "¿Cuáles son las formas de pago habilitadas?",
+      "respuesta_esperada": "Se acepta pago presencial, transferencia bancaria y otros canales habilitados por la institución.",
+      "fuente_esperada": "Arancel Oficial",
+      "palabras_clave": ["formas de pago", "transferencia", "presencial"]
+    },
+    {
+      "id": "G011",
+      "categoria": "aranceles",
+      "pregunta": "¿Hasta qué día debo pagar las cuotas para no perder la regularidad?",
+      "respuesta_esperada": "Las cuotas vencen según el cronograma de pagos; el atraso afecta la regularidad académica.",
+      "fuente_esperada": "Arancel Oficial",
+      "palabras_clave": ["cuotas", "vencimiento", "regularidad"]
+    },
+    {
+      "id": "G012",
+      "categoria": "aranceles",
+      "pregunta": "¿Qué recargo tiene el pago fuera de término?",
+      "respuesta_esperada": "El pago fuera de término aplica un recargo establecido en el arancel oficial.",
+      "fuente_esperada": "Arancel Oficial",
+      "palabras_clave": ["recargo", "fuera de término", "mora"]
+    },
+    {
+      "id": "G013",
+      "categoria": "aranceles",
+      "pregunta": "¿Cómo solicito una beca por mérito académico?",
+      "respuesta_esperada": "La beca por mérito se solicita presentando el expediente con el promedio requerido dentro del plazo establecido.",
+      "fuente_esperada": "Reglamento de Becas",
+      "palabras_clave": ["beca", "mérito", "solicitud", "promedio"]
+    },
+    {
+      "id": "G014",
+      "categoria": "aranceles",
+      "pregunta": "¿Qué becas y descuentos están disponibles para estudiantes?",
+      "respuesta_esperada": "La institución ofrece becas por mérito, por situación económica y descuentos según el reglamento vigente.",
+      "fuente_esperada": "Reglamento de Becas",
+      "palabras_clave": ["becas", "descuentos", "disponibles"]
+    },
+    {
+      "id": "G015",
+      "categoria": "aranceles",
+      "pregunta": "¿Cómo solicito la devolución de un pago duplicado?",
+      "respuesta_esperada": "La devolución por pago duplicado se gestiona en la Secretaría presentando los comprobantes de ambos pagos.",
+      "fuente_esperada": "Procedimiento de Tesorería",
+      "palabras_clave": ["devolución", "pago duplicado", "comprobantes"]
+    },
+    {
+      "id": "G016",
+      "categoria": "aranceles",
+      "pregunta": "¿Qué ocurre si tengo cuotas pendientes al finalizar el semestre?",
+      "respuesta_esperada": "Las deudas pendientes pueden impedir la regularidad y la emisión de certificados.",
+      "fuente_esperada": "Arancel Oficial",
+      "palabras_clave": ["cuotas pendientes", "deuda", "semestre"]
+    },
+    {
+      "id": "G017",
+      "categoria": "reglamento",
+      "pregunta": "¿Cuál es la escala de calificaciones y qué nota mínima necesito para aprobar?",
+      "respuesta_esperada": "La escala va de 1 a 5 y la nota mínima de aprobación se define en el reglamento académico.",
+      "fuente_esperada": "Reglamento Académico",
+      "palabras_clave": ["escala", "calificaciones", "aprobación"]
+    },
+    {
+      "id": "G018",
+      "categoria": "reglamento",
+      "pregunta": "¿Cuántas materias puedo cursar por semestre?",
+      "respuesta_esperada": "El máximo de materias por semestre está limitado por el plan de estudios y el régimen académico.",
+      "fuente_esperada": "Reglamento Académico",
+      "palabras_clave": ["materias", "semestre", "máximo"]
+    },
+    {
+      "id": "G019",
+      "categoria": "reglamento",
+      "pregunta": "¿Qué es el régimen de correlatividades y cómo afecta mi inscripción?",
+      "respuesta_esperada": "Las correlatividades exigen aprobar ciertas asignaturas previas para inscribirse en otras.",
+      "fuente_esperada": "Régimen de Correlatividades",
+      "palabras_clave": ["correlatividades", "inscripción", "previas"]
+    },
+    {
+      "id": "G020",
+      "categoria": "reglamento",
+      "pregunta": "¿Cuál es el porcentaje de asistencia mínimo para no perder la materia?",
+      "respuesta_esperada": "El mínimo de asistencia requerido se establece en el reglamento académico.",
+      "fuente_esperada": "Reglamento Académico",
+      "palabras_clave": ["asistencia", "porcentaje", "mínimo"]
+    },
+    {
+      "id": "G021",
+      "categoria": "reglamento",
+      "pregunta": "¿Qué pasa si pierdo tres veces la misma asignatura?",
+      "respuesta_esperada": "Al perder la asignatura por tercera vez se aplican las disposiciones del reglamento académico.",
+      "fuente_esperada": "Reglamento Académico",
+      "palabras_clave": ["tres veces", "asignatura", "pierdo"]
+    },
+    {
+      "id": "G022",
+      "categoria": "reglamento",
+      "pregunta": "¿Cómo funciona el sistema de regularidad y categoría de alumno?",
+      "respuesta_esperada": "La categoría de alumno depende del porcentaje de materias aprobadas según el reglamento.",
+      "fuente_esperada": "Reglamento Académico",
+      "palabras_clave": ["regularidad", "categoría", "alumno"]
+    },
+    {
+      "id": "G023",
+      "categoria": "reglamento",
+      "pregunta": "¿Cuáles son mis derechos y obligaciones como estudiante?",
+      "respuesta_esperada": "Los derechos y obligaciones del estudiante se detallan en el reglamento académico.",
+      "fuente_esperada": "Reglamento Académico",
+      "palabras_clave": ["derechos", "obligaciones", "estudiante"]
+    },
+    {
+      "id": "G024",
+      "categoria": "reglamento",
+      "pregunta": "¿Cómo se calcula el promedio general de la carrera?",
+      "respuesta_esperada": "El promedio se calcula ponderando las calificaciones según la carga horaria de cada asignatura.",
+      "fuente_esperada": "Reglamento Académico",
+      "palabras_clave": ["promedio", "cálculo", "carrera"]
+    },
+    {
+      "id": "G025",
+      "categoria": "calendario",
+      "pregunta": "¿Cuándo inicia y finaliza el semestre?",
+      "respuesta_esperada": "Las fechas de inicio y fin del semestre figuran en el calendario académico.",
+      "fuente_esperada": "Calendario Académico",
+      "palabras_clave": ["inicio", "fin", "semestre"]
+    },
+    {
+      "id": "G026",
+      "categoria": "calendario",
+      "pregunta": "¿Cómo me inscribo a los exámenes finales?",
+      "respuesta_esperada": "La inscripción a exámenes finales se realiza dentro de las fechas del calendario académico.",
+      "fuente_esperada": "Calendario Académico",
+      "palabras_clave": ["exámenes finales", "inscripción"]
+    },
+    {
+      "id": "G027",
+      "categoria": "calendario",
+      "pregunta": "¿Cuántas oportunidades de examen tengo por materia?",
+      "respuesta_esperada": "El número de oportunidades por materia se define en el reglamento académico.",
+      "fuente_esperada": "Reglamento Académico",
+      "palabras_clave": ["oportunidades", "examen", "materia"]
+    },
+    {
+      "id": "G028",
+      "categoria": "calendario",
+      "pregunta": "¿Puedo rendir en condición de alumno libre?",
+      "respuesta_esperada": "El régimen de alumno libre está regulado en el reglamento académico.",
+      "fuente_esperada": "Reglamento Académico",
+      "palabras_clave": ["alumno libre", "rendir"]
+    },
+    {
+      "id": "G029",
+      "categoria": "calendario",
+      "pregunta": "¿Dónde consulto el calendario de exámenes parciales y finales?",
+      "respuesta_esperada": "El calendario de exámenes se publica en el campus virtual y en la Secretaría.",
+      "fuente_esperada": "Calendario Académico",
+      "palabras_clave": ["calendario", "exámenes", "parciales", "finales"]
+    },
+    {
+      "id": "G030",
+      "categoria": "calendario",
+      "pregunta": "¿Qué se necesita para rendir el examen de recuperatorio?",
+      "respuesta_esperada": "El recuperatorio requiere cumplir las condiciones establecidas en el reglamento académico.",
+      "fuente_esperada": "Reglamento Académico",
+      "palabras_clave": ["recuperatorio", "requisitos"]
+    },
+    {
+      "id": "G031",
+      "categoria": "calendario",
+      "pregunta": "¿Qué sucede si no me presento a un examen al que me inscribí?",
+      "respuesta_esperada": "La inasistencia a un examen inscripto puede contar como oportunidad utilizada según el reglamento.",
+      "fuente_esperada": "Reglamento Académico",
+      "palabras_clave": ["inasistencia", "examen", "inscripto"]
+    },
+    {
+      "id": "G032",
+      "categoria": "titulos",
+      "pregunta": "¿Cuáles son los requisitos para obtener el título?",
+      "respuesta_esperada": "El título requiere aprobar todas las asignaturas del plan y cumplir los requisitos de egreso.",
+      "fuente_esperada": "Reglamento de Títulos",
+      "palabras_clave": ["título", "requisitos", "egreso"]
+    },
+    {
+      "id": "G033",
+      "categoria": "titulos",
+      "pregunta": "¿Cómo solicito mi certificado de estudios?",
+      "respuesta_esperada": "El certificado de estudios se solicita en la Secretaría mediante el formulario correspondiente.",
+      "fuente_esperada": "Procedimiento de Secretaría",
+      "palabras_clave": ["certificado", "estudios", "solicitud"]
+    },
+    {
+      "id": "G034",
+      "categoria": "titulos",
+      "pregunta": "¿Cómo tramito el analítico de calificaciones?",
+      "respuesta_esperada": "El analítico se tramita en la Secretaría; su emisión puede requerir el pago de arancel.",
+      "fuente_esperada": "Procedimiento de Secretaría",
+      "palabras_clave": ["analítico", "calificaciones", "trámite"]
+    },
+    {
+      "id": "G035",
+      "categoria": "titulos",
+      "pregunta": "¿Qué es el trabajo final de grado y cuáles son sus requisitos?",
+      "respuesta_esperada": "El trabajo final de grado es un requisito de egreso regulado por el reglamento específico.",
+      "fuente_esperada": "Reglamento de Trabajo Final",
+      "palabras_clave": ["trabajo final", "grado", "requisitos"]
+    },
+    {
+      "id": "G036",
+      "categoria": "titulos",
+      "pregunta": "¿Cómo solicito una constancia de alumno regular?",
+      "respuesta_esperada": "La constancia de alumno regular se emite por la Secretaría a solicitud del estudiante.",
+      "fuente_esperada": "Procedimiento de Secretaría",
+      "palabras_clave": ["constancia", "alumno regular"]
+    },
+    {
+      "id": "G037",
+      "categoria": "titulos",
+      "pregunta": "¿Cuánto demora la emisión del título?",
+      "respuesta_esperada": "El plazo de emisión del título depende del trámite y se informa en la Secretaría.",
+      "fuente_esperada": "Reglamento de Títulos",
+      "palabras_clave": ["emisión", "título", "plazo"]
+    },
+    {
+      "id": "G038",
+      "categoria": "titulos",
+      "pregunta": "¿Cómo pido una reposición del título o certificado?",
+      "respuesta_esperada": "La reposición de título o certificado se gestiona ante la Secretaría con los requisitos vigentes.",
+      "fuente_esperada": "Procedimiento de Secretaría",
+      "palabras_clave": ["reposición", "título", "certificado"]
+    },
+    {
+      "id": "G039",
+      "categoria": "tramites",
+      "pregunta": "¿Cómo solicito la baja temporal de la carrera?",
+      "respuesta_esperada": "La baja temporal se solicita formalmente y se resuelve según el reglamento académico.",
+      "fuente_esperada": "Reglamento Académico",
+      "palabras_clave": ["baja temporal", "solicitud"]
+    },
+    {
+      "id": "G040",
+      "categoria": "tramites",
+      "pregunta": "¿Cómo tramito el cambio de carrera o de plan de estudios?",
+      "respuesta_esperada": "El cambio de carrera o de plan se tramita según las disposiciones del reglamento.",
+      "fuente_esperada": "Reglamento Académico",
+      "palabras_clave": ["cambio", "carrera", "plan"]
+    },
+    {
+      "id": "G041",
+      "categoria": "tramites",
+      "pregunta": "¿Cómo pido equivalencias de asignaturas aprobadas en otra institución?",
+      "respuesta_esperada": "Las equivalencias se solicitan presentando los programas y certificados de las materias aprobadas.",
+      "fuente_esperada": "Reglamento de Equivalencias",
+      "palabras_clave": ["equivalencias", "asignaturas", "otra institución"]
+    },
+    {
+      "id": "G042",
+      "categoria": "tramites",
+      "pregunta": "¿Cómo solicito el cambio de turno o de comisión?",
+      "respuesta_esperada": "El cambio de turno o comisión se gestiona ante la Secretaría dentro de las fechas habilitadas.",
+      "fuente_esperada": "Procedimiento de Secretaría",
+      "palabras_clave": ["cambio", "turno", "comisión"]
+    },
+    {
+      "id": "G043",
+      "categoria": "tramites",
+      "pregunta": "¿Cómo actualizo mis datos personales en el sistema académico?",
+      "respuesta_esperada": "Los datos personales se actualizan en el campus virtual o ante la Secretaría.",
+      "fuente_esperada": "Manual de Campus Virtual",
+      "palabras_clave": ["actualizar", "datos", "perfil"]
+    },
+    {
+      "id": "G044",
+      "categoria": "tramites",
+      "pregunta": "¿Cómo justifico una inasistencia por motivo de salud?",
+      "respuesta_esperada": "La inasistencia por salud se justifica presentando el certificado médico correspondiente.",
+      "fuente_esperada": "Reglamento Académico",
+      "palabras_clave": ["inasistencia", "justificar", "salud", "certificado"]
+    },
+    {
+      "id": "G045",
+      "categoria": "tramites",
+      "pregunta": "¿Cómo presento un recurso o reclamo ante una calificación?",
+      "respuesta_esperada": "El reclamo de calificación se presenta por escrito dentro del plazo del reglamento.",
+      "fuente_esperada": "Reglamento Académico",
+      "palabras_clave": ["recurso", "reclamo", "calificación"]
+    },
+    {
+      "id": "G046",
+      "categoria": "servicios",
+      "pregunta": "¿Cuál es el horario de atención de la Secretaría Académica?",
+      "respuesta_esperada": "El horario de atención de la Secretaría está publicado en el sitio institucional.",
+      "fuente_esperada": "Guía de Servicios",
+      "palabras_clave": ["horario", "Secretaría", "atención"]
+    },
+    {
+      "id": "G047",
+      "categoria": "servicios",
+      "pregunta": "¿Qué servicios ofrece la biblioteca y cómo accedo?",
+      "respuesta_esperada": "La biblioteca ofrece préstamo, sala de lectura y acceso digital según su reglamento.",
+      "fuente_esperada": "Guía de Servicios",
+      "palabras_clave": ["biblioteca", "servicios", "acceso"]
+    },
+    {
+      "id": "G048",
+      "categoria": "servicios",
+      "pregunta": "¿Cómo accedo a la plataforma educativa o campus virtual?",
+      "respuesta_esperada": "El acceso al campus virtual se realiza con las credenciales institucionales del estudiante.",
+      "fuente_esperada": "Manual de Campus Virtual",
+      "palabras_clave": ["campus virtual", "acceso", "credenciales"]
+    },
+    {
+      "id": "G049",
+      "categoria": "servicios",
+      "pregunta": "¿Qué reglamento rige la convivencia y el uso de las instalaciones?",
+      "respuesta_esperada": "La convivencia y el uso de instalaciones se rigen por el reglamento interno institucional.",
+      "fuente_esperada": "Reglamento Interno",
+      "palabras_clave": ["convivencia", "instalaciones", "reglamento"]
+    },
+    {
+      "id": "G050",
+      "categoria": "servicios",
+      "pregunta": "¿Con quién contacto ante un problema con mi cuenta institucional?",
+      "respuesta_esperada": "Los problemas con la cuenta institucional se resuelven a través del soporte técnico o la Secretaría.",
+      "fuente_esperada": "Guía de Servicios",
+      "palabras_clave": ["cuenta", "soporte", "contacto"]
+    }
+  ]
+}

@@ -42,16 +42,41 @@ class Settings(BaseSettings):
 
     openrouter_api_key: Optional[str] = None
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
-    llm_model: str = "openai/gpt-4o-mini"
+    llm_model: str = "openai/gpt-oss-20b"
     llm_enabled: bool = False
     llm_temperature: float = 0.2
-    llm_max_tokens: int = 512
+    llm_max_tokens: int = 384
     llm_request_timeout: float = 45.0
     llm_max_retries: int = 1
+    # Enrutamiento opcional de OpenRouter para generación (coma-separado).
+    # Ej.: "Groq" o "Groq,DeepInfra". Vacío = enrutamiento automático.
+    llm_provider_order: str = ""
+    llm_provider_allow_fallbacks: bool = True
+    # Nivel de razonamiento para modelos que lo soportan: low|medium|high.
+    llm_reasoning_effort: str = ""
 
     llm_history_enabled: bool = True
     llm_history_max_tokens: int = 1500
     llm_history_max_messages: int = 10
+
+    judge_enabled: bool = False
+    judge_model: str = "openai/gpt-4o-mini"
+    judge_temperature: float = 0.0
+    judge_max_tokens: int = 256
+    judge_request_timeout: float = 45.0
+    # Fracción de consultas interactivas que se evalúan con el juez cuando
+    # judge_enabled=true. 0.0 = ninguna (protege el SLO de latencia RNF-05);
+    # 1.0 = todas (usar en corridas de evaluación, no en interactivo).
+    judge_sample_rate: float = 0.0
+
+    handoff_enabled: bool = False
+    handoff_trigger_on_guard: bool = True
+    handoff_trigger_on_llm_failure: bool = True
+    handoff_frustration_enabled: bool = False
+    handoff_frustration_keywords: str = (
+        "no me sirve,no entiendo,inútil,mala atención,quej,hablar con alguien,"
+        "persona real,operador,secretaría,reclamo"
+    )
 
     stt_enabled: bool = False
     stt_model: str = "x-ai/grok-stt-1.0"
@@ -80,12 +105,15 @@ class Settings(BaseSettings):
     rate_limit_enabled: bool = True
     rate_limit_default_limit: int = 300
     rate_limit_default_window_seconds: int = 60
-    rate_limit_rules: str = "/api/chat/query:20:60,/api/chat/voice:10:60,/api/chat/feedback:30:60,/api/admin/documents:30:60,/api/admin/reindex:10:60,/api/admin/stripe:10:60"
+    rate_limit_rules: str = "/api/chat/query:20:60,/api/chat/voice:10:60,/api/chat/feedback:30:60,/api/admin/documents:30:60,/api/admin/reindex:10:60,/api/admin/stripe:10:60,/api/public/solicitudes-acceso:5:60"
 
     smtp_password: Optional[str] = None
 
+    # Casilla de plataforma que recibe el aviso de cada solicitud de acceso.
+    solicitudes_email: Optional[str] = None
+
     retrieval_similarity_threshold: float = 0.30
-    retrieval_match_count: int = 5
+    retrieval_match_count: int = 4
 
     pii_anonymization_enabled: bool = False
     pii_mapping_retention_days: int = 90

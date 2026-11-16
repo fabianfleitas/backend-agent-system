@@ -35,6 +35,18 @@ def _get_plat_service() -> PlatformService:
     return PlatformService()
 
 
+def _log_platform_action(action: str, auth: AuthContext, detalle: Optional[str] = None) -> None:
+    try:
+        AuditRepository().log_action(
+            action,
+            external_auth_id=auth.external_auth_id,
+            institucion_id=None,
+            detalle=detalle,
+        )
+    except Exception:  # noqa: BLE001
+        pass
+
+
 def _plan_out(p: dict) -> PlanOut:
     return PlanOut(
         id=p.get("id"),
@@ -101,6 +113,7 @@ def create_institution(
     service: PlatformService = Depends(_get_plat_service),
 ) -> InstitutionOut:
     row = service.create_institution(**payload.model_dump())
+    _log_platform_action("PLATFORM_INSTITUTION_CREATE", auth, f"institucion_id={row.get('id')} nombre={row.get('nombre')}")
     return _institution_out(row)
 
 
@@ -114,6 +127,7 @@ def update_institution(
     row = service.update_institution(institucion_id, **payload.model_dump())
     if not row:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Institution not found")
+    _log_platform_action("PLATFORM_INSTITUTION_UPDATE", auth, f"institucion_id={institucion_id}")
     return _institution_out(row)
 
 
@@ -126,6 +140,7 @@ def deactivate_institution(
     row = service.deactivate_institution(institucion_id)
     if not row:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Institution not found")
+    _log_platform_action("PLATFORM_INSTITUTION_DEACTIVATE", auth, f"institucion_id={institucion_id}")
 
 
 @router.get("/institutions/{institucion_id}/members", response_model=list[MemberOut])
@@ -160,6 +175,11 @@ def add_member(
         row = service.add_member(institucion_id, payload.external_auth_id, payload.tipo_miembro)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    _log_platform_action(
+        "PLATFORM_MEMBER_ADD",
+        auth,
+        f"institucion_id={institucion_id} external_auth_id={row.get('external_auth_id')} tipo={row.get('tipo_miembro')}",
+    )
     return MemberOut(
         id=row.get("id"),
         external_auth_id=row.get("external_auth_id"),
@@ -177,6 +197,7 @@ def deactivate_member(
     service: PlatformService = Depends(_get_plat_service),
 ) -> None:
     service.deactivate_member(member_id)
+    _log_platform_action("PLATFORM_MEMBER_DEACTIVATE", auth, f"member_id={member_id} institucion_id={institucion_id}")
 
 
 @router.get("/users", response_model=PaginatedResponse[UserOut])
@@ -202,11 +223,13 @@ def create_user(
     service: PlatformService = Depends(_get_plat_service),
 ) -> UserOut:
     try:
-        return service.create_user(**payload.model_dump())
+        row = service.create_user(**payload.model_dump())
     except ValueError as exc:
         if "not found" in str(exc).lower():
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    _log_platform_action("PLATFORM_USER_CREATE", auth, f"external_auth_id={payload.external_auth_id}")
+    return row
 
 
 @router.delete("/users/{external_auth_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -217,6 +240,7 @@ def deactivate_user(
 ) -> None:
     if not service.deactivate_user(external_auth_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    _log_platform_action("PLATFORM_USER_DEACTIVATE", auth, f"external_auth_id={external_auth_id}")
 
 
 @router.get("/admins", response_model=list[PlatformAdminOut])
@@ -249,6 +273,7 @@ def grant_platform_admin(
         if "not found" in str(exc).lower():
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    _log_platform_action("PLATFORM_ADMIN_GRANT", auth, f"external_auth_id={row.get('external_auth_id')}")
     return PlatformAdminOut(
         external_auth_id=row.get("external_auth_id"),
         is_active=row.get("is_active", True),
@@ -263,6 +288,7 @@ def revoke_platform_admin(
 ) -> None:
     if not service.revoke_platform_admin(external_auth_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Platform admin not found")
+    _log_platform_action("PLATFORM_ADMIN_REVOKE", auth, f"external_auth_id={external_auth_id}")
 
 
 @router.get("/metrics", response_model=MetricsOut)
@@ -352,6 +378,7 @@ def create_plan(
     service: PlatformService = Depends(_get_plat_service),
 ) -> PlanOut:
     row = service.create_plan(**payload.model_dump())
+    _log_platform_action("PLATFORM_PLAN_CREATE", auth, f"plan_id={row.get('id')} codigo={row.get('codigo')}")
     return _plan_out(row)
 
 
@@ -365,6 +392,7 @@ def update_plan(
     row = service.update_plan(plan_id, **payload.model_dump())
     if not row:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Plan not found")
+    _log_platform_action("PLATFORM_PLAN_UPDATE", auth, f"plan_id={plan_id}")
     return _plan_out(row)
 
 
@@ -377,6 +405,7 @@ def deactivate_plan(
     row = service.deactivate_plan(plan_id)
     if not row:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Plan not found")
+    _log_platform_action("PLATFORM_PLAN_DEACTIVATE", auth, f"plan_id={plan_id}")
 
 
 @router.get("/subscriptions", response_model=PaginatedResponse[SubscriptionOut])

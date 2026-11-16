@@ -144,6 +144,36 @@ def get_admin_auth(auth: AuthContext = Depends(get_auth_context)) -> AuthContext
     return require_institution_admin(auth)
 
 
+def require_institution_admin_strict(auth: AuthContext) -> AuthContext:
+    """Autoriza únicamente a un miembro institucional con rol ADMIN.
+
+    SECRETARIA recibe 403 en operaciones reservadas al administrador
+    (billing, configuración, usuarios y moderación de feedback). Un platform
+    admin sin membresía institucional también queda bloqueado (debe usar
+    /platform/*).
+    """
+    if not auth.institucion_id:
+        if auth.is_platform_admin:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Platform admin must have institution membership for /admin/*; use /platform/* instead",
+            )
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Institution membership required",
+        )
+    if auth.tipo_miembro != "ADMIN":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Administrator access required for institution",
+        )
+    return auth
+
+
+def get_institution_admin_only_auth(auth: AuthContext = Depends(get_auth_context)) -> AuthContext:
+    return require_institution_admin_strict(auth)
+
+
 def get_platform_admin_auth(auth: AuthContext = Depends(get_auth_context)) -> AuthContext:
     return require_platform_admin(auth)
 

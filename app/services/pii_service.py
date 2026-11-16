@@ -27,6 +27,17 @@ def _normalize_type(entity_type: str) -> str:
     return cleaned.upper() or "UNKNOWN"
 
 
+# spaCy es_core_news_md occasionally labels the standalone Spanish verb
+# "Necesito" as a LOCATION or PERSON when it starts a sentence (often after
+# synthetic PII). This exact-span, entity-specific exception avoids changing the
+# global confidence threshold or suppressing other recognizers (e.g. local
+# ID/email patterns).
+_KNOWN_NER_FALSE_POSITIVES = {
+    ("es", "LOCATION", "necesito"),
+    ("es", "PERSON", "necesito"),
+}
+
+
 class PresidioPiiDetector:
     """Detector NER via Presidio (spaCy es). available=False si el modelo falta."""
 
@@ -58,15 +69,19 @@ class PresidioPiiDetector:
     def analyze(self, text: str, language: Optional[str] = None) -> List[dict]:
         if not self._engine or not self.available:
             return []
-        results = self._engine.analyze(text=text, language=language or self.language)
-        return [
-            {
-                "start": int(r.start),
-                "end": int(r.end),
-                "pii_type": _normalize_type(r.entity_type),
-            }
-            for r in results
-        ]
+        effective_language = language or self.language
+        results = self._engine.analyze(text=text, language=effective_language)
+        detections = []
+        for result in results:
+            start, end = int(result.start), int(result.end)
+            entity_type = _normalize_type(result.entity_type)
+            detected_text = text[start:end].strip().casefold()
+            if (effective_language, entity_type, detected_text) in _KNOWN_NER_FALSE_POSITIVES:
+                continue
+            detections.append(
+                {"start": start, "end": end, "pii_type": entity_type}
+            )
+        return detections
 
 
 _presidio_detector: Optional[PresidioPiiDetector] = None
@@ -85,10 +100,24 @@ _LOCAL_PATTERNS: List[dict] = [
         "pii_type": "CI",
         "regex": re.compile(r"\b\d{1,2}\.\d{3}\.\d{3}-[\dA-Z]\b|\b\d{6,7}-[\dA-Z]\b"),
     },
-    # Teléfonos LATAM: +595 981 234 567 / +598 99 123 456
+    # Cédula paraguaya: 6–9 dígitos, con o sin puntos como separador de miles
+    # (ej. 1.234.567, 12.345.678, 12345678). Sin dígito verificador.
+    {
+        "pii_type": "CI",
+        "regex": re.compile(r"\b\d{1,3}(?:\.\d{3}){1,2}\b|\b\d{6,9}\b"),
+    },
+    # Teléfonos LATAM/internacionales en formato E.164 con agrupación variable:
+    # +595 981 234 567 (3-3-3) / +598 99 123 456 (2-3-3) / +595-981-234-567,
+    # admitiendo también el número sin separadores (+595981234567).
     {
         "pii_type": "PHONE_NUMBER",
-        "regex": re.compile(r"\+\d{1,3}[\s\-]?\d{4,8}[\s\-]?\d{4,8}\b"),
+        "regex": re.compile(r"\+\d{1,3}(?:[\s\-]?\d{2,4}){2,5}\b"),
+    },
+    # Correos electrónicos. El reconocedor NER a veces los clasifica como
+    # PERSON/LOCATION o los omite, por lo que se detectan con patrón local.
+    {
+        "pii_type": "EMAIL_ADDRESS",
+        "regex": re.compile(r"\b[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}\b"),
     },
 ]
 
@@ -213,6 +242,24 @@ class PiiService:
             available=available,
             error=error,
         )
+
+    @staticmethod
+    def restore(text: str, mappings: List[dict]) -> str:
+        """Restaura los tokens `[PII_TIPO_N]` con sus valores originales.
+
+        Los tokens son únicos por tipo+orden, por lo que un reemplazo directo
+        es determinista. Se procesan los más largos primero para evitar
+        reemplazos parciales si un token fuera prefijo de otro.
+        """
+        if not text or not mappings:
+            return text
+        result = text
+        for m in sorted(mappings, key=lambda m: len(m.get("token", "")), reverse=True):
+            token = m.get("token")
+            original = m.get("original_value")
+            if token and original:
+                result = result.replace(token, original)
+        return result
 
     def persist_mappings(
         self,

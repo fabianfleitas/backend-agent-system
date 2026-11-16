@@ -49,6 +49,7 @@ def create_app() -> FastAPI:
         openapi_schema["servers"] = [{"url": "/api", "description": "API local"}]
         openapi_schema["tags"] = [
             {"name": "global", "description": "Health, ready, me"},
+            {"name": "public", "description": "Endpoints públicos sin autenticación (solicitudes de acceso)"},
             {"name": "chat", "description": "Texto, voz, feedback"},
             {"name": "conversations", "description": "Historial e interacciones"},
             {"name": "admin", "description": "Administración institucional (docs, audit, metrics, config, billing)"},

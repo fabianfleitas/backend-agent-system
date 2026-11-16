@@ -83,6 +83,12 @@ class FakePiiService:
         )
         return mappings
 
+    def restore(self, text: str, mappings: List[dict]) -> str:
+        result = text
+        for m in mappings:
+            result = result.replace(m["token"], m["original_value"])
+        return result
+
 
 def _make_service(
     pii: FakePiiService,
@@ -135,6 +141,36 @@ def test_pii_activado_envia_texto_anonimizado_a_llm_y_persiste(monkeypatch) -> N
     assert pii.persisted[0]["audit_id"] == result.audit_log["id"]
     assert pii.persisted[0]["external_auth_id"] == "student-1"
     assert pii.persisted[0]["institucion_id"] == 1
+
+
+def test_pii_activado_restaura_respuesta_localmente(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "embeddings_enabled", True)
+    monkeypatch.setattr(settings, "llm_enabled", True)
+    monkeypatch.setattr(settings, "pii_anonymization_enabled", True)
+    pii = FakePiiService(
+        available=True,
+        anonymized_text="[PII_NUMERO_CEDULA_1]",
+    )
+    service, retrieval, generation, messages, audit = _make_service(
+        pii,
+        retrieval_result=_RetrievalResult([_chunk(10, 0.85)]),
+        generation_result=_GenerationResult(
+            text="Tu cédula [PII_NUMERO_CEDULA_1] fue validada correctamente."
+        ),
+    )
+
+    result = service.answer_text_query(_auth(), 1, "Mi cédula es 12345678. ¿Requisitos?")
+
+    assert result is not None
+    # La respuesta final al usuario está desanonimizada (valor original restaurado).
+    assert result.response == "Tu cédula 12345678 fue validada correctamente."
+    assert "[PII_" not in result.response
+    assert result.assistant_message["content"] == result.response
+    # La auditoría guarda la respuesta restaurada (decisión S1) con su nota.
+    assert result.audit_log["respuesta_texto"] == result.response
+    assert "DEANON:1" in result.audit_log["observaciones"]
+    # El LLM nunca recibió el valor original.
+    assert generation.calls and generation.calls[0][0] == "[PII_NUMERO_CEDULA_1]"
 
 
 def test_pii_detector_no_disponible_falla_cerrado_sin_llamadas_externas(monkeypatch) -> None:

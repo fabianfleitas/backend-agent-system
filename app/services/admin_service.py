@@ -46,7 +46,20 @@ class AdminService:
     def deactivate_feedback(self, auth: Optional[AuthContext] = None, feedback_id: Optional[int] = None) -> bool:
         if auth is None or auth.is_platform_admin or not auth.institucion_id:
             return False
-        return bool(self.feedback_repository.deactivate_feedback(feedback_id, auth.institucion_id))
+        ok = bool(self.feedback_repository.deactivate_feedback(feedback_id, auth.institucion_id))
+        if ok:
+            try:
+                from app.repositories.audit_repository import AuditRepository
+
+                AuditRepository().log_action(
+                    "FEEDBACK_HIDE",
+                    external_auth_id=auth.external_auth_id,
+                    institucion_id=auth.institucion_id,
+                    detalle=f"feedback_id={feedback_id}",
+                )
+            except Exception:  # noqa: BLE001
+                pass
+        return ok
 
     def list_users(self, auth: Optional[AuthContext] = None) -> list[UserOut]:
         institution_id = None

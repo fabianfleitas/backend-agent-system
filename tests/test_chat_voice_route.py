@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 from typing import Optional
 
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -17,8 +19,10 @@ FECHA = "2026-08-20T00:00:00Z"
 class FakeChatService:
     def __init__(self, result=None) -> None:
         self.result = result
+        self.calls: list[dict] = []
 
     def answer_voice_query(self, auth, conversation_id: int, transcription: str):
+        self.calls.append({"conversation_id": conversation_id, "transcription": transcription})
         if self.result is None:
             return None
         return self.result
@@ -56,8 +60,10 @@ class FakeAudioService:
 class FakeTranscriptionService:
     def __init__(self, result: Optional[TranscriptionResult] = None) -> None:
         self.result = result
+        self.calls: list[dict] = []
 
     def transcribe(self, audio_bytes, filename, content_type) -> TranscriptionResult:
+        self.calls.append({"audio_bytes": audio_bytes, "filename": filename, "content_type": content_type})
         return self.result or TranscriptionResult(
             text="¿Cuáles son los requisitos para matricularme?",
             model="fake-whisper",
@@ -68,8 +74,10 @@ class FakeTranscriptionService:
 class FakeSynthesisService:
     def __init__(self, result: Optional[SynthesisResult] = None) -> None:
         self.result = result
+        self.calls: list[str] = []
 
     def synthesize(self, text: str) -> SynthesisResult:
+        self.calls.append(text)
         return self.result or SynthesisResult(
             audio_bytes=b"ID3-mp3-bytes",
             content_type="audio/mpeg",
@@ -80,6 +88,18 @@ class FakeSynthesisService:
 class FakeAuditRepository:
     def __init__(self) -> None:
         self.updates: list[tuple[str, str]] = []
+        self.actions: list[dict] = []
+
+    def log_action(self, action, *, external_auth_id, institucion_id=None, detalle=None):
+        self.actions.append(
+            {
+                "action": action,
+                "external_auth_id": external_auth_id,
+                "institucion_id": institucion_id,
+                "detalle": detalle,
+            }
+        )
+        return {"id": "consent-audit-id"}
 
     def update_observaciones(self, audit_id: str, observaciones: str) -> None:
         self.updates.append((audit_id, observaciones))
@@ -146,18 +166,25 @@ def _client(app: FastAPI) -> TestClient:
     return TestClient(app)
 
 
-def _post(client: TestClient) -> None:
+def _post(client: TestClient, consent: Optional[bool] = True) -> None:
+    files = {"audio": ("voice.wav", b"RIFF-data", "audio/wav")}
+    if consent is not None:
+        files["consent_external_processing"] = (None, "true" if consent else "false")
     return client.post(
         "/api/chat/voice",
         params={"conversation_id": 1},
-        files={"audio": ("voice.wav", b"RIFF-data", "audio/wav")},
+        files=files,
     )
 
 
 def test_voice_with_stt_enabled_transcribes_and_persists(monkeypatch) -> None:
     monkeypatch.setattr(settings, "stt_enabled", True)
+    monkeypatch.setattr(settings, "tts_enabled", False)
     audio = FakeAudioService()
-    app = _configure(FakeChatService(_result()), FakeTranscriptionService(), audio)
+    chat = FakeChatService(_result())
+    transcription = FakeTranscriptionService()
+    audit = FakeAuditRepository()
+    app = _configure(chat, transcription, audio, audit=audit)
     resp = _post(_client(app))
     assert resp.status_code == 200
     body = resp.json()
@@ -167,6 +194,62 @@ def test_voice_with_stt_enabled_transcribes_and_persists(monkeypatch) -> None:
     assert body["audio_interaction"]["duracion_segundos"] == 2.5
     assert audio.calls[0]["transcription_model"] == "fake-whisper"
     assert audio.calls[0]["duracion_segundos"] == 2.5
+    assert len(transcription.calls) == 1
+    assert audit.actions[0]["action"] == "VOICE_EXTERNAL_PROCESSING_CONSENT"
+    receipt = json.loads(audit.actions[0]["detalle"])
+    assert receipt["consent"] is True
+    assert receipt["scope"] == ["audio_to_stt", "response_text_to_tts"]
+    assert receipt["stt_enabled"] is True
+    assert receipt["tts_enabled"] is False
+
+
+@pytest.mark.parametrize("consent", [False, None])
+def test_voice_without_consent_rejects_before_audit_or_external_providers(monkeypatch, consent) -> None:
+    monkeypatch.setattr(settings, "stt_enabled", True)
+    monkeypatch.setattr(settings, "tts_enabled", True)
+    chat = FakeChatService(_result())
+    transcription = FakeTranscriptionService()
+    synthesis = FakeSynthesisService()
+    audio = FakeAudioService()
+    audit = FakeAuditRepository()
+    app = _configure(
+        chat,
+        transcription,
+        audio,
+        synthesis=synthesis,
+        audit=audit,
+    )
+
+    response = _post(_client(app), consent=consent)
+
+    assert response.status_code == 400
+    assert response.json()["detail"].startswith("Se requiere consentimiento explícito")
+    assert transcription.calls == []
+    assert synthesis.calls == []
+    assert chat.calls == []
+    assert audio.calls == []
+    assert audit.actions == []
+
+
+def test_voice_fails_closed_when_consent_audit_cannot_be_written(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "stt_enabled", True)
+    transcription = FakeTranscriptionService()
+
+    class FailingAuditRepository(FakeAuditRepository):
+        def log_action(self, *args, **kwargs):
+            raise RuntimeError("audit unavailable")
+
+    app = _configure(
+        FakeChatService(_result()),
+        transcription,
+        FakeAudioService(),
+        audit=FailingAuditRepository(),
+    )
+
+    response = _post(_client(app))
+
+    assert response.status_code == 503
+    assert transcription.calls == []
 
 
 def test_voice_with_stt_disabled_uses_mock(monkeypatch) -> None:

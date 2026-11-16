@@ -1,0 +1,691 @@
+{
+  "fecha": "2026-11-08T17:59:56.076770",
+  "run_label": "judge-on-25",
+  "modo": "local",
+  "configuracion": {
+    "llm_enabled_resuelto_local": true,
+    "judge_enabled_resuelto_local": true,
+    "embeddings_enabled": true,
+    "embedding_model": "text-embedding-3-small",
+    "llm_model_resuelto_local": "openai/gpt-4o-mini",
+    "conversation_reused": false,
+    "rate_limit_override": "false",
+    "rate_limit_enabled_local": false
+  },
+  "total": 25,
+  "source_hits": 25,
+  "source_hit_rate": 1.0,
+  "source_hit_definition": "Coincidencia del título de la fuente esperada completa, normalizada, con un título recuperado. No mide la corrección de la respuesta.",
+  "answer_correctness_assessed": false,
+  "judge_scores": {
+    "fidelidad_avg": 0.996,
+    "relevancia_avg": 1.0,
+    "contexto_avg": 1.0,
+    "evaluadas_con_scores": 25,
+    "estado_observado": {
+      "ok": 25
+    }
+  },
+  "latencia_ms": {
+    "solicitudes_totales": 25,
+    "solicitudes_exitosas": 25,
+    "p50_exitosas": 4188.8,
+    "p95_exitosas": null,
+    "p95_status": "no representativo: menos de 100 respuestas exitosas",
+    "max_exitosas": 7237.6
+  },
+  "http_status_counts": {
+    "200": 25
+  },
+  "errores": 0,
+  "items": [
+    {
+      "id": "G001",
+      "pregunta": "¿Cuáles son los requisitos y documentos para la matrícula de ingresantes?",
+      "respuesta_esperada": "Los ingresantes deben presentar documento de identidad, certificado de estudios o constancia, y completar la ficha de inscripción en la Secretaría.",
+      "estado": "ok",
+      "http_status": 200,
+      "latencia_ms": 7090.0,
+      "fuente_esperada": "Reglamento de Matriculación",
+      "fuente_esperada_encontrada": true,
+      "fuentes": [
+        "Reglamento de Matriculación",
+        "Arancel Oficial",
+        "Manual de Campus Virtual",
+        "Procedimiento de Secretaría",
+        "Reglamento Académico"
+      ],
+      "scores_judge": {
+        "fidelidad": 1.0,
+        "relevancia": 1.0,
+        "contexto": 1.0
+      },
+      "judge_status": "ok",
+      "revision_humana": "pendiente",
+      "respuesta": "Los requisitos y documentos para la matrícula de los estudiantes ingresantes son los siguientes:\n\n1. Presentar documento de identidad.\n2. Presentar certificado de estudios o constancia de egreso.\n3. Completar la ficha de inscripción en la Secretaría Académica.\n\nAdemás, es importante realizar la matrícula dentro del periodo establecido según el calendario académico vigente (Fuente 1: Reglamento de Matriculación, página 1).",
+      "audit_id": "ce03d7c2-eb16-45b2-af21-f0ecc2a99a2a"
+    },
+    {
+      "id": "G002",
+      "pregunta": "¿Hasta qué fecha puedo inscribirme en el periodo de matriculación?",
+      "respuesta_esperada": "El periodo de matriculación cierra según el calendario académico vigente; fuera de plazo se evalúa como inscripción tardía.",
+      "estado": "ok",
+      "http_status": 200,
+      "latencia_ms": 3550.1,
+      "fuente_esperada": "Calendario Académico",
+      "fuente_esperada_encontrada": true,
+      "fuentes": [
+        "Reglamento de Matriculación",
+        "Arancel Oficial",
+        "Calendario Académico",
+        "Manual de Campus Virtual",
+        "Régimen de Correlatividades"
+      ],
+      "scores_judge": {
+        "fidelidad": 1.0,
+        "relevancia": 1.0,
+        "contexto": 1.0
+      },
+      "judge_status": "ok",
+      "revision_humana": "pendiente",
+      "respuesta": "La fecha límite para inscribirse en el periodo de matriculación se establece según el calendario académico vigente. Te recomiendo consultar el calendario académico para obtener la fecha exacta.",
+      "audit_id": "af96d192-d250-4f27-b5bd-bb840629b3cc"
+    },
+    {
+      "id": "G003",
+      "pregunta": "¿Cómo me matriculo si soy estudiante de reingreso?",
+      "respuesta_esperada": "El estudiante de reingreso debe regularizar su situación académica y matricularse dentro del periodo establecido.",
+      "estado": "ok",
+      "http_status": 200,
+      "latencia_ms": 4524.0,
+      "fuente_esperada": "Reglamento de Matriculación",
+      "fuente_esperada_encontrada": true,
+      "fuentes": [
+        "Reglamento de Matriculación",
+        "Arancel Oficial",
+        "Manual de Campus Virtual",
+        "Procedimiento de Secretaría",
+        "Régimen de Correlatividades"
+      ],
+      "scores_judge": {
+        "fidelidad": 1.0,
+        "relevancia": 1.0,
+        "contexto": 1.0
+      },
+      "judge_status": "ok",
+      "revision_humana": "pendiente",
+      "respuesta": "Para matricularte como estudiante de reingreso, debes regularizar tu situación académica antes de proceder con la matrícula. Una vez que hayas regularizado tu situación, podrás completar el proceso de matrícula presentando el documento de identidad, certificado de estudios o constancia de egreso, y completando la ficha de inscripción en la Secretaría Académica. Es importante que realices este proceso dentro del periodo de matriculación establecido en el calendario académico vigente. (Fuente 1: Reglamento de Matriculación).",
+      "audit_id": "7607ef56-e21b-4d93-ae32-1b83b6f9d6d2"
+    },
+    {
+      "id": "G004",
+      "pregunta": "¿Qué pasa si no me matriculo en la fecha establecida?",
+      "respuesta_esperada": "Quien no se matricula dentro del plazo pierde la regularidad y debe gestionar su reinscripción.",
+      "estado": "ok",
+      "http_status": 200,
+      "latencia_ms": 4141.9,
+      "fuente_esperada": "Reglamento Académico",
+      "fuente_esperada_encontrada": true,
+      "fuentes": [
+        "Reglamento de Matriculación",
+        "Arancel Oficial",
+        "Reglamento Académico",
+        "Manual de Campus Virtual",
+        "Calendario Académico"
+      ],
+      "scores_judge": {
+        "fidelidad": 1.0,
+        "relevancia": 1.0,
+        "contexto": 1.0
+      },
+      "judge_status": "ok",
+      "revision_humana": "pendiente",
+      "respuesta": "Si no te matriculas dentro del plazo establecido, perderás la regularidad y deberás gestionar la reinscripción. Esta información se encuentra en el Reglamento de Matriculación (página 1).",
+      "audit_id": "8bc1ac1c-66c3-4ba3-b140-ed94db616cb0"
+    },
+    {
+      "id": "G005",
+      "pregunta": "¿Puedo matricularme en asignaturas de un semestre superior?",
+      "respuesta_esperada": "La inscripción en asignaturas de semestre superior está condicionada al régimen de correlatividades.",
+      "estado": "ok",
+      "http_status": 200,
+      "latencia_ms": 4953.2,
+      "fuente_esperada": "Régimen de Correlatividades",
+      "fuente_esperada_encontrada": true,
+      "fuentes": [
+        "Régimen de Correlatividades",
+        "Reglamento de Matriculación",
+        "Arancel Oficial",
+        "Reglamento Académico",
+        "Procedimiento de Secretaría"
+      ],
+      "scores_judge": {
+        "fidelidad": 1.0,
+        "relevancia": 1.0,
+        "contexto": 1.0
+      },
+      "judge_status": "ok",
+      "revision_humana": "pendiente",
+      "respuesta": "No, la inscripción en asignaturas de un semestre superior está condicionada al cumplimiento del régimen de correlatividades, lo que implica que debes haber aprobado ciertas asignaturas previas para poder inscribirte en otras (Fuente 1: Régimen de Correlatividades, página 1).",
+      "audit_id": "89b832d0-e44b-41ad-9c18-0b8de5890b5b"
+    },
+    {
+      "id": "G006",
+      "pregunta": "¿Cuál es el proceso para la matrícula de estudiantes extranjeros?",
+      "respuesta_esperada": "Los estudiantes extranjeros deben presentar documentación migratoria y convalidaciones según las normas vigentes.",
+      "estado": "ok",
+      "http_status": 200,
+      "latencia_ms": 4716.1,
+      "fuente_esperada": "Reglamento de Matriculación",
+      "fuente_esperada_encontrada": true,
+      "fuentes": [
+        "Reglamento de Matriculación",
+        "Arancel Oficial",
+        "Manual de Campus Virtual",
+        "Procedimiento de Secretaría",
+        "Reglamento de Equivalencias"
+      ],
+      "scores_judge": {
+        "fidelidad": 1.0,
+        "relevancia": 1.0,
+        "contexto": 1.0
+      },
+      "judge_status": "ok",
+      "revision_humana": "pendiente",
+      "respuesta": "El proceso para la matrícula de estudiantes extranjeros incluye los siguientes pasos:\n\n1. Presentar la documentación migratoria vigente.\n2. Presentar las convalidaciones correspondientes.\n3. Completar la ficha de inscripción en la Secretaría Académica.\n4. Firmar la ficha en la Secretaría para completar la matrícula.\n\nEs importante realizar este proceso dentro del periodo de matriculación establecido en el calendario académico vigente (Reglamento de Matriculación, página 1).",
+      "audit_id": "be659a3c-b619-49b5-850c-d52a359b5e60"
+    },
+    {
+      "id": "G007",
+      "pregunta": "¿Necesito firmar algún documento en la Secretaría para completar la matrícula?",
+      "respuesta_esperada": "Sí, la matrícula se completa con la firma de la ficha correspondiente en la Secretaría Académica.",
+      "estado": "ok",
+      "http_status": 200,
+      "latencia_ms": 4250.7,
+      "fuente_esperada": "Reglamento de Matriculación",
+      "fuente_esperada_encontrada": true,
+      "fuentes": [
+        "Procedimiento de Secretaría",
+        "Reglamento de Matriculación",
+        "Manual de Campus Virtual",
+        "Arancel Oficial",
+        "Guía de Servicios"
+      ],
+      "scores_judge": {
+        "fidelidad": 1.0,
+        "relevancia": 1.0,
+        "contexto": 1.0
+      },
+      "judge_status": "ok",
+      "revision_humana": "pendiente",
+      "respuesta": "Sí, para completar la matrícula es necesario firmar la ficha de inscripción en la Secretaría Académica, además de presentar el documento de identidad y el certificado de estudios o constancia de egreso, según lo establecido en el Reglamento de Matriculación (Fuente 2, página 1).",
+      "audit_id": "9a848897-c8ec-443a-a855-5d69d4bd258d"
+    },
+    {
+      "id": "G008",
+      "pregunta": "¿Dónde consulto el estado de mi matrícula?",
+      "respuesta_esperada": "El estado de la matrícula se consulta en el campus virtual o en la Secretaría Académica.",
+      "estado": "ok",
+      "http_status": 200,
+      "latencia_ms": 3611.0,
+      "fuente_esperada": "Manual de Campus Virtual",
+      "fuente_esperada_encontrada": true,
+      "fuentes": [
+        "Manual de Campus Virtual",
+        "Reglamento de Matriculación",
+        "Procedimiento de Secretaría",
+        "Arancel Oficial",
+        "Guía de Servicios"
+      ],
+      "scores_judge": {
+        "fidelidad": 1.0,
+        "relevancia": 1.0,
+        "contexto": 1.0
+      },
+      "judge_status": "ok",
+      "revision_humana": "pendiente",
+      "respuesta": "El estado de la matrícula se consulta en el campus virtual del estudiante (Fuente 1: Manual de Campus Virtual, página 1).",
+      "audit_id": "5ab26a8a-7841-4668-a864-b872f5ffaf32"
+    },
+    {
+      "id": "G009",
+      "pregunta": "¿Cuánto cuesta la matrícula y las cuotas mensuales?",
+      "respuesta_esperada": "El costo de la matrícula y las cuotas depende del plan de estudios vigente; se detalla en el arancel oficial.",
+      "estado": "ok",
+      "http_status": 200,
+      "latencia_ms": 4514.0,
+      "fuente_esperada": "Arancel Oficial",
+      "fuente_esperada_encontrada": true,
+      "fuentes": [
+        "Arancel Oficial",
+        "Reglamento de Matriculación",
+        "Manual de Campus Virtual",
+        "Reglamento Académico",
+        "Calendario Académico"
+      ],
+      "scores_judge": {
+        "fidelidad": 1.0,
+        "relevancia": 1.0,
+        "contexto": 1.0
+      },
+      "judge_status": "ok",
+      "revision_humana": "pendiente",
+      "respuesta": "El costo de la matrícula y de las cuotas mensuales depende del plan de estudios vigente y se detalla en el arancel oficial (Fuente 1, página 1). Para obtener información específica sobre los montos, se debe consultar el arancel oficial correspondiente.",
+      "audit_id": "10a5f1f4-dcba-466f-ae44-38aff573d92e"
+    },
+    {
+      "id": "G010",
+      "pregunta": "¿Cuáles son las formas de pago habilitadas?",
+      "respuesta_esperada": "Se acepta pago presencial, transferencia bancaria y otros canales habilitados por la institución.",
+      "estado": "ok",
+      "http_status": 200,
+      "latencia_ms": 5769.6,
+      "fuente_esperada": "Arancel Oficial",
+      "fuente_esperada_encontrada": true,
+      "fuentes": [
+        "Arancel Oficial",
+        "Procedimiento de Tesorería",
+        "Guía de Servicios",
+        "Manual de Campus Virtual",
+        "Reglamento de Matriculación"
+      ],
+      "scores_judge": {
+        "fidelidad": 1.0,
+        "relevancia": 1.0,
+        "contexto": 1.0
+      },
+      "judge_status": "ok",
+      "revision_humana": "pendiente",
+      "respuesta": "Las formas de pago habilitadas son el pago presencial en Tesorería, la transferencia bancaria y otros canales autorizados por la institución. (Fuente 1: Arancel Oficial, página 1)",
+      "audit_id": "8fa8f4df-cc48-4945-ba77-932924cd8f00"
+    },
+    {
+      "id": "G011",
+      "pregunta": "¿Hasta qué día debo pagar las cuotas para no perder la regularidad?",
+      "respuesta_esperada": "Las cuotas vencen según el cronograma de pagos; el atraso afecta la regularidad académica.",
+      "estado": "ok",
+      "http_status": 200,
+      "latencia_ms": 3913.4,
+      "fuente_esperada": "Arancel Oficial",
+      "fuente_esperada_encontrada": true,
+      "fuentes": [
+        "Arancel Oficial",
+        "Reglamento de Matriculación",
+        "Reglamento Académico",
+        "Procedimiento de Tesorería",
+        "Calendario Académico"
+      ],
+      "scores_judge": {
+        "fidelidad": 1.0,
+        "relevancia": 1.0,
+        "contexto": 1.0
+      },
+      "judge_status": "ok",
+      "revision_humana": "pendiente",
+      "respuesta": "Las cuotas deben pagarse según el cronograma de pagos establecido. El atraso en el pago afecta la regularidad académica, por lo que es importante cumplir con las fechas estipuladas en dicho cronograma para no perder la regularidad (Fuente 1: Arancel Oficial, página 1).",
+      "audit_id": "e224cbbd-a2de-476e-a08e-3dc5e6464496"
+    },
+    {
+      "id": "G012",
+      "pregunta": "¿Qué recargo tiene el pago fuera de término?",
+      "respuesta_esperada": "El pago fuera de término aplica un recargo establecido en el arancel oficial.",
+      "estado": "ok",
+      "http_status": 200,
+      "latencia_ms": 4672.6,
+      "fuente_esperada": "Arancel Oficial",
+      "fuente_esperada_encontrada": true,
+      "fuentes": [
+        "Arancel Oficial",
+        "Procedimiento de Tesorería",
+        "Reglamento de Matriculación",
+        "Reglamento Académico",
+        "Calendario Académico"
+      ],
+      "scores_judge": {
+        "fidelidad": 1.0,
+        "relevancia": 1.0,
+        "contexto": 1.0
+      },
+      "judge_status": "ok",
+      "revision_humana": "pendiente",
+      "respuesta": "El recargo por el pago fuera de término está establecido en el arancel oficial, pero el monto específico no se detalla en la información proporcionada. Para conocer el monto exacto del recargo, se debe consultar el arancel oficial correspondiente (Fuente 1).",
+      "audit_id": "1718cd4c-ba1b-4998-9a49-8da95ad4d2ca"
+    },
+    {
+      "id": "G013",
+      "pregunta": "¿Cómo solicito una beca por mérito académico?",
+      "respuesta_esperada": "La beca por mérito se solicita presentando el expediente con el promedio requerido dentro del plazo establecido.",
+      "estado": "ok",
+      "http_status": 200,
+      "latencia_ms": 3517.1,
+      "fuente_esperada": "Reglamento de Becas",
+      "fuente_esperada_encontrada": true,
+      "fuentes": [
+        "Reglamento de Becas",
+        "Procedimiento de Secretaría",
+        "Reglamento Académico",
+        "Reglamento de Equivalencias",
+        "Arancel Oficial"
+      ],
+      "scores_judge": {
+        "fidelidad": 1.0,
+        "relevancia": 1.0,
+        "contexto": 1.0
+      },
+      "judge_status": "ok",
+      "revision_humana": "pendiente",
+      "respuesta": "Para solicitar una beca por mérito académico, debes presentar el expediente con el promedio requerido dentro del plazo establecido por el reglamento de becas. (Fuente 1: Reglamento de Becas, página 1).",
+      "audit_id": "38aeed15-1f92-47eb-967d-9913b99d5e52"
+    },
+    {
+      "id": "G014",
+      "pregunta": "¿Qué becas y descuentos están disponibles para estudiantes?",
+      "respuesta_esperada": "La institución ofrece becas por mérito, por situación económica y descuentos según el reglamento vigente.",
+      "estado": "ok",
+      "http_status": 200,
+      "latencia_ms": 3472.4,
+      "fuente_esperada": "Reglamento de Becas",
+      "fuente_esperada_encontrada": true,
+      "fuentes": [
+        "Reglamento de Becas",
+        "Arancel Oficial",
+        "Reglamento de Matriculación",
+        "Guía de Servicios",
+        "Reglamento Académico"
+      ],
+      "scores_judge": {
+        "fidelidad": 1.0,
+        "relevancia": 1.0,
+        "contexto": 1.0
+      },
+      "judge_status": "ok",
+      "revision_humana": "pendiente",
+      "respuesta": "La institución ofrece becas por mérito académico, por situación económica y descuentos especiales, según lo establecido en el Reglamento de Becas (Fuente 1).",
+      "audit_id": "790ba07d-6359-4304-aa89-1ddea102f399"
+    },
+    {
+      "id": "G015",
+      "pregunta": "¿Cómo solicito la devolución de un pago duplicado?",
+      "respuesta_esperada": "La devolución por pago duplicado se gestiona en la Secretaría presentando los comprobantes de ambos pagos.",
+      "estado": "ok",
+      "http_status": 200,
+      "latencia_ms": 4304.7,
+      "fuente_esperada": "Procedimiento de Tesorería",
+      "fuente_esperada_encontrada": true,
+      "fuentes": [
+        "Procedimiento de Tesorería",
+        "Arancel Oficial",
+        "Procedimiento de Secretaría"
+      ],
+      "scores_judge": {
+        "fidelidad": 1.0,
+        "relevancia": 1.0,
+        "contexto": 1.0
+      },
+      "judge_status": "ok",
+      "revision_humana": "pendiente",
+      "respuesta": "Para solicitar la devolución de un pago duplicado, debes presentar los comprobantes de ambos pagos y el formulario de solicitud de devolución en Tesorería. Es importante hacerlo dentro de los plazos establecidos. (Fuente 1: Procedimiento de Tesorería, página 1).",
+      "audit_id": "9769e22d-74dc-4911-a914-34ec15abadb6"
+    },
+    {
+      "id": "G016",
+      "pregunta": "¿Qué ocurre si tengo cuotas pendientes al finalizar el semestre?",
+      "respuesta_esperada": "Las deudas pendientes pueden impedir la regularidad y la emisión de certificados.",
+      "estado": "ok",
+      "http_status": 200,
+      "latencia_ms": 3788.1,
+      "fuente_esperada": "Arancel Oficial",
+      "fuente_esperada_encontrada": true,
+      "fuentes": [
+        "Arancel Oficial",
+        "Calendario Académico",
+        "Reglamento Académico",
+        "Régimen de Correlatividades",
+        "Reglamento de Matriculación"
+      ],
+      "scores_judge": {
+        "fidelidad": 1.0,
+        "relevancia": 1.0,
+        "contexto": 1.0
+      },
+      "judge_status": "ok",
+      "revision_humana": "pendiente",
+      "respuesta": "Si tienes deudas pendientes al cierre del semestre, esto puede impedir tu regularidad académica y la emisión de certificados, según lo establecido en el Arancel Oficial (página 1).",
+      "audit_id": "c5e3b9ff-afaa-4b88-80bd-00a85158b5ad"
+    },
+    {
+      "id": "G017",
+      "pregunta": "¿Cuál es la escala de calificaciones y qué nota mínima necesito para aprobar?",
+      "respuesta_esperada": "La escala va de 1 a 5 y la nota mínima de aprobación se define en el reglamento académico.",
+      "estado": "ok",
+      "http_status": 200,
+      "latencia_ms": 3328.2,
+      "fuente_esperada": "Reglamento Académico",
+      "fuente_esperada_encontrada": true,
+      "fuentes": [
+        "Reglamento Académico",
+        "Reglamento de Equivalencias",
+        "Procedimiento de Secretaría",
+        "Reglamento de Becas",
+        "Régimen de Correlatividades"
+      ],
+      "scores_judge": {
+        "fidelidad": 1.0,
+        "relevancia": 1.0,
+        "contexto": 1.0
+      },
+      "judge_status": "ok",
+      "revision_humana": "pendiente",
+      "respuesta": "La escala de calificaciones va de 1 a 5, y la nota mínima de aprobación se establece en el reglamento académico (Fuente 1).",
+      "audit_id": "b1f95e0c-6169-4cae-b76a-847ff0a79156"
+    },
+    {
+      "id": "G018",
+      "pregunta": "¿Cuántas materias puedo cursar por semestre?",
+      "respuesta_esperada": "El máximo de materias por semestre está limitado por el plan de estudios y el régimen académico.",
+      "estado": "ok",
+      "http_status": 200,
+      "latencia_ms": 3594.1,
+      "fuente_esperada": "Reglamento Académico",
+      "fuente_esperada_encontrada": true,
+      "fuentes": [
+        "Reglamento Académico",
+        "Régimen de Correlatividades",
+        "Arancel Oficial",
+        "Reglamento de Matriculación",
+        "Reglamento de Equivalencias"
+      ],
+      "scores_judge": {
+        "fidelidad": 1.0,
+        "relevancia": 1.0,
+        "contexto": 1.0
+      },
+      "judge_status": "ok",
+      "revision_humana": "pendiente",
+      "respuesta": "El máximo de materias que puedes cursar por semestre está limitado por el plan de estudios, según lo establecido en el Reglamento Académico. Para conocer el número específico de materias, debes consultar el plan de estudios correspondiente a tu carrera.",
+      "audit_id": "80ce02a8-a9bf-475b-9b3b-14d52fc75bce"
+    },
+    {
+      "id": "G019",
+      "pregunta": "¿Qué es el régimen de correlatividades y cómo afecta mi inscripción?",
+      "respuesta_esperada": "Las correlatividades exigen aprobar ciertas asignaturas previas para inscribirse en otras.",
+      "estado": "ok",
+      "http_status": 200,
+      "latencia_ms": 4751.0,
+      "fuente_esperada": "Régimen de Correlatividades",
+      "fuente_esperada_encontrada": true,
+      "fuentes": [
+        "Régimen de Correlatividades",
+        "Arancel Oficial",
+        "Reglamento de Matriculación",
+        "Reglamento Académico",
+        "Reglamento de Equivalencias"
+      ],
+      "scores_judge": {
+        "fidelidad": 1.0,
+        "relevancia": 1.0,
+        "contexto": 1.0
+      },
+      "judge_status": "ok",
+      "revision_humana": "pendiente",
+      "respuesta": "El régimen de correlatividades establece que es necesario aprobar ciertas asignaturas previas para poder inscribirse en otras. Esto significa que la inscripción en asignaturas de un semestre superior está condicionada al cumplimiento de estas correlatividades. Si no se han aprobado las asignaturas requeridas, no podrás inscribirte en las materias correspondientes del siguiente semestre (Fuente 1: Régimen de Correlatividades, página 1).",
+      "audit_id": "261d3090-7395-4aff-bd90-967129dbf628"
+    },
+    {
+      "id": "G020",
+      "pregunta": "¿Cuál es el porcentaje de asistencia mínimo para no perder la materia?",
+      "respuesta_esperada": "El mínimo de asistencia requerido se establece en el reglamento académico.",
+      "estado": "ok",
+      "http_status": 200,
+      "latencia_ms": 4188.8,
+      "fuente_esperada": "Reglamento Académico",
+      "fuente_esperada_encontrada": true,
+      "fuentes": [
+        "Reglamento Académico",
+        "Reglamento de Matriculación",
+        "Régimen de Correlatividades",
+        "Reglamento de Becas",
+        "Arancel Oficial"
+      ],
+      "scores_judge": {
+        "fidelidad": 1.0,
+        "relevancia": 1.0,
+        "contexto": 1.0
+      },
+      "judge_status": "ok",
+      "revision_humana": "pendiente",
+      "respuesta": "El porcentaje de asistencia mínimo requerido para no perder la materia está fijado en el reglamento académico; sin embargo, el reglamento no especifica un valor exacto en la información proporcionada. Te sugiero consultar el reglamento académico completo para obtener ese dato específico.",
+      "audit_id": "acbd84c4-0eba-4bbb-98d0-81c7ce1311c4"
+    },
+    {
+      "id": "G021",
+      "pregunta": "¿Qué pasa si pierdo tres veces la misma asignatura?",
+      "respuesta_esperada": "Al perder la asignatura por tercera vez se aplican las disposiciones del reglamento académico.",
+      "estado": "ok",
+      "http_status": 200,
+      "latencia_ms": 3784.2,
+      "fuente_esperada": "Reglamento Académico",
+      "fuente_esperada_encontrada": true,
+      "fuentes": [
+        "Reglamento Académico",
+        "Régimen de Correlatividades",
+        "Reglamento de Equivalencias",
+        "Procedimiento de Tesorería",
+        "Reglamento de Títulos"
+      ],
+      "scores_judge": {
+        "fidelidad": 1.0,
+        "relevancia": 1.0,
+        "contexto": 1.0
+      },
+      "judge_status": "ok",
+      "revision_humana": "pendiente",
+      "respuesta": "Si pierdes una asignatura por tercera vez, se aplican las disposiciones establecidas en el reglamento académico. Para más detalles específicos sobre las consecuencias, se debe consultar el reglamento correspondiente.",
+      "audit_id": "6b8e276c-7079-415b-95c6-7ba51266f9b2"
+    },
+    {
+      "id": "G022",
+      "pregunta": "¿Cómo funciona el sistema de regularidad y categoría de alumno?",
+      "respuesta_esperada": "La categoría de alumno depende del porcentaje de materias aprobadas según el reglamento.",
+      "estado": "ok",
+      "http_status": 200,
+      "latencia_ms": 4709.7,
+      "fuente_esperada": "Reglamento Académico",
+      "fuente_esperada_encontrada": true,
+      "fuentes": [
+        "Reglamento Académico",
+        "Reglamento de Matriculación",
+        "Régimen de Correlatividades",
+        "Procedimiento de Secretaría",
+        "Arancel Oficial"
+      ],
+      "scores_judge": {
+        "fidelidad": 1.0,
+        "relevancia": 1.0,
+        "contexto": 1.0
+      },
+      "judge_status": "ok",
+      "revision_humana": "pendiente",
+      "respuesta": "El sistema de regularidad y categoría de alumno se basa en el porcentaje de materias aprobadas. Para mantener la regularidad, los estudiantes deben cumplir con el porcentaje mínimo de materias aprobadas establecido en el reglamento académico. Si un estudiante no se matricula dentro del plazo, pierde la regularidad y debe gestionar la reinscripción (Reglamento de Matriculación, página 1). Además, al perder una asignatura por tercera vez, se aplican disposiciones específicas del reglamento (Reglamento Académico, página 1).",
+      "audit_id": "8c002363-92ec-47fa-a3a6-48bcf905fa25"
+    },
+    {
+      "id": "G023",
+      "pregunta": "¿Cuáles son mis derechos y obligaciones como estudiante?",
+      "respuesta_esperada": "Los derechos y obligaciones del estudiante se detallan en el reglamento académico.",
+      "estado": "ok",
+      "http_status": 200,
+      "latencia_ms": 7237.6,
+      "fuente_esperada": "Reglamento Académico",
+      "fuente_esperada_encontrada": true,
+      "fuentes": [
+        "Reglamento de Matriculación",
+        "Arancel Oficial",
+        "Reglamento Académico",
+        "Manual de Campus Virtual",
+        "Calendario Académico"
+      ],
+      "scores_judge": {
+        "fidelidad": 0.9,
+        "relevancia": 1.0,
+        "contexto": 1.0
+      },
+      "judge_status": "ok",
+      "revision_humana": "pendiente",
+      "respuesta": "El reglamento institucional no detalla explícitamente los derechos y obligaciones de los estudiantes. Sin embargo, se pueden inferir algunas obligaciones a partir de los reglamentos mencionados:\n\n1. **Obligaciones**:\n   - Presentar la documentación requerida para la matrícula (documento de identidad, certificado de estudios o constancia de egreso) y completar la ficha de inscripción en la Secretaría Académica (Reglamento de Matriculación).\n   - Mantener la regularidad académica mediante el pago de matrícula y cuotas dentro de los plazos establecidos (Arancel Oficial).\n   - Cumplir con el porcentaje mínimo de asistencia y las disposiciones relacionadas con la aprobación de materias (Reglamento Académico).\n   - Justificar inasistencias a exámenes por motivos de salud mediante un certificado médico (Reglamento Académico).\n\n2. **Derechos**:\n   - Consultar el estado de la matrícula y otros datos personales a través del campus virtual (Manual de Campus Virtual).\n   - Acceder a la información sobre el calendario académico, incluyendo fechas de inicio y fin de semestres, así como la inscripción a exámenes finales (Calendario Académico).\n\nPara un entendimiento más completo de los derechos y obligaciones, se recomienda revisar el reglamento académico y otros documentos institucionales pertinentes.",
+      "audit_id": "437c352e-7a2f-42be-b020-7580834a89ed"
+    },
+    {
+      "id": "G024",
+      "pregunta": "¿Cómo se calcula el promedio general de la carrera?",
+      "respuesta_esperada": "El promedio se calcula ponderando las calificaciones según la carga horaria de cada asignatura.",
+      "estado": "ok",
+      "http_status": 200,
+      "latencia_ms": 3967.6,
+      "fuente_esperada": "Reglamento Académico",
+      "fuente_esperada_encontrada": true,
+      "fuentes": [
+        "Reglamento Académico",
+        "Reglamento de Becas",
+        "Procedimiento de Secretaría",
+        "Calendario Académico",
+        "Reglamento de Títulos"
+      ],
+      "scores_judge": {
+        "fidelidad": 1.0,
+        "relevancia": 1.0,
+        "contexto": 1.0
+      },
+      "judge_status": "ok",
+      "revision_humana": "pendiente",
+      "respuesta": "El promedio general de la carrera se calcula ponderando las calificaciones según la carga horaria de cada asignatura, conforme al Reglamento Académico.",
+      "audit_id": "aba99610-a923-408d-a993-4726e708b6e2"
+    },
+    {
+      "id": "G025",
+      "pregunta": "¿Cuándo inicia y finaliza el semestre?",
+      "respuesta_esperada": "Las fechas de inicio y fin del semestre figuran en el calendario académico.",
+      "estado": "ok",
+      "http_status": 200,
+      "latencia_ms": 3492.1,
+      "fuente_esperada": "Calendario Académico",
+      "fuente_esperada_encontrada": true,
+      "fuentes": [
+        "Calendario Académico",
+        "Reglamento de Matriculación",
+        "Arancel Oficial",
+        "Reglamento Académico",
+        "Reglamento de Títulos"
+      ],
+      "scores_judge": {
+        "fidelidad": 1.0,
+        "relevancia": 1.0,
+        "contexto": 1.0
+      },
+      "judge_status": "ok",
+      "revision_humana": "pendiente",
+      "respuesta": "Las fechas de inicio y fin de cada semestre figuran en el calendario académico. Para obtener información específica sobre las fechas, se debe consultar el calendario académico vigente disponible en el campus virtual o en la Secretaría.",
+      "audit_id": "4d4325d1-b902-430a-a7dc-eff94b53f741"
+    }
+  ]
+}

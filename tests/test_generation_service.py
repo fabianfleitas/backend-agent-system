@@ -144,3 +144,22 @@ def test_generate_with_empty_history_ignores_it() -> None:
     service.generate("pregunta", [_chunk(1)], history=[])
     messages = fake.calls[-1]["messages"]
     assert [m["role"] for m in messages] == ["system", "user"]
+
+def test_generation_service_explicit_model_reaches_client() -> None:
+    service = GenerationService(model="institucion/modelo-x")
+
+    assert service.model == "institucion/modelo-x"
+    assert service.client.model == "institucion/modelo-x"
+
+
+def test_generation_service_reads_provider_and_reasoning_settings(monkeypatch) -> None:
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "llm_provider_order", "Groq")
+    monkeypatch.setattr(settings, "llm_provider_allow_fallbacks", False)
+    monkeypatch.setattr(settings, "llm_reasoning_effort", "low")
+
+    service = GenerationService(model="openai/gpt-oss-20b")
+
+    assert service.client.provider == {"order": ["Groq"], "allow_fallbacks": False}
+    assert service.client.reasoning_effort == "low"

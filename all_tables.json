@@ -967,6 +967,13 @@
   },
   {
     "tabla": "feedback",
+    "columna": "is_active",
+    "tipo_dato": "boolean",
+    "permite_null": "NO",
+    "valor_por_defecto": "true"
+  },
+  {
+    "tabla": "feedback",
     "columna": "created_at",
     "tipo_dato": "timestamp with time zone",
     "permite_null": "NO",
@@ -2042,5 +2049,89 @@
     "tipo_dato": "timestamp with time zone",
     "permite_null": "YES",
     "valor_por_defecto": null
+  },
+  {
+    "tabla": "solicitudes_acceso",
+    "columna": "id",
+    "tipo_dato": "bigint",
+    "permite_null": "NO",
+    "valor_por_defecto": null
+  },
+  {
+    "tabla": "solicitudes_acceso",
+    "columna": "institucion_nombre",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
+  },
+  {
+    "tabla": "solicitudes_acceso",
+    "columna": "persona_contacto",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
+  },
+  {
+    "tabla": "solicitudes_acceso",
+    "columna": "email",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": null
+  },
+  {
+    "tabla": "solicitudes_acceso",
+    "columna": "telefono",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
+  },
+  {
+    "tabla": "solicitudes_acceso",
+    "columna": "cantidad_usuarios_estimada",
+    "tipo_dato": "integer",
+    "permite_null": "YES",
+    "valor_por_defecto": null
+  },
+  {
+    "tabla": "solicitudes_acceso",
+    "columna": "perfil_solicitado",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
+  },
+  {
+    "tabla": "solicitudes_acceso",
+    "columna": "mensaje",
+    "tipo_dato": "text",
+    "permite_null": "YES",
+    "valor_por_defecto": null
+  },
+  {
+    "tabla": "solicitudes_acceso",
+    "columna": "estado",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": "'PENDIENTE'::text"
+  },
+  {
+    "tabla": "solicitudes_acceso",
+    "columna": "origen",
+    "tipo_dato": "text",
+    "permite_null": "NO",
+    "valor_por_defecto": "'landing'::text"
+  },
+  {
+    "tabla": "solicitudes_acceso",
+    "columna": "created_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
+  },
+  {
+    "tabla": "solicitudes_acceso",
+    "columna": "updated_at",
+    "tipo_dato": "timestamp with time zone",
+    "permite_null": "NO",
+    "valor_por_defecto": "now()"
   }
 ]

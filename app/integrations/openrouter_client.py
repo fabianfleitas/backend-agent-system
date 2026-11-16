@@ -28,6 +28,14 @@ class LLMClient(Protocol):
     ) -> LLMResponse: ...
 
 
+def build_provider_preferences(order: str, allow_fallbacks: bool = True) -> Optional[dict]:
+    """Convierte LLM_PROVIDER_ORDER (coma-separado) al formato de OpenRouter."""
+    providers = [item.strip() for item in (order or "").split(",") if item.strip()]
+    if not providers:
+        return None
+    return {"order": providers, "allow_fallbacks": allow_fallbacks}
+
+
 class OpenRouterLLMClient:
     def __init__(
         self,
@@ -36,12 +44,16 @@ class OpenRouterLLMClient:
         base_url: str = "https://openrouter.ai/api/v1",
         timeout: float = 45.0,
         max_retries: int = 1,
+        provider: Optional[dict] = None,
+        reasoning_effort: Optional[str] = None,
     ) -> None:
         self.api_key = api_key
         self.model = model
         self.base_url = base_url
         self.timeout = timeout
         self.max_retries = max_retries
+        self.provider = provider
+        self.reasoning_effort = reasoning_effort
         self._client: Optional[Any] = None
 
     def _get_client(self) -> Any:
@@ -64,12 +76,20 @@ class OpenRouterLLMClient:
     ) -> LLMResponse:
         start = time.perf_counter()
         try:
-            response = self._get_client().chat.completions.create(
-                model=self.model,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-            )
+            request: dict[str, Any] = {
+                "model": self.model,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
+            extra_body: dict[str, Any] = {}
+            if self.provider:
+                extra_body["provider"] = self.provider
+            if self.reasoning_effort:
+                extra_body["reasoning"] = {"effort": self.reasoning_effort}
+            if extra_body:
+                request["extra_body"] = extra_body
+            response = self._get_client().chat.completions.create(**request)
             result = LLMResponse(
                 text=response.choices[0].message.content or "",
                 model=response.model or self.model,

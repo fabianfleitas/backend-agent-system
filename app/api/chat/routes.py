@@ -1,15 +1,27 @@
 from __future__ import annotations
 
+import json
 import logging
+import time
 import uuid
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    Response,
+    UploadFile,
+    status,
+)
 from fastapi.concurrency import run_in_threadpool
 
 from app.core.config import settings
 from app.core.security import AuthContext, get_auth_context
 from app.repositories.audit_repository import AuditRepository
-from app.schemas.chat import ChatQueryIn, ChatQueryOut, ChatVoiceOut
+from app.schemas.chat import ChatQueryIn, ChatQueryOut, ChatRegenerateIn, ChatRegenerateOut, ChatVoiceOut
 from app.schemas.common import AudioInteractionOut, ChatFeedbackIn, ChatFeedbackOut, MessageOut, SourceOut
 from app.services.audio_service import AudioService
 from app.services.chat_service import ChatService
@@ -91,6 +103,7 @@ def chat_query(
     payload: ChatQueryIn,
     auth: AuthContext = Depends(get_auth_context),
 ) -> ChatQueryOut:
+    request_started = time.perf_counter()
     result = _get_chat_service().answer_text_query(
         auth=auth,
         conversation_id=payload.conversation_id,
@@ -98,6 +111,14 @@ def chat_query(
     )
     if not result:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
+
+    logger.info(
+        "chat_endpoint_timing conversation_id=%s audit_id=%s status=200 total_ms=%.1f service_timings_ms=%s",
+        result.conversation_id,
+        result.audit_log.get("id"),
+        (time.perf_counter() - request_started) * 1000.0,
+        {key: round(value, 1) for key, value in result.timings_ms.items()},
+    )
 
     return ChatQueryOut(
         response=result.response,
@@ -109,9 +130,32 @@ def chat_query(
     )
 
 
+@router.post("/regenerate", response_model=ChatRegenerateOut)
+def chat_regenerate(
+    payload: ChatRegenerateIn,
+    auth: AuthContext = Depends(get_auth_context),
+    chat_service: ChatService = Depends(_get_chat_service),
+) -> ChatRegenerateOut:
+    result = chat_service.regenerate(
+        auth=auth,
+        conversation_id=payload.conversation_id,
+    )
+    if not result:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found or no previous turn")
+
+    return ChatRegenerateOut(
+        response=result["response"],
+        sources=[SourceOut(**s) for s in result["sources"]],
+        audit_id=uuid.UUID(result["audit_id"]),
+        conversation_id=result["conversation_id"],
+        assistant_message=_message_out(result["assistant_message"]),
+    )
+
+
 @router.post("/voice", response_model=ChatVoiceOut)
 async def chat_voice(
     audio: UploadFile = File(...),
+    consent_external_processing: bool = Form(default=False),
     conversation_id: int = Query(...),
     auth: AuthContext = Depends(get_auth_context),
     chat_service: ChatService = Depends(_get_chat_service),
@@ -120,11 +164,58 @@ async def chat_voice(
     synthesis_service: SynthesisService = Depends(_get_synthesis_service),
     audit_repository: AuditRepository = Depends(_get_audit_repository),
 ) -> ChatVoiceOut:
+    if not consent_external_processing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "Se requiere consentimiento explícito para enviar el audio a STT "
+                "y el texto de respuesta a TTS externos."
+            ),
+        )
+
+    # Fail closed: if the consent receipt cannot be audited, do not send user
+    # audio or response text to any external speech provider.
+    try:
+        consent_event = audit_repository.log_action(
+            "VOICE_EXTERNAL_PROCESSING_CONSENT",
+            external_auth_id=auth.external_auth_id,
+            institucion_id=auth.institucion_id,
+            detalle=json.dumps(
+                {
+                    "consent": True,
+                    "scope": ["audio_to_stt", "response_text_to_tts"],
+                    "conversation_id": conversation_id,
+                    "stt_enabled": bool(settings.stt_enabled),
+                    "tts_enabled": bool(settings.tts_enabled),
+                    "consent_version": "voice-external-processing-v1",
+                },
+                ensure_ascii=False,
+                separators=(",", ":"),
+            ),
+        )
+        if not consent_event:
+            raise RuntimeError("Consent audit returned no record")
+    except Exception as exc:  # noqa: BLE001 - no provider call without an auditable consent receipt
+        logger.error(
+            "voice_consent_audit_failed conversation_id=%s error_type=%s",
+            conversation_id,
+            type(exc).__name__,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="No se pudo registrar el consentimiento. Intenta nuevamente.",
+        ) from exc
+
+    request_started = time.perf_counter()
+    stage_timings_ms: dict[str, float] = {}
+    stage_started = time.perf_counter()
     audio_bytes = await audio.read()
+    stage_timings_ms["audio_read"] = (time.perf_counter() - stage_started) * 1000.0
 
     transcription: str
     transcription_model = None
     duration = None
+    stage_started = time.perf_counter()
     if settings.stt_enabled:
         stt = transcription_service.transcribe(audio_bytes, audio.filename or "audio", audio.content_type)
         if not stt.ok:
@@ -137,7 +228,9 @@ async def chat_voice(
         duration = stt.duration
     else:
         transcription = "MOCK: transcripción simulada del audio"
+    stage_timings_ms["stt"] = (time.perf_counter() - stage_started) * 1000.0
 
+    stage_started = time.perf_counter()
     result = await run_in_threadpool(
         chat_service.answer_voice_query,
         auth=auth,
@@ -146,9 +239,11 @@ async def chat_voice(
     )
     if not result:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
+    stage_timings_ms["chat_pipeline"] = (time.perf_counter() - stage_started) * 1000.0
 
     response_audio_bytes = b""
     response_content_type = "audio/wav"
+    stage_started = time.perf_counter()
     if settings.tts_enabled:
         synth = await run_in_threadpool(synthesis_service.synthesize, result.response)
         if synth.ok:
@@ -166,7 +261,9 @@ async def chat_voice(
                 result.audit_log["id"],
                 f"{current} | TTS_FAILED: {synth.error}",
             )
+    stage_timings_ms["tts"] = (time.perf_counter() - stage_started) * 1000.0
 
+    stage_started = time.perf_counter()
     audio_interaction = audio_service.create_audio_interaction(
         auth=auth,
         conversation_id=conversation_id,
@@ -179,6 +276,14 @@ async def chat_voice(
         duracion_segundos=duration,
         response_audio_bytes=response_audio_bytes,
         response_content_type=response_content_type,
+    )
+    stage_timings_ms["audio_persistence"] = (time.perf_counter() - stage_started) * 1000.0
+    logger.info(
+        "voice_endpoint_timing conversation_id=%s audit_id=%s status=200 total_ms=%.1f stages_ms=%s",
+        result.conversation_id,
+        result.audit_log.get("id"),
+        (time.perf_counter() - request_started) * 1000.0,
+        {key: round(value, 1) for key, value in stage_timings_ms.items()},
     )
 
     return ChatVoiceOut(

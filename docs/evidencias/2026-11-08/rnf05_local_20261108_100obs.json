@@ -1,0 +1,120 @@
+{
+  "fecha": "2026-11-08T22:16:44.774681",
+  "entorno": "macOS local; Supabase local 127.0.0.1:54321; corpus sintético (14 docs, 14 chunks); proveedores reales",
+  "modelo": "openai/gpt-oss-20b",
+  "enrutamiento": {
+    "provider_order": [
+      "Groq"
+    ],
+    "allow_fallbacks": false,
+    "reasoning_effort": "low"
+  },
+  "configuracion": {
+    "llm_max_tokens": 384,
+    "retrieval_match_count": 4,
+    "judge_sample_rate": 0.0,
+    "judge_enabled": false
+  },
+  "corridas": {
+    "A": {
+      "label": "final A",
+      "reporte": "eval/reports/eval_20261108_221456_951421.json",
+      "n": 50,
+      "errores": 0,
+      "p50": 1495.7,
+      "p95": 1935.3,
+      "max": 4219.7,
+      "min": 1235.3,
+      "p50_sin_1ra": 1493.2,
+      "p95_sin_1ra": 1931.7,
+      "source_hits": 50,
+      "source_hit_rate": 1.0,
+      "fases_p50": {
+        "user_lookup": 2.8,
+        "config_lookup": 2.0,
+        "pii": 0.0,
+        "user_message_persistence": 2.5,
+        "retrieval": 507.4,
+        "generation": 861.0,
+        "judge": 0.0,
+        "llm_config": 7.5,
+        "judge_config": 7.2,
+        "persistence_and_handoff": 24.9,
+        "service_total": 1493.8
+      },
+      "fases_p95": {
+        "user_lookup": 3.9,
+        "config_lookup": 2.7,
+        "pii": 0.0,
+        "user_message_persistence": 3.4,
+        "retrieval": 828.9,
+        "generation": 1198.2,
+        "judge": 0.0,
+        "llm_config": 10.8,
+        "judge_config": 11.3,
+        "persistence_and_handoff": 29.2,
+        "service_total": 1933.4
+      }
+    },
+    "B": {
+      "label": "final B",
+      "reporte": "eval/reports/eval_20261108_221627_445931.json",
+      "n": 50,
+      "errores": 0,
+      "p50": 1510.7,
+      "p95": 2251.9,
+      "max": 5734.8,
+      "min": 1217.7,
+      "p50_sin_1ra": 1506.9,
+      "p95_sin_1ra": 2088.8,
+      "source_hits": 50,
+      "source_hit_rate": 1.0,
+      "fases_p50": {
+        "user_lookup": 2.7,
+        "config_lookup": 2.2,
+        "pii": 0.0,
+        "user_message_persistence": 2.5,
+        "retrieval": 536.0,
+        "generation": 874.5,
+        "judge": 0.0,
+        "llm_config": 8.0,
+        "judge_config": 6.8,
+        "persistence_and_handoff": 24.7,
+        "service_total": 1508.7
+      },
+      "fases_p95": {
+        "user_lookup": 4.5,
+        "config_lookup": 2.8,
+        "pii": 0.0,
+        "user_message_persistence": 3.2,
+        "retrieval": 819.0,
+        "generation": 1300.7,
+        "judge": 0.0,
+        "llm_config": 10.4,
+        "judge_config": 10.4,
+        "persistence_and_handoff": 32.4,
+        "service_total": 2239.8
+      }
+    }
+  },
+  "combinada_100": {
+    "n": 100,
+    "p50": 1501.7,
+    "p95": 2088.8,
+    "max": 5734.8,
+    "min": 1217.7,
+    "p50_sin_1ra": 1498.7,
+    "p95_sin_1ra": 2007.4,
+    "source_hits": 100,
+    "errores": 0
+  },
+  "tokens": {
+    "avg_output": 106.1,
+    "median_output": 83.0,
+    "max_output": 384,
+    "at_cap_384": 2,
+    "avg_input": 701.1
+  },
+  "cumple_rnf05": true,
+  "nota": "P95 con 100 observaciones (dos ejecuciones de 50). Local, sintético, no producción. Proveedor forzado Groq."
+}

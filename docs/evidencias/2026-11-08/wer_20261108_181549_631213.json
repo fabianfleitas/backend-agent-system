@@ -1,0 +1,63 @@
+{
+  "fecha": "2026-11-08T21:15:49.631256+00:00",
+  "audio_dir": "/Users/ServiciosDigitales/Documents/fabian/projects/backend-agent-system/eval/audios",
+  "audios_evaluados": 6,
+  "audio_manifest": null,
+  "provider_gateway": "OpenRouter",
+  "stt_model": "x-ai/grok-stt-1.0",
+  "external_provider_approval": true,
+  "macro_wer": 0.0152,
+  "corpus_wer": 0.0175,
+  "total_edit_distance": 1,
+  "total_reference_words": 57,
+  "items": [
+    {
+      "audio": "g01.mp3",
+      "reference_words": 11,
+      "edit_distance": 1,
+      "wer": 0.0909,
+      "reference": "¿Cuáles son los requisitos y documentos para la matrícula de ingresantes?",
+      "hypothesis": "¿Cuáles son los requisitos y documentos para la matrícula de ingresante?"
+    },
+    {
+      "audio": "g02.mp3",
+      "reference_words": 10,
+      "edit_distance": 0,
+      "wer": 0.0,
+      "reference": "¿Hasta qué fecha puedo inscribirme en el periodo de matriculación?",
+      "hypothesis": "¿Hasta qué fecha puedo inscribirme en el periodo de matriculación?"
+    },
+    {
+      "audio": "g03.mp3",
+      "reference_words": 8,
+      "edit_distance": 0,
+      "wer": 0.0,
+      "reference": "¿Cómo me matriculo si soy estudiante de reingreso?",
+      "hypothesis": "¿Cómo me matriculo si soy estudiante de reingreso?"
+    },
+    {
+      "audio": "g04.mp3",
+      "reference_words": 10,
+      "edit_distance": 0,
+      "wer": 0.0,
+      "reference": "¿Qué pasa si no me matriculo en la fecha establecida?",
+      "hypothesis": "¿Qué pasa si no me matriculo en la fecha establecida?"
+    },
+    {
+      "audio": "g05.mp3",
+      "reference_words": 8,
+      "edit_distance": 0,
+      "wer": 0.0,
+      "reference": "¿Puedo matricularme en asignaturas de un semestre superior?",
+      "hypothesis": "Puedo matricularme en asignaturas de un semestre superior."
+    },
+    {
+      "audio": "g06.mp3",
+      "reference_words": 10,
+      "edit_distance": 0,
+      "wer": 0.0,
+      "reference": "¿Cuál es el proceso para la matrícula de estudiantes extranjeros?",
+      "hypothesis": "¿Cuál es el proceso para la matrícula de estudiantes extranjeros?"
+    }
+  ]
+}

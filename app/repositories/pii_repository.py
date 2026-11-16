@@ -26,6 +26,15 @@ class PiiRepository:
         )
         return list(response.data or [])
 
+    def list_by_audit(self, audit_id: str) -> List[dict]:
+        response = (
+            self.client.table("pii_mappings")
+            .select("token, pii_type, original_value")
+            .eq("audit_id", audit_id)
+            .execute()
+        )
+        return list(response.data or [])
+
     def purge_expired(self, before: Optional[datetime] = None) -> int:
         cutoff = before or datetime.now(timezone.utc)
         response = (

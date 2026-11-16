@@ -5,7 +5,11 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 from app.core.config import settings
-from app.integrations.openrouter_client import LLMClient, OpenRouterLLMClient
+from app.integrations.openrouter_client import (
+    LLMClient,
+    OpenRouterLLMClient,
+    build_provider_preferences,
+)
 from app.services.retrieval_service import RetrievedChunk
 
 logger = logging.getLogger(__name__)
@@ -40,15 +44,33 @@ class GenerationService:
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
         system_prompt: Optional[str] = None,
+        provider: Optional[dict] = None,
+        reasoning_effort: Optional[str] = None,
     ) -> None:
+        resolved_model = model or settings.llm_model
+        resolved_provider = (
+            provider
+            if provider is not None
+            else build_provider_preferences(
+                settings.llm_provider_order,
+                settings.llm_provider_allow_fallbacks,
+            )
+        )
+        resolved_reasoning = (
+            reasoning_effort
+            if reasoning_effort is not None
+            else (settings.llm_reasoning_effort or None)
+        )
         self.client = client or OpenRouterLLMClient(
             api_key=settings.openrouter_api_key or "",
-            model=settings.llm_model,
+            model=resolved_model,
             base_url=settings.openrouter_base_url,
             timeout=settings.llm_request_timeout,
             max_retries=settings.llm_max_retries,
+            provider=resolved_provider,
+            reasoning_effort=resolved_reasoning,
         )
-        self.model = model or settings.llm_model
+        self.model = resolved_model
         self.temperature = (
             temperature if temperature is not None else settings.llm_temperature
         )

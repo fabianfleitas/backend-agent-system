@@ -54,6 +54,13 @@ class FakeMessagesRepository:
                 return m
         return self.messages[-1]
 
+    def update_message(self, message_id: int, **fields) -> dict:
+        for m in self.messages:
+            if m["id"] == message_id:
+                m.update(fields)
+                return m
+        return self.messages[-1]
+
     def get_conversation_messages(self, conversation_id: int) -> list[dict]:
         return [m for m in self.messages if m.get("conversation_id") == conversation_id]
 
@@ -69,6 +76,13 @@ class FakeAuditRepository:
         record.update(kwargs)
         self.logs.append(record)
         return record
+
+    def update_observaciones(self, audit_id: str, observaciones: str) -> Optional[dict]:
+        for log in self.logs:
+            if log["id"] == audit_id:
+                log["observaciones"] = observaciones
+                return log
+        return None
 
 
 class FakeMessageDocumentsRepository:
@@ -296,7 +310,7 @@ def test_chat_llm_failure_returns_controlled_fallback_with_real_sources(monkeypa
     assert result.response == LLM_UNAVAILABLE_MESSAGE
     assert len(result.sources) == 2
     assert len(generation.calls) == 1
-    assert result.assistant_message["modelo_ia"] == settings.llm_model
+    assert result.assistant_message["modelo_ia"] == "fake-llm-gpt"
     assert result.assistant_message["tokens_input"] is None
     assert result.assistant_message["tokens_output"] is None
     assert audit.logs[0]["observaciones"].startswith("LLM_FAILED:")
@@ -453,6 +467,88 @@ def test_history_disabled_returns_empty(monkeypatch) -> None:
     assert history == []
 
 
+class FakeHandoffService:
+    def __init__(self, motivo: Optional[str] = None) -> None:
+        self.motivo = motivo
+        self.should_calls: List[dict] = []
+        self.created: List[dict] = []
+
+    def should_escalate(self, message, institucion_id=None, guard_triggered=False, llm_failed=False):
+        self.should_calls.append(
+            {
+                "message": message,
+                "institucion_id": institucion_id,
+                "guard_triggered": guard_triggered,
+                "llm_failed": llm_failed,
+            }
+        )
+        return self.motivo
+
+    def create_escalation(self, **kwargs) -> dict:
+        self.created.append(kwargs)
+        return {"id": 1, "datos": {"motivo": kwargs.get("motivo")}}
+
+
+def test_chat_guard_creates_escalation_when_handoff(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "embeddings_enabled", True)
+    monkeypatch.setattr(settings, "llm_enabled", True)
+    retrieval_result = _RetrievalResult([])  # sin contexto → guard
+    conv = FakeConversationsRepository({"id": 1, "external_auth_id": "student-1", "institucion_id": 1})
+    messages = FakeMessagesRepository()
+    audit = FakeAuditRepository()
+    md = FakeMessageDocumentsRepository()
+    retrieval = FakeRetrievalService(retrieval_result)
+    generation = FakeGenerationService()
+    handoff = FakeHandoffService(motivo="DOMAIN_OUT_OF_SCOPE")
+    service = ChatService(
+        conversations_repository=conv,
+        messages_repository=messages,
+        audit_repository=audit,
+        feedback_repository=FakeFeedbackRepository(),
+        users_repository=FakeUsersRepository(),
+        retrieval_service=retrieval,
+        message_documents_repository=md,
+        generation_service=generation,
+        handoff_service=handoff,  # type: ignore[arg-type]
+    )
+    result = service.answer_text_query(_auth(), 1, "¿cuál es la capital de Francia?")
+    assert result is not None
+    assert result.response == DOMAIN_GUARD_MESSAGE
+    assert len(handoff.created) == 1
+    assert handoff.created[0]["motivo"] == "DOMAIN_OUT_OF_SCOPE"
+    assert handoff.created[0]["audit_id"] == result.audit_log["id"]
+    assert "HANDOFF:DOMAIN_OUT_OF_SCOPE" in result.audit_log["observaciones"]
+
+
+def test_chat_guard_sin_handoff_no_escala(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "embeddings_enabled", True)
+    monkeypatch.setattr(settings, "llm_enabled", True)
+    retrieval_result = _RetrievalResult([])
+    conv = FakeConversationsRepository({"id": 1, "external_auth_id": "student-1", "institucion_id": 1})
+    messages = FakeMessagesRepository()
+    audit = FakeAuditRepository()
+    md = FakeMessageDocumentsRepository()
+    retrieval = FakeRetrievalService(retrieval_result)
+    generation = FakeGenerationService()
+    handoff = FakeHandoffService(motivo=None)
+    service = ChatService(
+        conversations_repository=conv,
+        messages_repository=messages,
+        audit_repository=audit,
+        feedback_repository=FakeFeedbackRepository(),
+        users_repository=FakeUsersRepository(),
+        retrieval_service=retrieval,
+        message_documents_repository=md,
+        generation_service=generation,
+        handoff_service=handoff,  # type: ignore[arg-type]
+    )
+    result = service.answer_text_query(_auth(), 1, "¿cuál es la capital de Francia?")
+    assert result is not None
+    assert result.response == DOMAIN_GUARD_MESSAGE
+    assert handoff.created == []
+    assert "HANDOFF" not in result.audit_log["observaciones"]
+
+
 def test_history_budget_truncates_oldest(monkeypatch) -> None:
     monkeypatch.setattr(settings, "embeddings_enabled", True)
     monkeypatch.setattr(settings, "llm_enabled", True)
@@ -468,3 +564,348 @@ def test_history_budget_truncates_oldest(monkeypatch) -> None:
     query, chunks, history = generation.calls[0]
     assert all(m["content"] == "uno corto" for m in history)
     assert len(history) == 1
+
+
+def test_regenerate_reemplaza_ultima_respuesta_in_place(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "embeddings_enabled", True)
+    monkeypatch.setattr(settings, "llm_enabled", True)
+    conv = FakeConversationsRepository({"id": 1, "external_auth_id": "student-1", "institucion_id": 1})
+    messages = FakeMessagesRepository()
+    messages.create_message(conversation_id=1, rol_mensaje="USER", contenido_texto="¿requisitos para matrícula?")
+    messages.create_message(conversation_id=1, rol_mensaje="ASSISTANT", contenido_texto="respuesta anterior")
+    audit = FakeAuditRepository()
+    md = FakeMessageDocumentsRepository()
+    retrieval = FakeRetrievalService(_RetrievalResult([_chunk(10, 0.85)]))
+    generation = FakeGenerationService(_GenerationResult(text="Respuesta regenerada."))
+    service = ChatService(
+        conversations_repository=conv,
+        messages_repository=messages,
+        audit_repository=audit,
+        feedback_repository=FakeFeedbackRepository(),
+        users_repository=FakeUsersRepository(),
+        retrieval_service=retrieval,
+        message_documents_repository=md,
+        generation_service=generation,
+    )
+    result = service.regenerate(_auth(), 1)
+    assert result is not None
+    assert result["response"] == "Respuesta regenerada."
+    assert result["assistant_message"]["contenido_texto"] == "Respuesta regenerada."
+    # In-place: no se agrega turno nuevo
+    assert len(messages.messages) == 2
+    assert len(audit.logs) == 1
+    assert "[regenerate]" in audit.logs[0]["observaciones"]
+    assert len(md.rows) == 1
+    assert md.rows[0]["audit_id"] == result["audit_id"]
+
+
+def test_regenerate_sin_turno_previo_returns_none(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "embeddings_enabled", True)
+    conv = FakeConversationsRepository({"id": 1, "external_auth_id": "student-1", "institucion_id": 1})
+    messages = FakeMessagesRepository()
+    messages.create_message(conversation_id=1, rol_mensaje="USER", contenido_texto="hola")
+    service = ChatService(
+        conversations_repository=conv,
+        messages_repository=messages,
+        audit_repository=FakeAuditRepository(),
+        feedback_repository=FakeFeedbackRepository(),
+        users_repository=FakeUsersRepository(),
+    )
+    assert service.regenerate(_auth(), 1) is None  # no hay mensaje ASSISTANT
+
+
+class FakeJudgeService:
+    def __init__(
+        self,
+        ok: bool = True,
+        fidelidad: float = 0.9,
+        relevancia: float = 0.8,
+        contexto: float = 0.85,
+        error: Optional[str] = None,
+    ) -> None:
+        self.ok = ok
+        self.fidelidad = fidelidad
+        self.relevancia = relevancia
+        self.contexto = contexto
+        self.error = error
+        self.calls: List[tuple] = []
+
+    def evaluate(self, question: str, answer: str, chunks=None):
+        self.calls.append((question, answer, chunks))
+        if not self.ok:
+            from app.services.judge_service import JudgeResult
+
+            return JudgeResult(
+                fidelidad=0.0,
+                relevancia=0.0,
+                contexto=0.0,
+                model="fake-judge",
+                ok=False,
+                error=self.error,
+            )
+        from app.services.judge_service import JudgeResult
+
+        return JudgeResult(
+            fidelidad=self.fidelidad,
+            relevancia=self.relevancia,
+            contexto=self.contexto,
+            model="fake-judge",
+            ok=True,
+        )
+
+
+def test_chat_judge_enabled_persists_scores(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "embeddings_enabled", True)
+    monkeypatch.setattr(settings, "llm_enabled", True)
+    monkeypatch.setattr(settings, "judge_enabled", True)
+    # Corrida de evaluación: el muestreo se fuerza a 100 %.
+    monkeypatch.setattr(settings, "judge_sample_rate", 1.0)
+    # Independiente de la DB real: la config de chat se resuelve por el default.
+    from app.services.config_service import ConfigService
+
+    monkeypatch.setattr(
+        ConfigService, "get_bool", lambda self, clave, institucion_id=None, default=False: default
+    )
+    monkeypatch.setattr(
+        ConfigService, "get_float", lambda self, clave, institucion_id=None, default=0.0: default
+    )
+    retrieval_result = _RetrievalResult([_chunk(10, 0.85)])
+    generation_result = _GenerationResult(text="La matrícula requiere documentación vigente.")
+    conv = FakeConversationsRepository({"id": 1, "external_auth_id": "student-1", "institucion_id": 1})
+    messages = FakeMessagesRepository()
+    audit = FakeAuditRepository()
+    md = FakeMessageDocumentsRepository()
+    retrieval = FakeRetrievalService(retrieval_result)
+    generation = FakeGenerationService(generation_result)
+    judge = FakeJudgeService()
+    service = ChatService(
+        conversations_repository=conv,
+        messages_repository=messages,
+        audit_repository=audit,
+        feedback_repository=FakeFeedbackRepository(),
+        users_repository=FakeUsersRepository(),
+        retrieval_service=retrieval,
+        message_documents_repository=md,
+        generation_service=generation,
+        judge_service=judge,  # type: ignore[arg-type]
+    )
+    result = service.answer_text_query(_auth(), 1, "¿requisitos para matrícula?")
+    assert result is not None
+    assert len(judge.calls) == 1
+    assert result.audit_log["score_fidelidad"] == 0.9
+    assert result.audit_log["score_relevancia"] == 0.8
+    assert result.audit_log["score_contexto"] == 0.85
+    assert "JUDGE:ok" in result.audit_log["observaciones"]
+    assert result.timings_ms["judge"] >= 0
+    assert result.timings_ms["service_total"] >= result.timings_ms["judge"]
+
+
+def test_chat_judge_sampling_rate_zero_skips_judge(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "embeddings_enabled", True)
+    monkeypatch.setattr(settings, "llm_enabled", True)
+    monkeypatch.setattr(settings, "judge_enabled", True)
+    monkeypatch.setattr(settings, "judge_sample_rate", 0.0)
+    from app.services.config_service import ConfigService
+
+    monkeypatch.setattr(
+        ConfigService, "get_bool", lambda self, clave, institucion_id=None, default=False: default
+    )
+    monkeypatch.setattr(
+        ConfigService, "get_float", lambda self, clave, institucion_id=None, default=0.0: default
+    )
+    retrieval_result = _RetrievalResult([_chunk(10, 0.85)])
+    generation_result = _GenerationResult(text="Respuesta.")
+    conv = FakeConversationsRepository({"id": 1, "external_auth_id": "student-1", "institucion_id": 1})
+    messages = FakeMessagesRepository()
+    audit = FakeAuditRepository()
+    md = FakeMessageDocumentsRepository()
+    retrieval = FakeRetrievalService(retrieval_result)
+    generation = FakeGenerationService(generation_result)
+    judge = FakeJudgeService()
+    service = ChatService(
+        conversations_repository=conv,
+        messages_repository=messages,
+        audit_repository=audit,
+        feedback_repository=FakeFeedbackRepository(),
+        users_repository=FakeUsersRepository(),
+        retrieval_service=retrieval,
+        message_documents_repository=md,
+        generation_service=generation,
+        judge_service=judge,  # type: ignore[arg-type]
+    )
+    result = service.answer_text_query(_auth(), 1, "¿requisitos?")
+    assert result is not None
+    assert judge.calls == []
+    assert result.audit_log["score_fidelidad"] is None
+    assert "JUDGE:skipped_sample" in result.audit_log["observaciones"]
+    assert result.timings_ms["judge"] == 0.0
+
+
+def test_chat_judge_disabled_does_not_call_judge(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "embeddings_enabled", True)
+    monkeypatch.setattr(settings, "llm_enabled", True)
+    monkeypatch.setattr(settings, "judge_enabled", False)
+    from app.services.config_service import ConfigService
+
+    monkeypatch.setattr(
+        ConfigService, "get_bool", lambda self, clave, institucion_id=None, default=False: default
+    )
+    retrieval_result = _RetrievalResult([_chunk(10, 0.85)])
+    generation_result = _GenerationResult(text="Respuesta.")
+    conv = FakeConversationsRepository({"id": 1, "external_auth_id": "student-1", "institucion_id": 1})
+    messages = FakeMessagesRepository()
+    audit = FakeAuditRepository()
+    md = FakeMessageDocumentsRepository()
+    retrieval = FakeRetrievalService(retrieval_result)
+    generation = FakeGenerationService(generation_result)
+    judge = FakeJudgeService()
+    service = ChatService(
+        conversations_repository=conv,
+        messages_repository=messages,
+        audit_repository=audit,
+        feedback_repository=FakeFeedbackRepository(),
+        users_repository=FakeUsersRepository(),
+        retrieval_service=retrieval,
+        message_documents_repository=md,
+        generation_service=generation,
+        judge_service=judge,  # type: ignore[arg-type]
+    )
+    result = service.answer_text_query(_auth(), 1, "¿requisitos?")
+    assert result is not None
+    assert judge.calls == []
+    assert result.audit_log["score_fidelidad"] is None
+    assert "JUDGE" not in result.audit_log["observaciones"]
+    assert result.timings_ms["judge"] == 0.0
+
+
+def test_chat_uses_institutional_llm_model(monkeypatch) -> None:
+    from app.services import chat_service as chat_module
+    from app.services.config_service import ConfigService
+
+    monkeypatch.setattr(settings, "embeddings_enabled", True)
+    monkeypatch.setattr(settings, "llm_enabled", True)
+    monkeypatch.setattr(settings, "judge_enabled", False)
+    monkeypatch.setattr(
+        ConfigService,
+        "get_bool",
+        lambda self, clave, institucion_id=None, default=False: (
+            True if clave == "llm_enabled" else False
+        ),
+    )
+    monkeypatch.setattr(
+        ConfigService,
+        "get_str",
+        lambda self, clave, institucion_id=None, default="": (
+            "institucion/modelo-x" if clave == "llm_model" else default
+        ),
+    )
+
+    instances = []
+
+    class _FakeGenerationService:
+        def __init__(self, model=None, temperature=None, max_tokens=None, system_prompt=None):
+            self.model = model or settings.llm_model
+            self.temperature = (
+                temperature if temperature is not None else settings.llm_temperature
+            )
+            self.max_tokens = max_tokens or settings.llm_max_tokens
+            self.system_prompt = system_prompt or "prompt"
+            self.calls = []
+            instances.append(self)
+
+        def generate(self, query, chunks, history=None):
+            self.calls.append((query, chunks, history))
+            return _GenerationResult(model=self.model)
+
+    monkeypatch.setattr(chat_module, "GenerationService", _FakeGenerationService)
+    service = ChatService(
+        conversations_repository=FakeConversationsRepository(None),
+        messages_repository=FakeMessagesRepository(),
+        audit_repository=FakeAuditRepository(),
+        feedback_repository=FakeFeedbackRepository(),
+        users_repository=FakeUsersRepository(),
+        retrieval_service=FakeRetrievalService(_RetrievalResult([_chunk(10, 0.85)])),
+        message_documents_repository=FakeMessageDocumentsRepository(),
+        generation_service=None,
+        judge_service=FakeJudgeService(),  # type: ignore[arg-type]
+    )
+    result = service.answer_text_query(_auth(), 1, "¿requisitos?")
+
+    assert result is not None
+    used = [instance for instance in instances if instance.calls]
+    assert used
+    assert used[-1].model == "institucion/modelo-x"
+    assert result.assistant_message["modelo_ia"] == "institucion/modelo-x"
+
+
+def test_chat_uses_institutional_judge_model(monkeypatch) -> None:
+    from app.services import chat_service as chat_module
+    from app.services.config_service import ConfigService
+    from app.services.judge_service import JudgeResult
+
+    monkeypatch.setattr(settings, "embeddings_enabled", True)
+    monkeypatch.setattr(settings, "llm_enabled", True)
+    monkeypatch.setattr(settings, "judge_enabled", True)
+    monkeypatch.setattr(settings, "judge_sample_rate", 1.0)
+    monkeypatch.setattr(
+        ConfigService,
+        "get_bool",
+        lambda self, clave, institucion_id=None, default=False: (
+            True if clave in {"llm_enabled", "judge_enabled"} else default
+        ),
+    )
+    monkeypatch.setattr(
+        ConfigService,
+        "get_float",
+        lambda self, clave, institucion_id=None, default=0.0: (
+            1.0 if clave == "judge_sample_rate" else default
+        ),
+    )
+    monkeypatch.setattr(
+        ConfigService,
+        "get_str",
+        lambda self, clave, institucion_id=None, default="": (
+            "institucion/juez-x" if clave == "judge_model" else default
+        ),
+    )
+
+    instances = []
+
+    class _FakeJudgeService:
+        def __init__(self, model=None, temperature=None, max_tokens=None):
+            self.model = model or settings.judge_model
+            self.temperature = (
+                temperature if temperature is not None else settings.judge_temperature
+            )
+            self.max_tokens = max_tokens or settings.judge_max_tokens
+            self.calls = []
+            instances.append(self)
+
+        def evaluate(self, question, answer, chunks=None):
+            self.calls.append((question, answer, chunks))
+            return JudgeResult(
+                fidelidad=1.0,
+                relevancia=1.0,
+                contexto=1.0,
+                model=self.model,
+            )
+
+    monkeypatch.setattr(chat_module, "JudgeService", _FakeJudgeService)
+    service = ChatService(
+        conversations_repository=FakeConversationsRepository(None),
+        messages_repository=FakeMessagesRepository(),
+        audit_repository=FakeAuditRepository(),
+        feedback_repository=FakeFeedbackRepository(),
+        users_repository=FakeUsersRepository(),
+        retrieval_service=FakeRetrievalService(_RetrievalResult([_chunk(10, 0.85)])),
+        message_documents_repository=FakeMessageDocumentsRepository(),
+        generation_service=FakeGenerationService(),
+        judge_service=None,
+    )
+    result = service.answer_text_query(_auth(), 1, "¿requisitos?")
+
+    assert result is not None
+    used = [instance for instance in instances if instance.calls]
+    assert used
+    assert used[-1].model == "institucion/juez-x"
+    assert "JUDGE:ok (institucion/juez-x)" in result.audit_log["observaciones"]

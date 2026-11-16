@@ -22,12 +22,14 @@ La regla principal del repositorio sigue siendo esta: distinguir siempre entre e
 
 ## Capacidad por flag
 
-- `EMBEDDINGS_ENABLED=true`: activa retrieval real, chunking, embeddings e indexacion.
+- `EMBEDDINGS_ENABLED=true`: activa retrieval real, chunking, embeddings e indexacion. Los embeddings usan actualmente OpenAI directamente (`OPENAI_API_KEY`, `embedding_model`), no OpenRouter.
 - `LLM_ENABLED=true`: activa generacion real de respuesta con OpenRouter.
 - `LLM_HISTORY_ENABLED=true`: agrega memoria conversacional al prompt, limitada por tokens y cantidad de mensajes.
-- `STT_ENABLED=true`: activa transcripcion real del audio.
-- `TTS_ENABLED=true`: activa sintesis de audio para la respuesta.
+- `STT_ENABLED=true`: activa transcripcion real del audio vía OpenRouter.
+- `TTS_ENABLED=true`: activa sintesis de audio para la respuesta vía OpenRouter.
 - `PII_ANONYMIZATION_ENABLED=true`: activa anonimizacion PII antes de enviar la pregunta al retrieval/LLM (Presidio NER; requiere el modelo spaCy `es_core_news_md`). Si el detector no esta disponible y la politica esta ON, el flujo falla cerrado sin llamadas externas.
+
+**Variabilidad de proveedores:** OpenRouter es el gateway configurado para LLM, juez, STT y TTS; el upstream/modelo depende del identificador y de la disponibilidad vigente, y no debe suponerse que cambia automáticamente sin una política explícita. Los embeddings se envían por la integración directa de OpenAI descrita arriba. Registrar modelos/rutas efectivos al medir, nunca credenciales.
 
 ## Requisitos
 
@@ -80,10 +82,13 @@ STRIPE_ACCOUNT_ID=
 
 OPENROUTER_API_KEY=
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
-LLM_MODEL=openai/gpt-4o-mini
+LLM_MODEL=openai/gpt-oss-20b
 LLM_ENABLED=false
 LLM_TEMPERATURE=0.2
-LLM_MAX_TOKENS=512
+LLM_MAX_TOKENS=384
+LLM_PROVIDER_ORDER=Groq
+LLM_PROVIDER_ALLOW_FALLBACKS=false
+LLM_REASONING_EFFORT=low
 LLM_HISTORY_ENABLED=true
 
 STT_ENABLED=false

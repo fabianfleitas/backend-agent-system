@@ -2,11 +2,11 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from app.api.admin.routes import router as admin_router
-from app.core.security import AuthContext, get_admin_auth
+from app.core.security import AuthContext, get_institution_admin_only_auth
 
 def _make_app():
     app = FastAPI(); app.include_router(admin_router, prefix="/api/admin")
-    app.dependency_overrides[get_admin_auth] = lambda: AuthContext(external_auth_id="a", institucion_id=1, tipo_miembro="ADMIN", is_platform_admin=False)
+    app.dependency_overrides[get_institution_admin_only_auth] = lambda: AuthContext(external_auth_id="a", institucion_id=1, tipo_miembro="ADMIN", is_platform_admin=False)
     return app
 
 def test_change_plan(monkeypatch):

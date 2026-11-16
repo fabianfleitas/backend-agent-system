@@ -294,8 +294,15 @@
             "type": "string"
           },
           "mensaje_id": {
-            "title": "Mensaje Id",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mensaje Id"
           },
           "observaciones": {
             "anyOf": [
@@ -344,7 +351,6 @@
         },
         "required": [
           "id",
-          "mensaje_id",
           "fecha_evaluacion"
         ],
         "title": "AuditLogOut",
@@ -356,6 +362,11 @@
             "format": "binary",
             "title": "Audio",
             "type": "string"
+          },
+          "consent_external_processing": {
+            "default": false,
+            "title": "Consent External Processing",
+            "type": "boolean"
           }
         },
         "required": [
@@ -515,8 +526,15 @@
             "type": "integer"
           },
           "institucion_id": {
-            "title": "Institucion Id",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Institucion Id"
           },
           "nombre": {
             "title": "Nombre",
@@ -526,7 +544,6 @@
         "required": [
           "id",
           "nombre",
-          "institucion_id",
           "fecha_creacion"
         ],
         "title": "CategoryOut",
@@ -672,6 +689,55 @@
           "assistant_message"
         ],
         "title": "ChatQueryOut",
+        "type": "object"
+      },
+      "ChatRegenerateIn": {
+        "properties": {
+          "conversation_id": {
+            "title": "Conversation Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "conversation_id"
+        ],
+        "title": "ChatRegenerateIn",
+        "type": "object"
+      },
+      "ChatRegenerateOut": {
+        "properties": {
+          "assistant_message": {
+            "$ref": "#/components/schemas/MessageOut"
+          },
+          "audit_id": {
+            "format": "uuid",
+            "title": "Audit Id",
+            "type": "string"
+          },
+          "conversation_id": {
+            "title": "Conversation Id",
+            "type": "integer"
+          },
+          "response": {
+            "title": "Response",
+            "type": "string"
+          },
+          "sources": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/SourceOut"
+            },
+            "title": "Sources",
+            "type": "array"
+          }
+        },
+        "required": [
+          "response",
+          "audit_id",
+          "conversation_id",
+          "assistant_message"
+        ],
+        "title": "ChatRegenerateOut",
         "type": "object"
       },
       "ChatVoiceOut": {
@@ -1486,6 +1552,128 @@
           "asunto"
         ],
         "title": "EmailTemplateOut",
+        "type": "object"
+      },
+      "EscalamientoOut": {
+        "properties": {
+          "audit_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audit Id"
+          },
+          "conversacion_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversacion Id"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "external_auth_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Auth Id"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "institucion_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Institucion Id"
+          },
+          "mensaje_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mensaje Id"
+          },
+          "motivo": {
+            "title": "Motivo",
+            "type": "string"
+          },
+          "resolved_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved At"
+          },
+          "resolved_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved By"
+          },
+          "resumen": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resumen"
+          },
+          "workflow_estado": {
+            "default": "PENDING",
+            "title": "Workflow Estado",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "motivo"
+        ],
+        "title": "EscalamientoOut",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -2446,6 +2634,26 @@
         "title": "PaginatedResponse[DocumentOut]",
         "type": "object"
       },
+      "PaginatedResponse_EscalamientoOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/EscalamientoOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ],
+        "title": "PaginatedResponse[EscalamientoOut]",
+        "type": "object"
+      },
       "PaginatedResponse_NotificationOut_": {
         "properties": {
           "items": {
@@ -3221,6 +3429,130 @@
           "correo_remitente"
         ],
         "title": "SmtpConfigOut",
+        "type": "object"
+      },
+      "SolicitudAccesoIn": {
+        "properties": {
+          "cantidad_usuarios_estimada": {
+            "anyOf": [
+              {
+                "maximum": 1000000.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cantidad Usuarios Estimada"
+          },
+          "consentimiento": {
+            "title": "Consentimiento",
+            "type": "boolean"
+          },
+          "email": {
+            "maxLength": 200,
+            "title": "Email",
+            "type": "string"
+          },
+          "empresa": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "",
+            "title": "Empresa"
+          },
+          "institucion_nombre": {
+            "maxLength": 160,
+            "minLength": 2,
+            "title": "Institucion Nombre",
+            "type": "string"
+          },
+          "mensaje": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mensaje"
+          },
+          "perfil_solicitado": {
+            "anyOf": [
+              {
+                "maxLength": 30,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Perfil Solicitado"
+          },
+          "persona_contacto": {
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Persona Contacto",
+            "type": "string"
+          },
+          "telefono": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Telefono"
+          }
+        },
+        "required": [
+          "institucion_nombre",
+          "persona_contacto",
+          "email",
+          "consentimiento"
+        ],
+        "title": "SolicitudAccesoIn",
+        "type": "object"
+      },
+      "SolicitudAccesoOut": {
+        "properties": {
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "estado": {
+            "title": "Estado",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "estado"
+        ],
+        "title": "SolicitudAccesoOut",
         "type": "object"
       },
       "SourceOut": {
@@ -5405,6 +5737,152 @@
         ]
       }
     },
+    "/api/admin/escalamientos": {
+      "get": {
+        "operationId": "list_escalamientos_api_admin_escalamientos_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "estado",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Estado"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse_EscalamientoOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Escalamientos",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/admin/escalamientos/{notification_id}/resolve": {
+      "post": {
+        "operationId": "resolve_escalamiento_api_admin_escalamientos__notification_id__resolve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "notification_id",
+            "required": true,
+            "schema": {
+              "title": "Notification Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EscalamientoOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Resolve Escalamiento",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/api/admin/feedback": {
       "get": {
         "operationId": "list_feedback_api_admin_feedback_get",
@@ -7100,6 +7578,65 @@
           }
         },
         "summary": "Chat Query",
+        "tags": [
+          "chat"
+        ]
+      }
+    },
+    "/api/chat/regenerate": {
+      "post": {
+        "operationId": "chat_regenerate_api_chat_regenerate_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRegenerateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatRegenerateOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Chat Regenerate",
         "tags": [
           "chat"
         ]
@@ -9150,6 +9687,49 @@
         ]
       }
     },
+    "/api/public/solicitudes-acceso": {
+      "post": {
+        "description": "Solicitud de acceso al servicio. Endpoint público, sin autenticación.",
+        "operationId": "crear_solicitud_acceso_api_public_solicitudes_acceso_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolicitudAccesoIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudAccesoOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [],
+        "summary": "Crear Solicitud Acceso",
+        "tags": [
+          "public"
+        ]
+      }
+    },
     "/health": {
       "get": {
         "operationId": "health_health_get",
@@ -9304,6 +9884,10 @@
     {
       "description": "Health, ready, me",
       "name": "global"
+    },
+    {
+      "description": "Endpoints públicos sin autenticación (solicitudes de acceso)",
+      "name": "public"
     },
     {
       "description": "Texto, voz, feedback",

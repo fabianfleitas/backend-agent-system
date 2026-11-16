@@ -157,7 +157,7 @@ class DocumentOut(BaseModel):
 
 class AuditLogOut(BaseModel):
     id: UUID
-    mensaje_id: int
+    mensaje_id: Optional[int] = None
     score_fidelidad: Optional[float] = None
     score_relevancia: Optional[float] = None
     score_contexto: Optional[float] = None

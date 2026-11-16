@@ -7,6 +7,11 @@ from app.core.config import settings
 from app.integrations.stripe_client import get_stripe_client, get_stripe_runtime_config, is_stripe_configured
 
 
+def _as_dict(obj: Any) -> dict[str, Any]:
+    """Normaliza recursos de stripe-python (v15 devuelve objetos, no dicts)."""
+    return obj.to_dict() if hasattr(obj, "to_dict") else dict(obj)
+
+
 @dataclass(frozen=True)
 class StripeWebhookVerification:
     event_id: str
@@ -39,7 +44,7 @@ class StripeAgentService:
             payload["name"] = name
         if metadata:
             payload["metadata"] = metadata
-        return stripe.Customer.create(**payload)
+        return _as_dict(stripe.Customer.create(**payload))
 
     def create_subscription(self, *, customer_id: str, price_id: str, metadata: Optional[dict[str, str]] = None) -> dict[str, Any]:
         stripe = self.client()
@@ -51,22 +56,21 @@ class StripeAgentService:
         }
         if metadata:
             payload["metadata"] = metadata
-        sub = stripe.Subscription.create(**payload)
-        return sub.to_dict() if hasattr(sub, "to_dict") else dict(sub)
+        return _as_dict(stripe.Subscription.create(**payload))
 
     def cancel_subscription(self, subscription_id: str, *, cancel_at_period_end: bool = True) -> dict[str, Any]:
         stripe = self.client()
         if cancel_at_period_end:
-            return stripe.Subscription.modify(subscription_id, cancel_at_period_end=True)
-        return stripe.Subscription.cancel(subscription_id)
+            return _as_dict(stripe.Subscription.modify(subscription_id, cancel_at_period_end=True))
+        return _as_dict(stripe.Subscription.cancel(subscription_id))
 
     def reactivate_subscription(self, subscription_id: str) -> dict[str, Any]:
         stripe = self.client()
-        return stripe.Subscription.modify(subscription_id, cancel_at_period_end=False)
+        return _as_dict(stripe.Subscription.modify(subscription_id, cancel_at_period_end=False))
 
     def update_subscription_price(self, subscription_id: str, price_id: str) -> dict[str, Any]:
         stripe = self.client()
-        current = stripe.Subscription.retrieve(subscription_id)
+        current = _as_dict(stripe.Subscription.retrieve(subscription_id))
         item_id = None
         items = (current.get("items") or {}).get("data") or []
         if items:
@@ -76,14 +80,14 @@ class StripeAgentService:
             "proration_behavior": "create_prorations",
             "expand": ["latest_invoice.payment_intent"],
         }
-        return stripe.Subscription.modify(subscription_id, **payload)
+        return _as_dict(stripe.Subscription.modify(subscription_id, **payload))
 
     def create_billing_portal_session(self, *, customer_id: str, return_url: str) -> dict[str, Any]:
         stripe = self.client()
-        return stripe.billing_portal.Session.create(
+        return _as_dict(stripe.billing_portal.Session.create(
             customer=customer_id,
             return_url=return_url,
-        )
+        ))
 
     def create_or_update_product(self, *, name: str, description: Optional[str] = None, metadata: Optional[dict[str, str]] = None, stripe_product_id: Optional[str] = None) -> dict[str, Any]:
         stripe = self.client()
@@ -93,8 +97,8 @@ class StripeAgentService:
         if metadata:
             payload["metadata"] = metadata
         if stripe_product_id:
-            return stripe.Product.modify(stripe_product_id, **payload)
-        return stripe.Product.create(**payload)
+            return _as_dict(stripe.Product.modify(stripe_product_id, **payload))
+        return _as_dict(stripe.Product.create(**payload))
 
     def create_or_update_price(
         self,
@@ -119,8 +123,8 @@ class StripeAgentService:
         if metadata:
             payload["metadata"] = metadata
         if stripe_price_id:
-            return stripe.Price.modify(stripe_price_id, active=active, metadata=metadata or {})
-        return stripe.Price.create(**payload)
+            return _as_dict(stripe.Price.modify(stripe_price_id, active=active, metadata=metadata or {}))
+        return _as_dict(stripe.Price.create(**payload))
 
     def create_checkout_session(
         self,
@@ -146,11 +150,11 @@ class StripeAgentService:
             payload["metadata"] = metadata
         if subscription_data:
             payload["subscription_data"] = subscription_data
-        return stripe.checkout.Session.create(**payload)
+        return _as_dict(stripe.checkout.Session.create(**payload))
 
     def retrieve_subscription(self, subscription_id: str) -> dict[str, Any]:
         stripe = self.client()
-        return stripe.Subscription.retrieve(subscription_id, expand=["latest_invoice.payment_intent"])
+        return _as_dict(stripe.Subscription.retrieve(subscription_id, expand=["latest_invoice.payment_intent"]))
 
     def verify_webhook_event(self, *, payload: bytes, signature_header: str) -> StripeWebhookVerification:
         runtime = self.runtime_config

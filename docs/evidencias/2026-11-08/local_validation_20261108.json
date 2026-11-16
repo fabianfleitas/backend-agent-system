@@ -1,0 +1,88 @@
+{
+  "fecha": "2026-11-08T17:20:30-03:00",
+  "tipo": "local_synthetic_mock_no_external_ai",
+  "api_base": "http://127.0.0.1:8001 (sin rate limit) / :8002 (rate limit activo)",
+  "entorno": "macOS local; backend Python 3.12; Supabase local; LLM/embeddings/judge/STT/TTS desactivados",
+  "advertencia": "No representa producción, proveedores externos, RAG real ni el SLO de 3 s.",
+  "runs": [
+    {
+      "scenario": "1vu",
+      "report": "eval/reports/k6_local_1vu.json",
+      "requests": 100,
+      "p50_ms": 17.1635,
+      "p95_ms": 18.3932,
+      "avg_ms": 17.217549999999992,
+      "max_ms": 20.621,
+      "success_rate_observed": 1
+    },
+    {
+      "scenario": "8vu",
+      "report": "eval/reports/k6_local_8vu.json",
+      "requests": 104,
+      "p50_ms": 59.409,
+      "p95_ms": 69.80274999999999,
+      "avg_ms": 59.8748846153846,
+      "max_ms": 102.112,
+      "success_rate_observed": 1
+    },
+    {
+      "scenario": "50vu",
+      "report": "eval/reports/k6_local_50vu.json",
+      "requests": 100,
+      "p50_ms": 389.45000000000005,
+      "p95_ms": 582.0710499999999,
+      "avg_ms": 389.7125199999999,
+      "max_ms": 672.254,
+      "success_rate_observed": 1
+    },
+    {
+      "scenario": "100vu",
+      "report": "eval/reports/k6_local_100vu.json",
+      "requests": 100,
+      "p50_ms": 708.596,
+      "p95_ms": 801.41895,
+      "avg_ms": 727.4346899999998,
+      "max_ms": 804.538,
+      "success_rate_observed": 1
+    },
+    {
+      "scenario": "8vu_rate_limit",
+      "report": "eval/reports/k6_local_8vu_rate_limit.json",
+      "requests": 104,
+      "p50_ms": 260.708,
+      "p95_ms": 3534.246,
+      "avg_ms": 1452.3194285714285,
+      "max_ms": 3536.292,
+      "success_rate_observed": 0.2019
+    }
+  ],
+  "rate_limit_diagnostic": {
+    "scenario": "8 VUs, 104 solicitudes, límite por IP de /api/chat/query=20/min",
+    "status_counts": {
+      "200": 20,
+      "429": 84
+    },
+    "success_rate": 0.1923,
+    "raw_report": "eval/reports/k6_local_8vu_rate_limit_raw.json"
+  },
+  "sustained_run": {
+    "scenario": "8vu_30iterations_sleep1s",
+    "report": "eval/reports/k6_sustained_20261108_173901_391454.json",
+    "result_report": "eval/reports/k6_sustained_20261108_173901_391454_result.json",
+    "requests": 240,
+    "duration_s_approx": 36,
+    "p50_ms": 68.522,
+    "p95_ms": 271.15365,
+    "avg_ms": 192.8555541666668,
+    "max_ms": 3606.9,
+    "success_rate_observed": 1,
+    "server_process_samples": {
+      "muestras": 75,
+      "cpu_percent_promedio_ps": 16.44,
+      "cpu_percent_max_ps": 103.1,
+      "rss_mb_max": 1796.1,
+      "rss_mb_promedio": 1297.6
+    },
+    "advertencia": "Carga local mock sostenida ~36 s; no es producción ni el SLO de 3 s."
+  }
+}

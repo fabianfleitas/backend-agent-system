@@ -19,6 +19,16 @@ class NotificationsRepository:
         )
         return resp.data[0] if resp.data else None
 
+    def get_by_id(self, notification_id: int) -> Optional[dict]:
+        resp = (
+            self.client.table("notificaciones")
+            .select("*")
+            .eq("id", notification_id)
+            .limit(1)
+            .execute()
+        )
+        return resp.data[0] if resp.data else None
+
     def create(self, payload: dict) -> dict:
         resp = self.client.table("notificaciones").insert(payload).execute()
         return resp.data[0]
@@ -50,3 +60,39 @@ class NotificationsRepository:
             .execute()
         )
         return list(resp.data or [])
+
+    def list_escalamientos(
+        self,
+        institucion_id: int,
+        workflow_estado: Optional[str] = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> list[dict]:
+        """Lista notificaciones de tipo SYSTEM marcadas como escalamiento."""
+        resp = (
+            self.client.table("notificaciones")
+            .select("*")
+            .eq("institucion_id", institucion_id)
+            .eq("tipo", "SYSTEM")
+            .order("created_at", desc=True)
+            .execute()
+        )
+        rows = [
+            r for r in (resp.data or [])
+            if isinstance(r.get("datos"), dict) and r["datos"].get("escalamiento") is True
+        ]
+        if workflow_estado is not None:
+            rows = [
+                r for r in rows
+                if r["datos"].get("workflow_estado") == workflow_estado
+            ]
+        return list(rows[offset : offset + limit])
+
+    def update_datos(self, notification_id: int, datos: dict) -> Optional[dict]:
+        resp = (
+            self.client.table("notificaciones")
+            .update({"datos": datos})
+            .eq("id", notification_id)
+            .execute()
+        )
+        return resp.data[0] if resp.data else None

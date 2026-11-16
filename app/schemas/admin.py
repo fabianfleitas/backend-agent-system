@@ -355,7 +355,7 @@ class CategoryOut(BaseModel):
     nombre: str
     descripcion: Optional[str] = None
     activo: bool = True
-    institucion_id: int
+    institucion_id: Optional[int] = None
     fecha_creacion: datetime
 
 
@@ -369,3 +369,18 @@ class AdminReindexIn(BaseModel):
 
 class AdminReindexOut(BaseModel):
     updated_versions: int
+
+
+class EscalamientoOut(BaseModel):
+    id: int
+    institucion_id: Optional[int] = None
+    motivo: str
+    resumen: Optional[str] = None
+    conversacion_id: Optional[int] = None
+    mensaje_id: Optional[int] = None
+    audit_id: Optional[str] = None
+    external_auth_id: Optional[str] = None
+    workflow_estado: str = "PENDING"
+    resolved_by: Optional[str] = None
+    resolved_at: Optional[str] = None
+    created_at: Optional[str] = None

@@ -1,0 +1,130 @@
+{
+  "nota": "Contenido SINTÉTICO de prueba (institución ficticia, contexto Paraguay). No es normativa institucional real. Usado para validar el pipeline RAG/judge (S12).",
+  "institucion": "Universidad Demo del Paraguay (ficticia)",
+  "documentos": [
+    {
+      "codigo": "DEMO-001",
+      "titulo": "Reglamento de Matriculación",
+      "parrafos": [
+        "La matrícula de los estudiantes ingresantes exige presentar documento de identidad, certificado de estudios o constancia de egreso y completar la ficha de inscripción en la Secretaría Académica.",
+        "El periodo de matriculación se desarrolla según el calendario académico vigente. Quien no se matricula dentro del plazo pierde la regularidad y debe gestionar la reinscripción.",
+        "Los estudiantes extranjeros deben presentar la documentación migratoria vigente y las convalidaciones correspondientes. La matrícula se completa con la firma de la ficha en la Secretaría.",
+        "Los estudiantes de reingreso deben regularizar su situación académica antes de matricularse. El estado de la matrícula puede consultarse en el campus virtual."
+      ]
+    },
+    {
+      "codigo": "DEMO-002",
+      "titulo": "Arancel Oficial",
+      "parrafos": [
+        "El costo de la matrícula y de las cuotas mensuales depende del plan de estudios vigente y se detalla en el arancel oficial.",
+        "Las formas de pago habilitadas son el pago presencial en Tesorería, la transferencia bancaria y otros canales autorizados por la institución.",
+        "Las cuotas vencen según el cronograma de pagos; el atraso afecta la regularidad académica y el pago fuera de término aplica un recargo establecido en el arancel.",
+        "Las deudas pendientes al cierre del semestre pueden impedir la regularidad y la emisión de certificados."
+      ]
+    },
+    {
+      "codigo": "DEMO-003",
+      "titulo": "Reglamento de Becas",
+      "parrafos": [
+        "La beca por mérito académico se solicita presentando el expediente con el promedio requerido dentro del plazo establecido por el reglamento de becas.",
+        "La institución ofrece becas por mérito, por situación económica y descuentos especiales según el reglamento vigente."
+      ]
+    },
+    {
+      "codigo": "DEMO-004",
+      "titulo": "Procedimiento de Tesorería",
+      "parrafos": [
+        "La devolución por pago duplicado se gestiona en Tesorería presentando los comprobantes de ambos pagos y el formulario de solicitud de devolución.",
+        "El comprobante de pago se emite una vez confirmado el ingreso; ante errores, el estudiante debe acercarse a Tesorería dentro de los plazos establecidos."
+      ]
+    },
+    {
+      "codigo": "DEMO-005",
+      "titulo": "Reglamento Académico",
+      "parrafos": [
+        "La escala de calificaciones va de 1 a 5; la nota mínima de aprobación se establece en el reglamento académico.",
+        "El máximo de materias por semestre está limitado por el plan de estudios. El porcentaje de asistencia mínimo requerido para no perder la materia se fija en el reglamento.",
+        "Al perder una asignatura por tercera vez se aplican las disposiciones del reglamento. La categoría de alumno depende del porcentaje de materias aprobadas.",
+        "El promedio general de la carrera se calcula ponderando las calificaciones según la carga horaria de cada asignatura.",
+        "El número de oportunidades de examen por materia, el régimen de alumno libre y el recuperatorio se regulan en el reglamento académico.",
+        "La inasistencia a un examen inscripto puede contar como oportunidad utilizada. La baja temporal y el cambio de carrera o de plan se tramitan según el reglamento.",
+        "La inasistencia por motivo de salud se justifica presentando el certificado médico. El reclamo de calificación se presenta por escrito dentro del plazo del reglamento."
+      ]
+    },
+    {
+      "codigo": "DEMO-006",
+      "titulo": "Régimen de Correlatividades",
+      "parrafos": [
+        "Las correlatividades exigen aprobar ciertas asignaturas previas para poder inscribirse en otras.",
+        "La inscripción en asignaturas de un semestre superior está condicionada al cumplimiento del régimen de correlatividades."
+      ]
+    },
+    {
+      "codigo": "DEMO-007",
+      "titulo": "Calendario Académico",
+      "parrafos": [
+        "Las fechas de inicio y fin de cada semestre figuran en el calendario académico.",
+        "La inscripción a exámenes finales se realiza dentro de las fechas establecidas en el calendario académico.",
+        "El calendario de exámenes parciales y finales se publica en el campus virtual y en la Secretaría."
+      ]
+    },
+    {
+      "codigo": "DEMO-008",
+      "titulo": "Reglamento de Títulos",
+      "parrafos": [
+        "El título se otorga al aprobar todas las asignaturas del plan de estudios y cumplir los requisitos de egreso.",
+        "El plazo de emisión del título depende del trámite y se informa en la Secretaría."
+      ]
+    },
+    {
+      "codigo": "DEMO-009",
+      "titulo": "Procedimiento de Secretaría",
+      "parrafos": [
+        "El certificado de estudios se solicita en la Secretaría mediante el formulario correspondiente.",
+        "El analítico de calificaciones se tramita en la Secretaría y su emisión puede requerir el pago de arancel.",
+        "La constancia de alumno regular se emite por la Secretaría a solicitud del estudiante.",
+        "La reposición de título o certificado se gestiona ante la Secretaría con los requisitos vigentes.",
+        "El cambio de turno o de comisión se gestiona ante la Secretaría dentro de las fechas habilitadas."
+      ]
+    },
+    {
+      "codigo": "DEMO-010",
+      "titulo": "Reglamento de Trabajo Final",
+      "parrafos": [
+        "El trabajo final de grado es un requisito de egreso regulado por el reglamento específico de trabajo final."
+      ]
+    },
+    {
+      "codigo": "DEMO-011",
+      "titulo": "Reglamento de Equivalencias",
+      "parrafos": [
+        "Las equivalencias de asignaturas aprobadas en otra institución se solicitan presentando los programas y certificados de las materias aprobadas."
+      ]
+    },
+    {
+      "codigo": "DEMO-012",
+      "titulo": "Manual de Campus Virtual",
+      "parrafos": [
+        "El estado de la matrícula se consulta en el campus virtual del estudiante.",
+        "Los datos personales se actualizan en el campus virtual o ante la Secretaría.",
+        "El acceso al campus virtual se realiza con las credenciales institucionales del estudiante."
+      ]
+    },
+    {
+      "codigo": "DEMO-013",
+      "titulo": "Guía de Servicios",
+      "parrafos": [
+        "El horario de atención de la Secretaría Académica está publicado en el sitio institucional.",
+        "La biblioteca ofrece préstamo, sala de lectura y acceso digital según su reglamento.",
+        "Los problemas con la cuenta institucional se resuelven a través del soporte técnico o la Secretaría."
+      ]
+    },
+    {
+      "codigo": "DEMO-014",
+      "titulo": "Reglamento Interno",
+      "parrafos": [
+        "La convivencia y el uso de las instalaciones se rigen por el reglamento interno institucional."
+      ]
+    }
+  ]
+}

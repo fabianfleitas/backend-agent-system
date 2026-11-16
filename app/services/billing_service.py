@@ -1,11 +1,28 @@
 from __future__ import annotations
 
+import logging
 from typing import Optional
 
 from app.core.security import AuthContext
 from app.repositories.billing_repository import BillingRepository
 from app.repositories.institutions_repository import InstitutionsRepository
 from app.services.stripe_agent_service import get_stripe_agent_service
+
+logger = logging.getLogger(__name__)
+
+
+def _log_billing_action(action: str, auth: AuthContext, detalle: Optional[str] = None) -> None:
+    try:
+        from app.repositories.audit_repository import AuditRepository
+
+        AuditRepository().log_action(
+            action,
+            external_auth_id=auth.external_auth_id,
+            institucion_id=auth.institucion_id,
+            detalle=detalle,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Audit action %s failed: %s", action, exc)
 
 
 class BillingService:
@@ -109,6 +126,11 @@ class BillingService:
             stripe_customer_id=stripe_customer_id,
             payload=subscription,
         )
+        _log_billing_action(
+            "BILLING_CREATE_SUBSCRIPTION",
+            auth,
+            f"plan_id={plan['id']} stripe_subscription_id={subscription['id']}",
+        )
         return subscription
 
     def cancel_subscription_for_institution(self, auth: AuthContext, cancel_at_period_end: bool = True) -> dict:
@@ -137,6 +159,7 @@ class BillingService:
             cancelacion_programada=bool(updated.get("cancel_at_period_end", False)),
             fecha_cancelacion=str(fecha_cancelacion) if fecha_cancelacion else None,
         )
+        _log_billing_action("BILLING_CANCEL", auth, f"subscription_id={subscription['id']}")
         return updated
 
     def reactivate_subscription_for_institution(self, auth: AuthContext) -> dict:
@@ -161,6 +184,7 @@ class BillingService:
             cancelacion_programada=bool(updated.get("cancel_at_period_end", False)),
             fecha_cancelacion=None,
         )
+        _log_billing_action("BILLING_REACTIVATE", auth, f"subscription_id={subscription['id']}")
         return updated
 
     def create_checkout_session_for_institution(self, auth: AuthContext, plan_id: int, success_url: str, cancel_url: str) -> dict:
@@ -199,6 +223,11 @@ class BillingService:
         )
         # stripe-python v15: Session es objeto; usar .to_dict() para dict seguro
         session_dict = session.to_dict() if hasattr(session, "to_dict") else dict(session)
+        _log_billing_action(
+            "BILLING_CHECKOUT",
+            auth,
+            f"plan_id={plan['id']} session_id={session_dict.get('id')}",
+        )
         return session_dict
 
     def get_stripe_subscription(self, auth: AuthContext) -> dict:
@@ -227,6 +256,7 @@ class BillingService:
         stripe_service = get_stripe_agent_service()
         if not stripe_service.configured:
             raise RuntimeError("Stripe is not configured")
+        _log_billing_action("BILLING_PORTAL", auth, f"institucion_id={auth.institucion_id}")
         return stripe_service.create_billing_portal_session(customer_id=stripe_customer_id, return_url=return_url)
 
     def change_subscription_plan(self, auth: AuthContext, plan_id: int) -> dict:
@@ -253,6 +283,7 @@ class BillingService:
             estado=self._map_subscription_state(updated.get("status")),
             cancelacion_programada=bool(updated.get("cancel_at_period_end", False)),
         )
+        _log_billing_action("BILLING_CHANGE_PLAN", auth, f"subscription_id={subscription['id']} plan_id={plan['id']}")
         return updated
 
     def _map_subscription_state(self, stripe_status: Optional[str]) -> str:

@@ -1,0 +1,3396 @@
+{
+  "fecha": "2026-11-08T20:08:39.265967+00:00",
+  "detector_disponible": true,
+  "total_casos": 120,
+  "casos_positivos": 100,
+  "controles_negativos": 20,
+  "casos_ok": 120,
+  "casos_falla": 0,
+  "valores_personales_esperados": 295,
+  "valores_personales_anonimizados": 295,
+  "cobertura_anonimizacion": 1.0,
+  "total_detecciones": 295,
+  "detecciones_no_esperadas": 0,
+  "precision_detecciones_estimada": 1.0,
+  "controles_negativos_con_detecciones": 0,
+  "valores_no_esperados": [],
+  "fugas_detectadas": 0,
+  "valores_no_detectados": [],
+  "casos": [
+    {
+      "id": "PII-01",
+      "tipo": "CedulaCi (uruguaya)",
+      "original": "Soy Claudia Fernandez. Mi cedula es 1.234.567-8. ¿Quais son los requisitos de matricula?",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2]. ¿Quais son los requisitos de matricula?",
+      "detectados": 2,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Claudia Fernandez"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "1.234.567-8"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 2,
+      "valores_esperados_anonimizados": 2,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-02",
+      "tipo": "CedulaCi (paraguaya, 6-9 digitos)",
+      "original": "Mi cedula es 12345678 y mi correo es jose.gomez@ejemplo-test.edu. ¿Cuando abren las inscripciones?",
+      "anonimizado": "Mi cedula es [PII_CI_1] y mi correo es [PII_EMAIL_ADDRESS_2]. ¿Cuando abren las inscripciones?",
+      "detectados": 2,
+      "mappings": [
+        {
+          "token": "[PII_CI_1]",
+          "pii_type": "CI",
+          "original_value": "12345678"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_2]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "jose.gomez@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 2,
+      "valores_esperados_anonimizados": 2,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-03",
+      "tipo": "Telefono LATAM + nombre",
+      "original": "Soy Camila Ramos, mi telefono es +595 981 234 567. Necesito informacion sobre becas.",
+      "anonimizado": "Soy [PII_PERSON_1], mi telefono es [PII_PHONE_NUMBER_2]. Necesito informacion sobre becas.",
+      "detectados": 2,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Camila Ramos"
+        },
+        {
+          "token": "[PII_PHONE_NUMBER_2]",
+          "pii_type": "PHONE_NUMBER",
+          "original_value": "+595 981 234 567"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 2,
+      "valores_esperados_anonimizados": 2,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-04",
+      "tipo": "CedulaCi con puntos (paraguaya)",
+      "original": "Mi cedula es 12.345.678. ¿Cuanto es el costo de la matricula?",
+      "anonimizado": "Mi cedula es [PII_CI_1]. ¿Cuanto es el costo de la matricula?",
+      "detectados": 1,
+      "mappings": [
+        {
+          "token": "[PII_CI_1]",
+          "pii_type": "CI",
+          "original_value": "12.345.678"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 1,
+      "valores_esperados_anonimizados": 1,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-05",
+      "tipo": "Sin datos personales (control negativo)",
+      "original": "¿Quais son los horarios de las clases de theory?",
+      "anonimizado": "¿Quais son los horarios de las clases de theory?",
+      "detectados": 0,
+      "mappings": [],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 0,
+      "valores_esperados_anonimizados": 0,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-001",
+      "tipo": "cedula paraguaya sin separadores",
+      "original": "Soy Bruno Demo001. Mi cedula es 10000000 y mi correo es persona001@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Bruno Demo001"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10000000"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona001@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-002",
+      "tipo": "cedula paraguaya sin separadores",
+      "original": "Soy Carla Sintetico002. Mi cedula es 10000001 y mi correo es persona002@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Carla Sintetico002"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10000001"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona002@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-003",
+      "tipo": "cedula paraguaya sin separadores",
+      "original": "Soy Diego Ficticio003. Mi cedula es 10000002 y mi correo es persona003@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Diego Ficticio003"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10000002"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona003@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-004",
+      "tipo": "cedula paraguaya sin separadores",
+      "original": "Soy Elena Ensayo004. Mi cedula es 10000003 y mi correo es persona004@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Elena Ensayo004"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10000003"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona004@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-005",
+      "tipo": "cedula paraguaya sin separadores",
+      "original": "Soy Fabio Prueba005. Mi cedula es 10000004 y mi correo es persona005@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Fabio Prueba005"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10000004"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona005@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-006",
+      "tipo": "cedula paraguaya sin separadores",
+      "original": "Soy Alma Demo006. Mi cedula es 10000005 y mi correo es persona006@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Alma Demo006"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10000005"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona006@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-007",
+      "tipo": "cedula paraguaya sin separadores",
+      "original": "Soy Bruno Sintetico007. Mi cedula es 10000006 y mi correo es persona007@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Bruno Sintetico007"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10000006"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona007@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-008",
+      "tipo": "cedula paraguaya sin separadores",
+      "original": "Soy Carla Ficticio008. Mi cedula es 10000007 y mi correo es persona008@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Carla Ficticio008"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10000007"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona008@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-009",
+      "tipo": "cedula paraguaya sin separadores",
+      "original": "Soy Diego Ensayo009. Mi cedula es 10000008 y mi correo es persona009@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Diego Ensayo009"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10000008"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona009@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-010",
+      "tipo": "cedula paraguaya sin separadores",
+      "original": "Soy Elena Prueba010. Mi cedula es 10000009 y mi correo es persona010@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Elena Prueba010"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10000009"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona010@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-011",
+      "tipo": "cedula paraguaya sin separadores",
+      "original": "Soy Fabio Demo011. Mi cedula es 10000010 y mi correo es persona011@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Fabio Demo011"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10000010"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona011@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-012",
+      "tipo": "cedula paraguaya sin separadores",
+      "original": "Soy Alma Sintetico012. Mi cedula es 10000011 y mi correo es persona012@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Alma Sintetico012"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10000011"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona012@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-013",
+      "tipo": "cedula paraguaya sin separadores",
+      "original": "Soy Bruno Ficticio013. Mi cedula es 10000012 y mi correo es persona013@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Bruno Ficticio013"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10000012"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona013@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-014",
+      "tipo": "cedula paraguaya sin separadores",
+      "original": "Soy Carla Ensayo014. Mi cedula es 10000013 y mi correo es persona014@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Carla Ensayo014"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10000013"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona014@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-015",
+      "tipo": "cedula paraguaya sin separadores",
+      "original": "Soy Diego Prueba015. Mi cedula es 10000014 y mi correo es persona015@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Diego Prueba015"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10000014"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona015@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-016",
+      "tipo": "cedula paraguaya sin separadores",
+      "original": "Soy Elena Demo016. Mi cedula es 10000015 y mi correo es persona016@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Elena Demo016"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10000015"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona016@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-017",
+      "tipo": "cedula paraguaya sin separadores",
+      "original": "Soy Fabio Sintetico017. Mi cedula es 10000016 y mi correo es persona017@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Fabio Sintetico017"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10000016"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona017@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-018",
+      "tipo": "cedula paraguaya sin separadores",
+      "original": "Soy Alma Ficticio018. Mi cedula es 10000017 y mi correo es persona018@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Alma Ficticio018"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10000017"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona018@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-019",
+      "tipo": "cedula paraguaya sin separadores",
+      "original": "Soy Bruno Ensayo019. Mi cedula es 10000018 y mi correo es persona019@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Bruno Ensayo019"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10000018"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona019@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-020",
+      "tipo": "cedula paraguaya sin separadores",
+      "original": "Soy Carla Prueba020. Mi cedula es 10000019 y mi correo es persona020@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Carla Prueba020"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10000019"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona020@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-021",
+      "tipo": "cedula paraguaya sin separadores",
+      "original": "Soy Diego Demo021. Mi cedula es 10000020 y mi correo es persona021@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Diego Demo021"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10000020"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona021@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-022",
+      "tipo": "cedula paraguaya sin separadores",
+      "original": "Soy Elena Sintetico022. Mi cedula es 10000021 y mi correo es persona022@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Elena Sintetico022"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10000021"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona022@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-023",
+      "tipo": "cedula paraguaya sin separadores",
+      "original": "Soy Fabio Ficticio023. Mi cedula es 10000022 y mi correo es persona023@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Fabio Ficticio023"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10000022"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona023@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-024",
+      "tipo": "cedula paraguaya sin separadores",
+      "original": "Soy Alma Ensayo024. Mi cedula es 10000023 y mi correo es persona024@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Alma Ensayo024"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10000023"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona024@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-025",
+      "tipo": "cedula paraguaya con puntos",
+      "original": "Soy Bruno Prueba025. Mi cedula es 10.000.100 y mi correo es persona025@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Bruno Prueba025"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10.000.100"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona025@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-026",
+      "tipo": "cedula paraguaya con puntos",
+      "original": "Soy Carla Demo026. Mi cedula es 10.001.101 y mi correo es persona026@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Carla Demo026"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10.001.101"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona026@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-027",
+      "tipo": "cedula paraguaya con puntos",
+      "original": "Soy Diego Sintetico027. Mi cedula es 10.002.102 y mi correo es persona027@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1] Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Diego Sintetico027."
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10.002.102"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona027@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-028",
+      "tipo": "cedula paraguaya con puntos",
+      "original": "Soy Elena Ficticio028. Mi cedula es 10.003.103 y mi correo es persona028@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Elena Ficticio028"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10.003.103"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona028@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-029",
+      "tipo": "cedula paraguaya con puntos",
+      "original": "Soy Fabio Ensayo029. Mi cedula es 10.004.104 y mi correo es persona029@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Fabio Ensayo029"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10.004.104"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona029@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-030",
+      "tipo": "cedula paraguaya con puntos",
+      "original": "Soy Alma Prueba030. Mi cedula es 10.005.105 y mi correo es persona030@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Alma Prueba030"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10.005.105"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona030@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-031",
+      "tipo": "cedula paraguaya con puntos",
+      "original": "Soy Bruno Demo031. Mi cedula es 10.006.106 y mi correo es persona031@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Bruno Demo031"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10.006.106"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona031@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-032",
+      "tipo": "cedula paraguaya con puntos",
+      "original": "Soy Carla Sintetico032. Mi cedula es 10.007.107 y mi correo es persona032@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Carla Sintetico032"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10.007.107"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona032@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-033",
+      "tipo": "cedula paraguaya con puntos",
+      "original": "Soy Diego Ficticio033. Mi cedula es 10.008.108 y mi correo es persona033@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Diego Ficticio033"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10.008.108"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona033@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-034",
+      "tipo": "cedula paraguaya con puntos",
+      "original": "Soy Elena Ensayo034. Mi cedula es 10.009.109 y mi correo es persona034@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Elena Ensayo034"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10.009.109"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona034@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-035",
+      "tipo": "cedula paraguaya con puntos",
+      "original": "Soy Fabio Prueba035. Mi cedula es 10.010.110 y mi correo es persona035@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Fabio Prueba035"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10.010.110"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona035@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-036",
+      "tipo": "cedula paraguaya con puntos",
+      "original": "Soy Alma Demo036. Mi cedula es 10.011.111 y mi correo es persona036@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Alma Demo036"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10.011.111"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona036@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-037",
+      "tipo": "cedula paraguaya con puntos",
+      "original": "Soy Bruno Sintetico037. Mi cedula es 10.012.112 y mi correo es persona037@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Bruno Sintetico037"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10.012.112"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona037@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-038",
+      "tipo": "cedula paraguaya con puntos",
+      "original": "Soy Carla Ficticio038. Mi cedula es 10.013.113 y mi correo es persona038@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Carla Ficticio038"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10.013.113"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona038@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-039",
+      "tipo": "cedula paraguaya con puntos",
+      "original": "Soy Diego Ensayo039. Mi cedula es 10.014.114 y mi correo es persona039@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Diego Ensayo039"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10.014.114"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona039@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-040",
+      "tipo": "cedula paraguaya con puntos",
+      "original": "Soy Elena Prueba040. Mi cedula es 10.015.115 y mi correo es persona040@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Elena Prueba040"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10.015.115"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona040@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-041",
+      "tipo": "cedula paraguaya con puntos",
+      "original": "Soy Fabio Demo041. Mi cedula es 10.016.116 y mi correo es persona041@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Fabio Demo041"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10.016.116"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona041@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-042",
+      "tipo": "cedula paraguaya con puntos",
+      "original": "Soy Alma Sintetico042. Mi cedula es 10.017.117 y mi correo es persona042@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Alma Sintetico042"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10.017.117"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona042@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-043",
+      "tipo": "cedula paraguaya con puntos",
+      "original": "Soy Bruno Ficticio043. Mi cedula es 10.018.118 y mi correo es persona043@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Bruno Ficticio043"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10.018.118"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona043@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-044",
+      "tipo": "cedula paraguaya con puntos",
+      "original": "Soy Carla Ensayo044. Mi cedula es 10.019.119 y mi correo es persona044@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Carla Ensayo044"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10.019.119"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona044@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-045",
+      "tipo": "cedula paraguaya con puntos",
+      "original": "Soy Diego Prueba045. Mi cedula es 10.020.120 y mi correo es persona045@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Diego Prueba045"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10.020.120"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona045@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-046",
+      "tipo": "cedula paraguaya con puntos",
+      "original": "Soy Elena Demo046. Mi cedula es 10.021.121 y mi correo es persona046@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Elena Demo046"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10.021.121"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona046@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-047",
+      "tipo": "cedula paraguaya con puntos",
+      "original": "Soy Fabio Sintetico047. Mi cedula es 10.022.122 y mi correo es persona047@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Fabio Sintetico047"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10.022.122"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona047@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-048",
+      "tipo": "cedula paraguaya con puntos",
+      "original": "Soy Alma Ficticio048. Mi cedula es 10.023.123 y mi correo es persona048@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Alma Ficticio048"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "10.023.123"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona048@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-049",
+      "tipo": "cedula uruguaya",
+      "original": "Soy Bruno Ensayo049. Mi cedula es 1.234.500-0 y mi correo es persona049@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Bruno Ensayo049"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "1.234.500-0"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona049@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-050",
+      "tipo": "cedula uruguaya",
+      "original": "Soy Carla Prueba050. Mi cedula es 1.235.501-1 y mi correo es persona050@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Carla Prueba050"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "1.235.501-1"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona050@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-051",
+      "tipo": "cedula uruguaya",
+      "original": "Soy Diego Demo051. Mi cedula es 1.236.502-2 y mi correo es persona051@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Diego Demo051"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "1.236.502-2"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona051@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-052",
+      "tipo": "cedula uruguaya",
+      "original": "Soy Elena Sintetico052. Mi cedula es 1.237.503-3 y mi correo es persona052@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Elena Sintetico052"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "1.237.503-3"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona052@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-053",
+      "tipo": "cedula uruguaya",
+      "original": "Soy Fabio Ficticio053. Mi cedula es 1.238.504-4 y mi correo es persona053@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Fabio Ficticio053"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "1.238.504-4"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona053@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-054",
+      "tipo": "cedula uruguaya",
+      "original": "Soy Alma Ensayo054. Mi cedula es 1.239.505-5 y mi correo es persona054@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Alma Ensayo054"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "1.239.505-5"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona054@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-055",
+      "tipo": "cedula uruguaya",
+      "original": "Soy Bruno Prueba055. Mi cedula es 1.240.506-6 y mi correo es persona055@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Bruno Prueba055"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "1.240.506-6"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona055@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-056",
+      "tipo": "cedula uruguaya",
+      "original": "Soy Carla Demo056. Mi cedula es 1.241.507-7 y mi correo es persona056@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Carla Demo056"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "1.241.507-7"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona056@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-057",
+      "tipo": "cedula uruguaya",
+      "original": "Soy Diego Sintetico057. Mi cedula es 1.242.508-8 y mi correo es persona057@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Diego Sintetico057"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "1.242.508-8"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona057@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-058",
+      "tipo": "cedula uruguaya",
+      "original": "Soy Elena Ficticio058. Mi cedula es 1.243.509-9 y mi correo es persona058@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Elena Ficticio058"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "1.243.509-9"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona058@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-059",
+      "tipo": "cedula uruguaya",
+      "original": "Soy Fabio Ensayo059. Mi cedula es 1.244.510-0 y mi correo es persona059@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Fabio Ensayo059"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "1.244.510-0"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona059@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-060",
+      "tipo": "cedula uruguaya",
+      "original": "Soy Alma Prueba060. Mi cedula es 1.245.511-1 y mi correo es persona060@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Alma Prueba060"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "1.245.511-1"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona060@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-061",
+      "tipo": "cedula uruguaya",
+      "original": "Soy Bruno Demo061. Mi cedula es 1.246.512-2 y mi correo es persona061@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Bruno Demo061"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "1.246.512-2"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona061@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-062",
+      "tipo": "cedula uruguaya",
+      "original": "Soy Carla Sintetico062. Mi cedula es 1.247.513-3 y mi correo es persona062@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Carla Sintetico062"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "1.247.513-3"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona062@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-063",
+      "tipo": "cedula uruguaya",
+      "original": "Soy Diego Ficticio063. Mi cedula es 1.248.514-4 y mi correo es persona063@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Diego Ficticio063"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "1.248.514-4"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona063@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-064",
+      "tipo": "cedula uruguaya",
+      "original": "Soy Elena Ensayo064. Mi cedula es 1.249.515-5 y mi correo es persona064@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Elena Ensayo064"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "1.249.515-5"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona064@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-065",
+      "tipo": "cedula uruguaya",
+      "original": "Soy Fabio Prueba065. Mi cedula es 1.250.516-6 y mi correo es persona065@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Fabio Prueba065"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "1.250.516-6"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona065@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-066",
+      "tipo": "cedula uruguaya",
+      "original": "Soy Alma Demo066. Mi cedula es 1.251.517-7 y mi correo es persona066@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_ORGANIZATION_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_ORGANIZATION_1]",
+          "pii_type": "ORGANIZATION",
+          "original_value": "Alma Demo066"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "1.251.517-7"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona066@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-067",
+      "tipo": "cedula uruguaya",
+      "original": "Soy Bruno Sintetico067. Mi cedula es 1.252.518-8 y mi correo es persona067@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Bruno Sintetico067"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "1.252.518-8"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona067@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-068",
+      "tipo": "cedula uruguaya",
+      "original": "Soy Carla Ficticio068. Mi cedula es 1.253.519-9 y mi correo es persona068@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Carla Ficticio068"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "1.253.519-9"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona068@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-069",
+      "tipo": "cedula uruguaya",
+      "original": "Soy Diego Ensayo069. Mi cedula es 1.254.520-0 y mi correo es persona069@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Diego Ensayo069"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "1.254.520-0"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona069@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-070",
+      "tipo": "cedula uruguaya",
+      "original": "Soy Elena Prueba070. Mi cedula es 1.255.521-1 y mi correo es persona070@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Elena Prueba070"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "1.255.521-1"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona070@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-071",
+      "tipo": "cedula uruguaya",
+      "original": "Soy Fabio Demo071. Mi cedula es 1.256.522-2 y mi correo es persona071@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Fabio Demo071"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "1.256.522-2"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona071@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-072",
+      "tipo": "cedula uruguaya",
+      "original": "Soy Alma Sintetico072. Mi cedula es 1.257.523-3 y mi correo es persona072@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi cedula es [PII_CI_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Alma Sintetico072"
+        },
+        {
+          "token": "[PII_CI_2]",
+          "pii_type": "CI",
+          "original_value": "1.257.523-3"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona072@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-073",
+      "tipo": "telefono y correo",
+      "original": "Soy Bruno Ficticio073. Mi telefono es +595 981 000 073 y mi correo es persona073@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi telefono es [PII_PHONE_NUMBER_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Bruno Ficticio073"
+        },
+        {
+          "token": "[PII_PHONE_NUMBER_2]",
+          "pii_type": "PHONE_NUMBER",
+          "original_value": "+595 981 000 073"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona073@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-074",
+      "tipo": "telefono y correo",
+      "original": "Soy Carla Ensayo074. Mi telefono es +595 981 000 074 y mi correo es persona074@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi telefono es [PII_PHONE_NUMBER_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Carla Ensayo074"
+        },
+        {
+          "token": "[PII_PHONE_NUMBER_2]",
+          "pii_type": "PHONE_NUMBER",
+          "original_value": "+595 981 000 074"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona074@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-075",
+      "tipo": "telefono y correo",
+      "original": "Soy Diego Prueba075. Mi telefono es +595 981 000 075 y mi correo es persona075@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi telefono es [PII_PHONE_NUMBER_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Diego Prueba075"
+        },
+        {
+          "token": "[PII_PHONE_NUMBER_2]",
+          "pii_type": "PHONE_NUMBER",
+          "original_value": "+595 981 000 075"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona075@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-076",
+      "tipo": "telefono y correo",
+      "original": "Soy Elena Demo076. Mi telefono es +595 981 000 076 y mi correo es persona076@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi telefono es [PII_PHONE_NUMBER_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Elena Demo076"
+        },
+        {
+          "token": "[PII_PHONE_NUMBER_2]",
+          "pii_type": "PHONE_NUMBER",
+          "original_value": "+595 981 000 076"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona076@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-077",
+      "tipo": "telefono y correo",
+      "original": "Soy Fabio Sintetico077. Mi telefono es +595 981 000 077 y mi correo es persona077@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi telefono es [PII_PHONE_NUMBER_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Fabio Sintetico077"
+        },
+        {
+          "token": "[PII_PHONE_NUMBER_2]",
+          "pii_type": "PHONE_NUMBER",
+          "original_value": "+595 981 000 077"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona077@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-078",
+      "tipo": "telefono y correo",
+      "original": "Soy Alma Ficticio078. Mi telefono es +595 981 000 078 y mi correo es persona078@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi telefono es [PII_PHONE_NUMBER_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Alma Ficticio078"
+        },
+        {
+          "token": "[PII_PHONE_NUMBER_2]",
+          "pii_type": "PHONE_NUMBER",
+          "original_value": "+595 981 000 078"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona078@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-079",
+      "tipo": "telefono y correo",
+      "original": "Soy Bruno Ensayo079. Mi telefono es +595 981 000 079 y mi correo es persona079@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi telefono es [PII_PHONE_NUMBER_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Bruno Ensayo079"
+        },
+        {
+          "token": "[PII_PHONE_NUMBER_2]",
+          "pii_type": "PHONE_NUMBER",
+          "original_value": "+595 981 000 079"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona079@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-080",
+      "tipo": "telefono y correo",
+      "original": "Soy Carla Prueba080. Mi telefono es +595 981 000 080 y mi correo es persona080@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi telefono es [PII_PHONE_NUMBER_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Carla Prueba080"
+        },
+        {
+          "token": "[PII_PHONE_NUMBER_2]",
+          "pii_type": "PHONE_NUMBER",
+          "original_value": "+595 981 000 080"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona080@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-081",
+      "tipo": "telefono y correo",
+      "original": "Soy Diego Demo081. Mi telefono es +595 981 000 081 y mi correo es persona081@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi telefono es [PII_PHONE_NUMBER_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Diego Demo081"
+        },
+        {
+          "token": "[PII_PHONE_NUMBER_2]",
+          "pii_type": "PHONE_NUMBER",
+          "original_value": "+595 981 000 081"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona081@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-082",
+      "tipo": "telefono y correo",
+      "original": "Soy Elena Sintetico082. Mi telefono es +595 981 000 082 y mi correo es persona082@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi telefono es [PII_PHONE_NUMBER_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Elena Sintetico082"
+        },
+        {
+          "token": "[PII_PHONE_NUMBER_2]",
+          "pii_type": "PHONE_NUMBER",
+          "original_value": "+595 981 000 082"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona082@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-083",
+      "tipo": "telefono y correo",
+      "original": "Soy Fabio Ficticio083. Mi telefono es +595 981 000 083 y mi correo es persona083@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi telefono es [PII_PHONE_NUMBER_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Fabio Ficticio083"
+        },
+        {
+          "token": "[PII_PHONE_NUMBER_2]",
+          "pii_type": "PHONE_NUMBER",
+          "original_value": "+595 981 000 083"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona083@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-084",
+      "tipo": "telefono y correo",
+      "original": "Soy Alma Ensayo084. Mi telefono es +595 981 000 084 y mi correo es persona084@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi telefono es [PII_PHONE_NUMBER_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Alma Ensayo084"
+        },
+        {
+          "token": "[PII_PHONE_NUMBER_2]",
+          "pii_type": "PHONE_NUMBER",
+          "original_value": "+595 981 000 084"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona084@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-085",
+      "tipo": "telefono y correo",
+      "original": "Soy Bruno Prueba085. Mi telefono es +595 981 000 085 y mi correo es persona085@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi telefono es [PII_PHONE_NUMBER_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Bruno Prueba085"
+        },
+        {
+          "token": "[PII_PHONE_NUMBER_2]",
+          "pii_type": "PHONE_NUMBER",
+          "original_value": "+595 981 000 085"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona085@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-086",
+      "tipo": "telefono y correo",
+      "original": "Soy Carla Demo086. Mi telefono es +595 981 000 086 y mi correo es persona086@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi telefono es [PII_PHONE_NUMBER_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Carla Demo086"
+        },
+        {
+          "token": "[PII_PHONE_NUMBER_2]",
+          "pii_type": "PHONE_NUMBER",
+          "original_value": "+595 981 000 086"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona086@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-087",
+      "tipo": "telefono y correo",
+      "original": "Soy Diego Sintetico087. Mi telefono es +595 981 000 087 y mi correo es persona087@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi telefono es [PII_PHONE_NUMBER_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Diego Sintetico087"
+        },
+        {
+          "token": "[PII_PHONE_NUMBER_2]",
+          "pii_type": "PHONE_NUMBER",
+          "original_value": "+595 981 000 087"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona087@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-088",
+      "tipo": "telefono y correo",
+      "original": "Soy Elena Ficticio088. Mi telefono es +595 981 000 088 y mi correo es persona088@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi telefono es [PII_PHONE_NUMBER_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Elena Ficticio088"
+        },
+        {
+          "token": "[PII_PHONE_NUMBER_2]",
+          "pii_type": "PHONE_NUMBER",
+          "original_value": "+595 981 000 088"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona088@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-089",
+      "tipo": "telefono y correo",
+      "original": "Soy Fabio Ensayo089. Mi telefono es +595 981 000 089 y mi correo es persona089@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi telefono es [PII_PHONE_NUMBER_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Fabio Ensayo089"
+        },
+        {
+          "token": "[PII_PHONE_NUMBER_2]",
+          "pii_type": "PHONE_NUMBER",
+          "original_value": "+595 981 000 089"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona089@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-090",
+      "tipo": "telefono y correo",
+      "original": "Soy Alma Prueba090. Mi telefono es +595 981 000 090 y mi correo es persona090@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi telefono es [PII_PHONE_NUMBER_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Alma Prueba090"
+        },
+        {
+          "token": "[PII_PHONE_NUMBER_2]",
+          "pii_type": "PHONE_NUMBER",
+          "original_value": "+595 981 000 090"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona090@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-091",
+      "tipo": "telefono y correo",
+      "original": "Soy Bruno Demo091. Mi telefono es +595 981 000 091 y mi correo es persona091@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi telefono es [PII_PHONE_NUMBER_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Bruno Demo091"
+        },
+        {
+          "token": "[PII_PHONE_NUMBER_2]",
+          "pii_type": "PHONE_NUMBER",
+          "original_value": "+595 981 000 091"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona091@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-092",
+      "tipo": "telefono y correo",
+      "original": "Soy Carla Sintetico092. Mi telefono es +595 981 000 092 y mi correo es persona092@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi telefono es [PII_PHONE_NUMBER_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Carla Sintetico092"
+        },
+        {
+          "token": "[PII_PHONE_NUMBER_2]",
+          "pii_type": "PHONE_NUMBER",
+          "original_value": "+595 981 000 092"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona092@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-093",
+      "tipo": "telefono y correo",
+      "original": "Soy Diego Ficticio093. Mi telefono es +595 981 000 093 y mi correo es persona093@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi telefono es [PII_PHONE_NUMBER_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Diego Ficticio093"
+        },
+        {
+          "token": "[PII_PHONE_NUMBER_2]",
+          "pii_type": "PHONE_NUMBER",
+          "original_value": "+595 981 000 093"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona093@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-094",
+      "tipo": "telefono y correo",
+      "original": "Soy Elena Ensayo094. Mi telefono es +595 981 000 094 y mi correo es persona094@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi telefono es [PII_PHONE_NUMBER_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Elena Ensayo094"
+        },
+        {
+          "token": "[PII_PHONE_NUMBER_2]",
+          "pii_type": "PHONE_NUMBER",
+          "original_value": "+595 981 000 094"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona094@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-095",
+      "tipo": "telefono y correo",
+      "original": "Soy Fabio Prueba095. Mi telefono es +595 981 000 095 y mi correo es persona095@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi telefono es [PII_PHONE_NUMBER_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Fabio Prueba095"
+        },
+        {
+          "token": "[PII_PHONE_NUMBER_2]",
+          "pii_type": "PHONE_NUMBER",
+          "original_value": "+595 981 000 095"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona095@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-SYN-096",
+      "tipo": "telefono y correo",
+      "original": "Soy Alma Demo096. Mi telefono es +595 981 000 096 y mi correo es persona096@ejemplo-test.edu. Necesito información sobre matrícula.",
+      "anonimizado": "Soy [PII_PERSON_1]. Mi telefono es [PII_PHONE_NUMBER_2] y mi correo es [PII_EMAIL_ADDRESS_3]. Necesito información sobre matrícula.",
+      "detectados": 3,
+      "mappings": [
+        {
+          "token": "[PII_PERSON_1]",
+          "pii_type": "PERSON",
+          "original_value": "Alma Demo096"
+        },
+        {
+          "token": "[PII_PHONE_NUMBER_2]",
+          "pii_type": "PHONE_NUMBER",
+          "original_value": "+595 981 000 096"
+        },
+        {
+          "token": "[PII_EMAIL_ADDRESS_3]",
+          "pii_type": "EMAIL_ADDRESS",
+          "original_value": "persona096@ejemplo-test.edu"
+        }
+      ],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 3,
+      "valores_esperados_anonimizados": 3,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-NEG-001",
+      "tipo": "Control negativo sin datos personales",
+      "original": "Necesito consultar el calendario académico y las fechas de examen.",
+      "anonimizado": "Necesito consultar el calendario académico y las fechas de examen.",
+      "detectados": 0,
+      "mappings": [],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 0,
+      "valores_esperados_anonimizados": 0,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-NEG-002",
+      "tipo": "Control negativo sin datos personales",
+      "original": "¿Qué documentos necesito para la matrícula?",
+      "anonimizado": "¿Qué documentos necesito para la matrícula?",
+      "detectados": 0,
+      "mappings": [],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 0,
+      "valores_esperados_anonimizados": 0,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-NEG-003",
+      "tipo": "Control negativo sin datos personales",
+      "original": "¿Cuándo comienza el próximo semestre académico?",
+      "anonimizado": "¿Cuándo comienza el próximo semestre académico?",
+      "detectados": 0,
+      "mappings": [],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 0,
+      "valores_esperados_anonimizados": 0,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-NEG-004",
+      "tipo": "Control negativo sin datos personales",
+      "original": "¿Dónde puedo consultar el calendario de exámenes?",
+      "anonimizado": "¿Dónde puedo consultar el calendario de exámenes?",
+      "detectados": 0,
+      "mappings": [],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 0,
+      "valores_esperados_anonimizados": 0,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-NEG-005",
+      "tipo": "Control negativo sin datos personales",
+      "original": "¿Qué requisitos tiene el trámite de reingreso?",
+      "anonimizado": "¿Qué requisitos tiene el trámite de reingreso?",
+      "detectados": 0,
+      "mappings": [],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 0,
+      "valores_esperados_anonimizados": 0,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-NEG-006",
+      "tipo": "Control negativo sin datos personales",
+      "original": "¿Cómo se solicita una beca por mérito académico?",
+      "anonimizado": "¿Cómo se solicita una beca por mérito académico?",
+      "detectados": 0,
+      "mappings": [],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 0,
+      "valores_esperados_anonimizados": 0,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-NEG-007",
+      "tipo": "Control negativo sin datos personales",
+      "original": "¿Cuál es el horario de atención de la biblioteca?",
+      "anonimizado": "¿Cuál es el horario de atención de la biblioteca?",
+      "detectados": 0,
+      "mappings": [],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 0,
+      "valores_esperados_anonimizados": 0,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-NEG-008",
+      "tipo": "Control negativo sin datos personales",
+      "original": "¿Qué pasos debo seguir para pedir un certificado de estudios?",
+      "anonimizado": "¿Qué pasos debo seguir para pedir un certificado de estudios?",
+      "detectados": 0,
+      "mappings": [],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 0,
+      "valores_esperados_anonimizados": 0,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-NEG-009",
+      "tipo": "Control negativo sin datos personales",
+      "original": "¿Cómo consulto las materias disponibles para el próximo periodo?",
+      "anonimizado": "¿Cómo consulto las materias disponibles para el próximo periodo?",
+      "detectados": 0,
+      "mappings": [],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 0,
+      "valores_esperados_anonimizados": 0,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-NEG-010",
+      "tipo": "Control negativo sin datos personales",
+      "original": "¿Qué reglamento establece las normas de convivencia?",
+      "anonimizado": "¿Qué reglamento establece las normas de convivencia?",
+      "detectados": 0,
+      "mappings": [],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 0,
+      "valores_esperados_anonimizados": 0,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-NEG-011",
+      "tipo": "Control negativo sin datos personales",
+      "original": "¿Dónde se publican las fechas de inscripción?",
+      "anonimizado": "¿Dónde se publican las fechas de inscripción?",
+      "detectados": 0,
+      "mappings": [],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 0,
+      "valores_esperados_anonimizados": 0,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-NEG-012",
+      "tipo": "Control negativo sin datos personales",
+      "original": "¿Cómo funciona el régimen de correlatividades?",
+      "anonimizado": "¿Cómo funciona el régimen de correlatividades?",
+      "detectados": 0,
+      "mappings": [],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 0,
+      "valores_esperados_anonimizados": 0,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-NEG-013",
+      "tipo": "Control negativo sin datos personales",
+      "original": "¿Qué opciones de pago ofrece la institución?",
+      "anonimizado": "¿Qué opciones de pago ofrece la institución?",
+      "detectados": 0,
+      "mappings": [],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 0,
+      "valores_esperados_anonimizados": 0,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-NEG-014",
+      "tipo": "Control negativo sin datos personales",
+      "original": "¿Cuándo se publican las calificaciones finales?",
+      "anonimizado": "¿Cuándo se publican las calificaciones finales?",
+      "detectados": 0,
+      "mappings": [],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 0,
+      "valores_esperados_anonimizados": 0,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-NEG-015",
+      "tipo": "Control negativo sin datos personales",
+      "original": "¿Qué procedimiento se sigue para solicitar una equivalencia?",
+      "anonimizado": "¿Qué procedimiento se sigue para solicitar una equivalencia?",
+      "detectados": 0,
+      "mappings": [],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 0,
+      "valores_esperados_anonimizados": 0,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-NEG-016",
+      "tipo": "Control negativo sin datos personales",
+      "original": "¿Cómo ingreso al campus virtual?",
+      "anonimizado": "¿Cómo ingreso al campus virtual?",
+      "detectados": 0,
+      "mappings": [],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 0,
+      "valores_esperados_anonimizados": 0,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-NEG-017",
+      "tipo": "Control negativo sin datos personales",
+      "original": "¿Qué requisitos se exigen para presentar el trabajo final?",
+      "anonimizado": "¿Qué requisitos se exigen para presentar el trabajo final?",
+      "detectados": 0,
+      "mappings": [],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 0,
+      "valores_esperados_anonimizados": 0,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-NEG-018",
+      "tipo": "Control negativo sin datos personales",
+      "original": "¿En qué fechas se realizan los exámenes parciales?",
+      "anonimizado": "¿En qué fechas se realizan los exámenes parciales?",
+      "detectados": 0,
+      "mappings": [],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 0,
+      "valores_esperados_anonimizados": 0,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    },
+    {
+      "id": "PII-NEG-019",
+      "tipo": "Control negativo sin datos personales",
+      "original": "Necesito información sobre aranceles académicos.",
+      "anonimizado": "Necesito información sobre aranceles académicos.",
+      "detectados": 0,
+      "mappings": [],
+      "detecciones_no_esperadas": [],
+      "valores_esperados": 0,
+      "valores_esperados_anonimizados": 0,
+      "fuga_al_proveedor": false,
+      "no_detectado": [],
+      "roundtrip_ok": true,
+      "resultado": "OK"
+    }
+  ]
+}

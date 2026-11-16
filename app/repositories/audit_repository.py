@@ -25,6 +25,9 @@ class AuditRepository:
         observaciones: Optional[str] = None,
         embedding_model: Optional[str] = None,
         institucion_id: Optional[int] = None,
+        score_fidelidad: Optional[float] = None,
+        score_relevancia: Optional[float] = None,
+        score_contexto: Optional[float] = None,
     ) -> dict:
         response = (
             self.client.table("audit_logs")
@@ -43,6 +46,9 @@ class AuditRepository:
                 "observaciones": observaciones,
                 "embedding_model": embedding_model,
                 "institucion_id": institucion_id,
+                "score_fidelidad": score_fidelidad,
+                "score_relevancia": score_relevancia,
+                "score_contexto": score_contexto,
             })
             .execute()
         )
@@ -55,11 +61,55 @@ class AuditRepository:
         response = query.execute()
         return list(response.data or [])
 
+    def get_by_id(self, audit_id: str) -> Optional[dict]:
+        resp = (
+            self.client.table("audit_logs")
+            .select("*")
+            .eq("id", audit_id)
+            .limit(1)
+            .execute()
+        )
+        return resp.data[0] if resp.data else None
+
     def update_observaciones(self, audit_id: str, observaciones: str) -> Optional[dict]:
         response = (
             self.client.table("audit_logs")
             .update({"observaciones": observaciones})
             .eq("id", audit_id)
+            .execute()
+        )
+        return response.data[0] if response.data else None
+
+    def log_action(
+        self,
+        action: str,
+        *,
+        external_auth_id: Optional[str],
+        institucion_id: Optional[int] = None,
+        detalle: Optional[str] = None,
+    ) -> Optional[dict]:
+        """Registra una acción administrativa de gestión en `audit_logs`.
+
+        `conversacion_id`/`mensaje_id` quedan NULL (acciones no vinculadas a un
+        turno de chat). `action` es el tipo (DOC_UPLOAD, CATEGORY_CREATE, ...) y
+        `detalle` va en observaciones.
+        """
+        response = (
+            self.client.table("audit_logs")
+            .insert({
+                "conversacion_id": None,
+                "mensaje_id": None,
+                "external_auth_id": external_auth_id,
+                "respuesta_texto": action,
+                "proveedor_ia": None,
+                "modelo_ia": None,
+                "tokens_input": None,
+                "tokens_output": None,
+                "tiempo_respuesta_ms": None,
+                "observaciones": detalle,
+                "embedding_model": None,
+                "institucion_id": institucion_id,
+            })
             .execute()
         )
         return response.data[0] if response.data else None

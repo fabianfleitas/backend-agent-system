@@ -17,6 +17,20 @@ from app.services.indexing_service import IndexingService
 logger = logging.getLogger(__name__)
 
 
+def _log_audit_action(action: str, auth: AuthContext, detalle: Optional[str] = None) -> None:
+    try:
+        from app.repositories.audit_repository import AuditRepository
+
+        AuditRepository().log_action(
+            action,
+            external_auth_id=auth.external_auth_id,
+            institucion_id=auth.institucion_id,
+            detalle=detalle,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Audit action %s failed: %s", action, exc)
+
+
 
 def _validate_pdf(file_bytes: bytes, content_type: Optional[str]) -> None:
     """Valida MIME y magic-bytes de PDF + tamaño máximo (50 MB)."""
@@ -86,6 +100,11 @@ class DocumentsService:
             file_size_bytes=len(file_bytes),
         )
         self._index_or_extract(document["id"], version["id"], file_bytes, filename)
+        _log_audit_action(
+            "DOC_UPLOAD",
+            auth,
+            f"documento_id={document['id']} version_id={version['id']} titulo={titulo}",
+        )
         return document, version
 
     def list_documents(self, auth: AuthContext) -> list[tuple[dict, Optional[dict]]]:
@@ -132,6 +151,7 @@ class DocumentsService:
             return None
         document = self.documents_repository.get_document_by_id(documento_id, institucion_id=auth.institucion_id)
         versions = document.get("documento_versiones") or [] if document else []
+        _log_audit_action("DOC_DEACTIVATE", auth, f"documento_id={documento_id}")
         return document, _active_version(versions)
 
     def upload_new_version(
@@ -166,6 +186,7 @@ class DocumentsService:
             file_size_bytes=len(file_bytes),
         )
         self._index_or_extract(documento_id, version["id"], file_bytes, filename, institucion_id=auth.institucion_id)
+        _log_audit_action("DOC_VERSION", auth, f"documento_id={documento_id} version_id={version['id']}")
         return document, version
 
     @staticmethod
@@ -270,6 +291,7 @@ class DocumentsService:
             result = IndexingService().index_version(version["id"], institucion_id=institution_id)
             if result.ok:
                 updated += 1
+        _log_audit_action("DOC_REINDEX", auth, f"documento_id={documento_id} actualizadas={updated}")
         return updated
 
 
